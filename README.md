@@ -117,4 +117,20 @@ TODO - Which libraries are used for deploying Haskell webapps?
 
 # The Spec
 
-TODO
+These options have been taken from the apps we make our Software Apprentices implement in Rails before they can gradate to a full-time Software Developer position. While these apps, when specced out completely can be very large, the idea is neither to spec-out nor implement everything. The plan is to spec out (and implement) enough to cover the following functional areas:
+
+* Siged-out (not logged-in) operations
+* Signed-in operations for an unprivileged user (regular user)
+* Signed-in operations for two separate types of privileged users (eg. super-admin and limited-admin) -- will help implement POC for authorization
+* Domain-level operations that require DB transactions
+* A moderately complex web-form (to complete the user-input validation and user-feedback loop)
+* Searching the app's core data based on user-input
+* Sending out emails? (should this be included in the scope?)
+
+The spec/app ideas:
+
+* Recipe box: An app where users can create and share recipes. Other users can search for recipes by ingredients. Administrators can perform various curation and moderation operations.
+* Job board
+* Quizzing: An app where users an create questions and organize them into quizzes. Other users can attempt the quizzes. Administrators can perform various curation and moderation operations.
+* Eventbrite clone
+* E-commerge/shopping site clone
