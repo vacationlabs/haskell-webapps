@@ -1,25 +1,31 @@
 # Motivation
 
-* There is too much choice, with respect to libraries, when building a typical RDBMS-backed webapp. Most people (especially newcomers to Haskell) don't know enough about advantages/disadvantages to make the right choice. Making the wrong choice leads to a **lot of needless frustration**
-* What kind of choices and what kind of decisions am I talking about? Sample the following:
-  * Core web server/library to deal with routing + cookies + headers
-  * Library to deal with templating (primarily HTML templates)
-  * Library to deal with DB access
-  * How to deal with DB migrations
-  * Library to deal with Redis for caching expensive things -- eg. expensive DB queries or JSON generation
-  * How to implement authentication
-  * How to implement authorization
-  * How to maintain audit logs
-  * How to maintain file-based logging
-  * How to validate incoming user-input in a manner where the UI can report the errors back the the user appropriately (i.e. good UX)
-  * Dealing with static assets (i.e. images, JS, CSS) - during development and during production. Integrating non-Haskell tech into the static asset toolchain (eg. Coffeescript, Typescript, LessCSS, Sass, asset combining and minification)
-  * How to deal with automated testing - unit testing, controller/functional testing, integration tests using Selenium (at least)
-* I believe most of these things are *possible* in Haskell and its rich library ecosystem. However, making all of this work is [*not as easy as it ought to be.*](https://medium.com/@saurabhnanda/why-building-web-apps-in-haskell-is-harder-than-it-ought-to-be-c9b13de0be4f) This is because the *idiomatic* and *will-work for-80%-of-the-use-cases-with-20%-effort* way of dealing with these things is not documented properly in one place. This gets more complicated due to the library fragmentation. Libraries make very different decision choices and take **very different** approaches for solving the same problem. Transliterating the idiomatic way from one library to the other may not result in the most pragmatic codebase.
-* While there are great tutorials (either provided by the project maintainers themselves or in various blog posts), my experience is that most tutorials walk you through the most basic scenarios. I wasn't able to *easily* find answers for most real-life scenarios. Asking on various forums like IRC (#haskell), [/r/haskell](https://www.reddit.com/r/haskell), or StackOverflow, while helpful (the Haskell community is the most helpful and knowledgable community that I have come across) has the following problems:
-  * Most forums are designed for Q&A format. Not long-form opinion or long-form code-sharing. Even explaining the problem that I'm facing takes a long-form question, which most people don't have time to read. Questions that don't have a narrow focus or a one correct answer are actively discouraged on StackOverflow nowadays.
-  * Discussions quickly migrate from pragmatic, getting-things-done zone to philosophical debates.
-  * My personal experience is that most people in the Haskell community haven't written large-scale webapps. Or, the ones that have written aren't active on the channels that I hang-out on. In fact, apart from FP Compllete Web IDE, I don't yet know of large-scale modern webapps written in Haskell. Even if there are commercial outfits doing that, there's no way for one to look at their code and learn webapp patterns in Haskell.
-* Another motiviation (actually, the real motivation), is that I'm scratching my own itch. I run a SaaS company, [Vacation Labs](https://www.vacationlabs.com), which has a Rails+AngularJS codebase that has grown to [250,000+ LoC](http://www.vacationlabs.com/we-are-hiring/software-engineer/) over the past 4 years. We're experiencing the disadvantages of using dynamically typed languages on a very large code-base. While automated tests help (unit tests & controller tests), they don't give enough correctness guarantees that something like Haskell can give. I wanted to quickly evaluate Haskell for our use-case, but going through the steep learning curve (functors, monads, laziness, purity, Reader, monad transformers, etc.) has taken a lot of calendar-days (I don't have too much free time these days). I'm not left with enough time to evaluate multiple libraries to pick the best. Therefore, I want to crowd-source the effort, generating a valuable community resource in the process.
+There is too much choice, with respect to libraries, when building a typical RDBMS-backed webapp. Most people (especially newcomers to Haskell) don't know enough about advantages/disadvantages to make the right choice. Making the wrong choice leads to a **lot of needless frustration**
+
+What kind of choices and what kind of decisions am I talking about? Sample the following:
+
+* Core web server/library to deal with routing + cookies + headers
+* Library to deal with templating (primarily HTML templates)
+* Library to deal with DB access
+* How to deal with DB migrations
+* Library to deal with Redis for caching expensive things -- eg. expensive DB queries or JSON generation
+* How to implement authentication
+* How to implement authorization
+* How to maintain audit logs
+* How to maintain file-based logging
+* How to validate incoming user-input in a manner where the UI can report the errors back the the user appropriately (i.e. good UX)
+* Dealing with static assets (i.e. images, JS, CSS) - during development and during production. Integrating non-Haskell tech into the static asset toolchain (eg. Coffeescript, Typescript, LessCSS, Sass, asset combining and minification)
+* How to deal with automated testing - unit testing, controller/functional testing, integration tests using Selenium (at least)
+
+I believe most of these things are *possible* in Haskell and its rich library ecosystem. However, making all of this work is [*not as easy as it ought to be.*](https://medium.com/@saurabhnanda/why-building-web-apps-in-haskell-is-harder-than-it-ought-to-be-c9b13de0be4f) This is because the *idiomatic* and *will-work for-80%-of-the-use-cases-with-20%-effort* way of dealing with these things is not documented properly in one place. This gets more complicated due to the library fragmentation. Libraries make very different decision choices and take **very different** approaches for solving the same problem. Transliterating the idiomatic way from one library to the other may not result in the most pragmatic codebase.
+
+While there are great tutorials (either provided by the project maintainers themselves or in various blog posts), my experience is that most tutorials walk you through the most basic scenarios. I wasn't able to *easily* find answers for most real-life scenarios. Asking on various forums like IRC (#haskell), [/r/haskell](https://www.reddit.com/r/haskell), or StackOverflow, while helpful (the Haskell community is the most helpful and knowledgable community that I have come across) has the following problems:
+ 
+* Most forums are designed for Q&A format. Not long-form opinion or long-form code-sharing. Even explaining the problem that I'm facing takes a long-form question, which most people don't have time to read. Questions that don't have a narrow focus or a one correct answer are actively discouraged on StackOverflow nowadays.
+* Discussions quickly migrate from pragmatic, getting-things-done zone to philosophical debates.
+* My personal experience is that most people in the Haskell community haven't written large-scale webapps. Or, the ones that have written aren't active on the channels that I hang-out on. In fact, apart from FP Compllete Web IDE, I don't yet know of large-scale modern webapps written in Haskell. Even if there are commercial outfits doing that, there's no way for one to look at their code and learn webapp patterns in Haskell.
+
+Another motiviation (actually, the real motivation), is that I'm scratching my own itch. I run a SaaS company, [Vacation Labs](https://www.vacationlabs.com), which has a Rails+AngularJS codebase that has grown to [250,000+ LoC](http://www.vacationlabs.com/we-are-hiring/software-engineer/) over the past 4 years. We're experiencing the disadvantages of using dynamically typed languages on a very large code-base. While automated tests help (unit tests & controller tests), they don't give enough correctness guarantees that something like Haskell can give. I wanted to quickly evaluate Haskell for our use-case, but going through the steep learning curve (functors, monads, laziness, purity, Reader, monad transformers, etc.) has taken a lot of calendar-days (I don't have too much free time these days). I'm not left with enough time to evaluate multiple libraries to pick the best. Therefore, I want to crowd-source the effort, generating a valuable community resource in the process.
 
 # The Plan
 
