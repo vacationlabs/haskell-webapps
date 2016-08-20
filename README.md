@@ -6,9 +6,9 @@
 > Suggestions for how to make this effort a success?
 > Suggestions to reduce the effort/scope, but still meet the overall goals of the effort?
 
-* (Motivation)[#motivation]
-* (The Plan)[#the-plan]
-* (The Spec)[#the-spec]
+* [Motivation](#motivation)
+* [The Plan](#the-plan)
+* [The Spec](#the-spec)
 
 # Motivation
 
