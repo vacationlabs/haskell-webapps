@@ -62,19 +62,21 @@ authenticate2 username password = undefined
 
 data ProductFilter = ProductFilter{}
 data Product = Product{}
-getProductList1 :: ProductFilter -> [Product]
+getProductList1 :: ProductFilter -> App [Product]
 getProductList1 filter = undefined
 
 
-getProductList2 :: Query Product
+-- TODO: Figure out if Opaleye operations need to be performaed in the App
+-- monad-transformer stack
+getProductList2 :: App (Query Product)
 getProductList2 = undefined
 
 newtype ProductId = ProductId Int -- TODO: Will change to whatever Opaleye needs.
-getProductList3 :: ProductFilter -> Query ProductId
+getProductList3 :: ProductFilter -> App (Query ProductId)
 getProductList3 filter = undefined
 
 data User = User{}
-getProductList4 :: User -> ProductFilter -> [Product]
+getProductList4 :: User -> ProductFilter -> App [Product]
 getProductList4 user filter = undefined
 
 --
@@ -109,4 +111,4 @@ getProductList4 user filter = undefined
 
 --
 -- Place an order (containing multiple products) as an administrator
--- 
+--
