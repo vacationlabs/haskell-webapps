@@ -116,12 +116,12 @@ data ValidationResult = Invalid | Valid
 -- itself.
 data Product2 = Product2 ValidationState
 
--- TODO: Also, how do we represent a invalid user-input in Haskell? Something which
--- may have missing fields? Does this mean that we need THREE records-types to
--- hold essentially the same data? First for user-input (which needs to be most
--- tolerant, missing fields, etc.). Second for validated input with all the
--- constraints checked. And third for something that only the DB layer might
--- require. Seems too much.
+-- TODO: Also, how do we represent invalid user-input in Haskell? Something
+-- which may have missing fields? Does this mean that we need THREE
+-- records-types to hold essentially the same data? First for user-input (which
+-- needs to be most tolerant, missing fields, etc.). Second for validated input
+-- with all the constraints checked. And third for something that only the DB
+-- layer might require. Seems too much.
 --
 -- Or, should the user-validation be done by the 'controller' layer, i.e. the
 -- JSON parsing code. So, the JSON parsing results in either a valid
