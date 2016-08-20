@@ -21,10 +21,10 @@
 
 * Spec out a typical Postgres-backed web-app which covers all the points mentioned in the "Motivation" section. 
   * Design the DB schema to include the following commonly occuring webapp requirements:
-    ** one:one, one:many, and many:many associations
-    ** created-at and updated-at housekeeping columns
-    ** unified audit-log table with "before" and "after" columns implemented as HSTOREs
-    ** using JSONB and Postgres-arrays in the DB schema
+    * one:one, one:many, and many:many associations
+    * created-at and updated-at housekeeping columns
+    * unified audit-log table with "before" and "after" columns implemented as HSTOREs
+    * using JSONB and Postgres-arrays in the DB schema
   * Design a JSON API which covers all domain-level operations, which a hypothetical "dumb" UI may consume. Why a "dumb" UI? Because IMO pushing domain-logic to the UI layer isn't a good idea. Generally, UIs are harder to test, and in today's multi-screen/multi-device world you'll end up implementing multiple UIs for the same app. Thus, forcin you to implement the domain-logic multiple times -- for your single-page-app (SPA) in Javascript, your Android app, your iOS app, your Windows app, and your desktop app.
   * Design an **optional** Bootstrap-3 based UI (with HTML & LessCSS) for testing out how code shapes up with different templating libraries in Haskell.
 * However, it won't make sense to implement the entire app (UI **and** API) for every possible combination of libraries. Therefore, implement the spec in three distinct phases. The assumption is that the phases are loosely coupled and the library choices for one phase do not impact the other phase significantly. (This might be not be true in the cases of frameworks like Yesod, but then again, this is not supposed to be a scientifically controlled experiment).
