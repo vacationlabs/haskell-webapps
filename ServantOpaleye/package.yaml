@@ -38,6 +38,8 @@ library:
   dependencies:
   - base
   - text
+  - mtl
+  - opaleye
   source-dirs: library
 license: MIT
 maintainer: Author name here
