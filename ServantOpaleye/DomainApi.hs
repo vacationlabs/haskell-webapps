@@ -96,6 +96,15 @@ getProductList4 user filter = undefined
 --
 -- Create a new product
 --
+-- TODO: Figure out the easiest way to do validations with two approaches:
+--
+-- 1. Errors are essentially returned as flat list of strings. This will allow
+-- the UI to display the errors bunched-up together at the top of the form.
+--
+-- 2. Errors are a returned as a structured list of strings, such that the UI
+-- can, if it wants, identify which error maps to which user-input and displays
+-- it next to the field on the UI.
+--
 
 --
 -- Create a new discount code
