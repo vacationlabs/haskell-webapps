@@ -127,7 +127,7 @@ These options have been taken from the apps we make our Software Apprentices imp
 * Searching the app's core data based on user-input
 * Sending out emails? (should this be included in the scope?)
 
-The spec/app ideas:
+The spec/app ideas from which **one** will be picked:
 
 * Recipe box: An app where users can create and share recipes. Other users can search for recipes by ingredients. Administrators can perform various curation and moderation operations.
 * Job board
