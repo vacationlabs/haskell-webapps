@@ -130,8 +130,10 @@ TODO - Which libraries are used for deploying Haskell webapps?
 # The Spec
 
 ---
+
 > Have decided on building parts of a shopping cart. This is problem that most people identify with. 
 > Spec available at [SPEC](./SPEC.md)
+
 ---
 
 These options have been taken from the apps we make our Software Apprentices implement in Rails before they can gradate to a full-time Software Developer position. While these apps, when specced out completely can be very large, the idea is neither to spec-out nor implement everything. The plan is to spec out (and implement) enough to cover the following functional areas:
