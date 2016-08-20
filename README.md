@@ -6,6 +6,10 @@
 > Suggestions for how to make this effort a success?
 > Suggestions to reduce the effort/scope, but still meet the overall goals of the effort?
 
+* (Motivation)[#motivation]
+* (The Plan)[#the-plan]
+* (The Spec)[#the-spec]
+
 # Motivation
 
 There is too much choice, with respect to libraries, when building a typical RDBMS-backed webapp. With probably the sole exception of Yesod, which is a pretty complete, and opinionated *framework*. Most people (especially newcomers to Haskell) don't know enough about advantages/disadvantages to make the right choice. Making the wrong choice leads to a **lot of needless frustration**
