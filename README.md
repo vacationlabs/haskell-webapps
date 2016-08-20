@@ -72,6 +72,8 @@ However, it won't make sense to implement the entire app (UI **and** API) for ev
   * GHCJS + Reflex-FRP
   * Any other?
 4. Redis caching for JSON responses from the API
+  * TODO - is there a defacto standard library for Redis access?
+  * TODO - is it possible to have a caching layer at the web-server level so that it doesn't have to be implemented by the app?
 
 ## Phase 2.2: Server-powered HTML UI
 
@@ -82,15 +84,17 @@ However, it won't make sense to implement the entire app (UI **and** API) for ev
   * Blaze
   * Heist
 3. Redis caching for the HTML responses from the server
+  * TODO - is there a defacto standard library for Redis access?
+  * TODO - is it possible to have a caching layer at the web-server level so that it doesn't have to be implemented by the app?
 
 ## Phase 3: Testing
 
 1. Unit tests for domain-level API
   * Quicktest
   * Hspec
-  * Anything else?
+  * TODO - Anything else which is better for webapps?
 2. Integration/browser tests using Selenium
-  * Which library?
+  * TODO - Which library?
 
 ## Phase 4: Deplyoment
 
