@@ -2,6 +2,9 @@
 
 > Any relevant full-featured libraries that have been missed?
 > Any libraries that are de-facto standards (eg. Aeson for JSON) which can reduce the scope of this seemingly humongous task?
+> Any library that has a known better alternative, for all practical purposes?
+> Suggestions for how to make this effor a success?
+> Suggestions to reduce the effort/scope but stil meet the overall goals of the effort?
 
 # Motivation
 
