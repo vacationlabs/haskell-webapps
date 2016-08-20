@@ -46,19 +46,19 @@
 
 ## Phase 2.1: JS-powered SPA
 
-* Step 1: Domain-API mentioned in the section above will be reused
-* Step 2: Write JSON-based API to access the domain API
+1. Domain-API mentioned in the section above will be reused
+2. Write JSON-based API to access the domain API
   * Servant + Aeson
   * Yesod + Aeson
   * Snap + Aeson
-* Step 3: Write SPA in Haskell-powered technologies
+3. Write SPA in Haskell-powered technologies
   * GHCJS + Reflex-FRP
   * Any other?
 
 ## Phase 2.2: Server-powered HTML UI
 
-* Step 1: Domain-API mentioned in the section above will be reused
-* Step 2: Convert HTML into templates, and wire up the UI as per the spec:
+1. Domain-API mentioned in the section above will be reused
+2. Convert HTML into templates, and wire up the UI as per the spec:
   * Shakespearean templates
   * Lucid
   * Blaze
@@ -66,11 +66,11 @@
 
 ## Phase 3: Testing
 
-* Step 1: Unit tests for domain-level API
+1. Unit tests for domain-level API
   * Quicktest
   * Hspec
   * Anything else?
-* Step 2: Integration/browser tests using Selenium
+2. Integration/browser tests using Selenium
   * Which library?
 
 # The Spec
