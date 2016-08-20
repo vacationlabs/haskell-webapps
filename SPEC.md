@@ -10,6 +10,7 @@
 
 # Domain-Level API
 
+* Simple email+password based authentication
 * Get list of products, with search, sort, and pagination
 * Get single product details (fixed/pre-decided JSON response)
 * Get single product details with fields specified in the request (variable JSON response, depending upon the request)
