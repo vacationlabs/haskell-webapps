@@ -15,7 +15,7 @@
   * Anything else?
 * I believe most of these things are *possible* in Haskell and its rich library ecosystem. However, making all of this work is *not as easy as it ought to be.* This is because the *idiomatic* and "will-work for-80%-of-the-use-cases-with-20%-effort" way of dealing with these things is not documented properly in one place. This gets more complicated due to the library fragmentation. Libraries make very different decision choices and take **very different** approaches for solving the same problem. Transliterating the idiomatic way from one library to the other may not result in the most pragmatic codebase.
 * While there are great tutorials (either provided by the project maintainers themselves or in various blog posts), my experience is that most tutorials walk you through implementing the most basic webapp. I wasn't able to find answers easily for most real-life concerns. 
-* Scratching my own itch. I'm running a SaaS company, Vacation Labs, which has a Rails+AngularJS codebase that has grown to 250,000+ LoC over the past 4 years. I'm feeling the downsides of using a dynamically typed language on a very large code-base. While automated testing (unit tests & controller tests) helps, it still doesn't give enough correctness guarantees that something like Haskell can give. I wanted to quickly evaluate Haskell for our use-case, but going through the steep learning curve (functors, monads, laziness, purity, Reader, monad transformers, etc.) has taken a lot of time. I'm not left with enough time to evaluate multiple libraries to pick the best. Therefore, I want to crowd-source the effort, generating a valuable community resource in the process.
+* Scratching my own itch. I'm running a SaaS company, [Vacation Labs](https://www.vacationlabs.com), which has a Rails+AngularJS codebase that has grown to [250,000+ LoC](http://www.vacationlabs.com/we-are-hiring/software-engineer/) over the past 4 years. I'm feeling the downsides of using a dynamically typed language on a very large code-base. While automated testing helps (unit tests & controller tests), it doesn't give enough correctness guarantees that something like Haskell can give. I wanted to quickly evaluate Haskell for our use-case, but going through the steep learning curve (functors, monads, laziness, purity, Reader, monad transformers, etc.) has taken a lot of time. I'm not left with enough time to evaluate multiple libraries to pick the best. Therefore, I want to crowd-source the effort, generating a valuable community resource in the process.
 
 # The Plan
 
@@ -32,6 +32,7 @@
   * Phase 2.1: JS-powered SPA (single page app)
   * Phase 2.2: Server-powered HTML UI
   * Phase 3: Testing (common to both UI approaches)
+  * Phase 4: Deployment (common to both UI approaches)
 
 ## Phase 1: Domain-level API + DB-access + Validations
 
@@ -42,7 +43,6 @@
   * Postgresql-ORM
 2. Domain-level API with validations (which takes care of fetching records that may have DB-associations)
 3. Audit logging
-4. Redis caching
 
 ## Phase 2.1: JS-powered SPA
 
@@ -54,6 +54,7 @@
 3. Write SPA in Haskell-powered technologies
   * GHCJS + Reflex-FRP
   * Any other?
+4. Redis caching for JSON responses from the API
 
 ## Phase 2.2: Server-powered HTML UI
 
@@ -63,6 +64,7 @@
   * Lucid
   * Blaze
   * Heist
+3. Redis caching for the HTML responses from the server
 
 ## Phase 3: Testing
 
@@ -72,6 +74,10 @@
   * Anything else?
 2. Integration/browser tests using Selenium
   * Which library?
+
+## Phase 4: Deplyoment
+
+* Which libraries are used for deploying Haskell webapps?
 
 # The Spec
 
