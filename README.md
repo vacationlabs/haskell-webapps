@@ -3,12 +3,12 @@
 > Any relevant full-featured libraries that have been missed?
 > Any libraries that are de-facto standards (eg. Aeson for JSON) which can reduce the scope of this seemingly humongous task?
 > Any library that has a known better alternative, for all practical purposes?
-> Suggestions for how to make this effor a success?
-> Suggestions to reduce the effort/scope but stil meet the overall goals of the effort?
+> Suggestions for how to make this effort a success?
+> Suggestions to reduce the effort/scope, but still meet the overall goals of the effort?
 
 # Motivation
 
-There is too much choice, with respect to libraries, when building a typical RDBMS-backed webapp. Most people (especially newcomers to Haskell) don't know enough about advantages/disadvantages to make the right choice. Making the wrong choice leads to a **lot of needless frustration**
+There is too much choice, with respect to libraries, when building a typical RDBMS-backed webapp (with probably the sole exception of Yesod, which is a pretty complete, and opinionated *framework*). Most people (especially newcomers to Haskell) don't know enough about advantages/disadvantages to make the right choice. Making the wrong choice leads to a **lot of needless frustration**
 
 What kind of choices and what kind of decisions am I talking about? Sample the following:
 
