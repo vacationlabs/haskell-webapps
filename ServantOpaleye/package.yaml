@@ -1,0 +1,59 @@
+# This YAML file describes your package. Stack will automatically generate a
+# Cabal file when you run `stack build`. See the hpack website for help with
+# this file: <https://github.com/sol/hpack>.
+benchmarks:
+  ServantOpaleye-benchmarks:
+    dependencies:
+    - base
+    - ServantOpaleye
+    - criterion
+    ghc-options:
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-N
+    main: Main.hs
+    source-dirs: benchmark
+category: Other
+description: ServantOpaleye is a new Haskeleton package.
+executables:
+  ServantOpaleye:
+    dependencies:
+    - base
+    - ServantOpaleye
+    ghc-options:
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-N
+    main: Main.hs
+    source-dirs: executable
+extra-source-files:
+- CHANGELOG.md
+- LICENSE.md
+- package.yaml
+- README.md
+- stack.yaml
+ghc-options: -Wall
+github: githubuser/ServantOpaleye
+library:
+  dependencies:
+  - base
+  - text
+  source-dirs: library
+license: MIT
+maintainer: Author name here
+name: ServantOpaleye
+synopsis: A new Haskeleton package.
+tests:
+  ServantOpaleye-test-suite:
+    dependencies:
+    - base
+    - ServantOpaleye
+    - tasty
+    - tasty-hspec
+    ghc-options:
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-N
+    main: Main.hs
+    source-dirs: test-suite
+version: '0.0.0'
