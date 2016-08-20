@@ -8,7 +8,7 @@
 
 # Motivation
 
-There is too much choice, with respect to libraries, when building a typical RDBMS-backed webapp (with probably the sole exception of Yesod, which is a pretty complete, and opinionated *framework*). Most people (especially newcomers to Haskell) don't know enough about advantages/disadvantages to make the right choice. Making the wrong choice leads to a **lot of needless frustration**
+There is too much choice, with respect to libraries, when building a typical RDBMS-backed webapp. With probably the sole exception of Yesod, which is a pretty complete, and opinionated *framework*. Most people (especially newcomers to Haskell) don't know enough about advantages/disadvantages to make the right choice. Making the wrong choice leads to a **lot of needless frustration**
 
 What kind of choices and what kind of decisions am I talking about? Sample the following:
 
