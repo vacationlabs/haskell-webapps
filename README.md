@@ -28,18 +28,21 @@
   * Design a JSON API which covers all domain-level operations, which a hypothetical "dumb" UI may consume. Why a "dumb" UI? Because IMO pushing domain-logic to the UI layer isn't a good idea. Generally, UIs are harder to test, and in today's multi-screen/multi-device world you'll end up implementing multiple UIs for the same app. Thus, forcin you to implement the domain-logic multiple times -- for your single-page-app (SPA) in Javascript, your Android app, your iOS app, your Windows app, and your desktop app.
   * Design an **optional** Bootstrap-3 based UI (with HTML & LessCSS) for testing out how code shapes up with different templating libraries in Haskell.
 * However, it won't make sense to implement the entire app (UI **and** API) for every possible combination of libraries. Therefore, implement the spec in three distinct phases. The assumption is that the phases are loosely coupled and the library choices for one phase do not impact the other phase significantly. (This might be not be true in the cases of frameworks like Yesod, but then again, this is not supposed to be a scientifically controlled experiment).
-  * Phase 1: Domain-level API + DB-access + validations
+  * Phase 1: Domain-level API + DB-access + Redis-caching + validations (common to both UI approaches)
   * Phase 2.1: JS-powered SPA (single page app)
   * Phase 2.2: Server-powered HTML UI
-  * Phase 3: Testing
+  * Phase 3: Testing (common to both UI approaches)
 
-## Phase 1: Common to both UI approaches (ie. JS-powered SPA and server-powered HTML)
+## Phase 1: Domain-level API + DB-access + Validations
 
-* Phase 1: Domain-level API (in Haskell) + DB-access + validations
+1. Low-level DB functions, DB<=>Haskell mapping, and house-keeping columns (createdAt, updatedAt)
   * Opaleye
   * Groundhog 
   * Persistent
   * Postgresql-ORM
+2. Domain-level API with validations (which takes care of fetching records that may have DB-associations)
+3. Audit logging
+4. Redis caching
 
 ## Phase 2.1: JS-powered SPA
 
