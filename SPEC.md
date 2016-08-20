@@ -8,7 +8,7 @@
 * Searching the app's core data based on user-input
 * Sending out emails? (should this be included in the scope?)
 
-# Domain-Level API
+# Domain-Level API to be implemented in Phase 1
 
 * Simple email+password based authentication
 * Get list of products, with search, sort, and pagination
