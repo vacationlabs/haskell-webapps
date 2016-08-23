@@ -1,3 +1,7 @@
+# What are we building
+
+A typical shopping-cart (ecommerce) webapp. But it isn't the entire app with all bells and whistles. Just a few features - enough to uncover a "Minimum Viable Architecture" (that leverages the Haskell type-system to good use).
+
 # Things to cover in the spec
 
 * Siged-out (not logged-in) operations
