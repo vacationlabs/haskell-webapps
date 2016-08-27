@@ -13,26 +13,14 @@ type App = Identity
 --
 -- Simple email+password based authentication
 --
--- TODO: Which of `authenticate1` or `authenticate2` are "better"? Definition of
--- "better" is: striking a balance between ease-of-use and
--- type-safety/correctness.
---
 
-authenticate1 :: String -> String -> App Bool
-authenticate1 username password = undefined
-
--- TODO: Should the constructors for Username & Password data-types be exported?
-newtype Username = Username T.Text
-
--- TODO: Should the type for the incoming password be different from the one
--- stored in the DB?
+type Username = T.Text
 newtype Password = Password T.Text
-
+newtype Encrypted = Encrypted T.Text -- TODO: Will need to change to whatever the encryption library wants.
 data AuthenticationError = InvalidUser | InvalidPassword | AccountDisabled | AccountNotVerified
-data AuthenticationResult = Authenticated | AuthenticationError
 
 -- TODO: Is is better to use Either as the result-type?
-authenticate2 :: Username -> Password -> App AuthenticationResult
+authenticate2 ::  Username -> Password -> App (Either AuthenticationError User)
 authenticate2 username password = undefined
 
 
