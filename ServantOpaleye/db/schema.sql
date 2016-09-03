@@ -48,6 +48,8 @@ alter table tenants
 --
 -- Roles
 --
+-- TODO: Write a CHECK CONSTRAINT that ensures that permissions[] contains only
+-- those permissions that the Haskell ADT can recognize
 
 create table roles(
        id serial primary key
@@ -61,8 +63,26 @@ create unique index idx_roles_name on roles(tenant_id, lower(name));
 create index idx_roles_created_at on roles(created_at);
 create index idx_roles_updated_at on roles(updated_at);
 
--- TODO: Write a CHECK CONSTRAINT that ensures that permissions[] contains only
--- those permissions that the Haskell ADT can recognize
+--
+-- Audit log
+--
+
+create table audit_logs(
+       id serial primary key
+       ,tenant_id integer not null references tenants(id)
+       ,user_id integer references users(id)
+       ,changed_by_system boolean not null default false
+       ,auditable_id integer not null
+       ,auditable_table_name text not null
+       ,summary text not null
+       ,changes jsonb not null
+       ,created_at timestamp without time zone not null default current_timestamp
+       constraint ensure_user_id check ((user_id is not null and not changed_by_system) or (user_id is null and changed_by_system))
+);
+create index idx_audit_logs_auditable_row on audit_logs(auditable_id, auditable_table_name);
+create index idx_audit_logs_tenant_user_id on audit_logs(tenant_id, user_id);
+create index idx_audit_logs_created_at on audit_logs(created_at);
+-- TODO: index on audit_logs(changes)?
 
 --
 -- Products
@@ -141,15 +161,18 @@ create constraint trigger trig_weight_reqd_for_physical_products
        -- when ((new.weight_in_grams is not null) or (new.weight_display_unit is not null))
        execute procedure check_weight_reqd_for_physical_products();
 
--- TODO: Need a trigger-contraint to ensure that weights have been added in
--- variants if the product-type is changed to 'physical' from anything else.
--- This raises the question about what is a better approach in DB design?
+-- TODO: Need a trigger-contraint to ensure that, if the product-type is chaged
+-- to 'physical' then weights have been added to variants. This raises the
+-- question about what is a better approach in DB design?
 --
 -- 1. Different triggers for every such condition, or
 --
 -- 2. One unified 'validation' trigger that will be fired anytime a row in
 -- products, variants, images, or any other related table is created, updated,
--- or delete?
+-- or deleted?
+--
+-- It seem (2) is more in line with the Haskell philosophy, i.e.
+-- idempotent/stateless actions.
 
 create table photos(
        id serial primary key
@@ -169,3 +192,4 @@ create index idx_photos_created_at on photos(created_at);
 create index idx_photos_fingerprint on photos(fingerprint);
 create index idx_photos_variant_id on photos(variant_id);
 create index idx_photos_product_id on photos(product_id);
+
