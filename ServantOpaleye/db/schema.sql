@@ -9,8 +9,9 @@ create table tenants(
        ,updated_at timestamp without time zone not null default current_timestamp
        ,name text not null
        ,status tenant_status not null default 'inactive'
-       ,owner_id integer not null
+       ,owner_id integer
        ,backoffice_domain text not null
+       constraint ensure_not_null_owner_id check (tenent_status!='active' or owner_id is not null)
 );
 create unique index idx_index_owner_id on tenants(owner_id);
 create index idx_status on tenants(status);

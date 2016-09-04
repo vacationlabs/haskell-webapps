@@ -40,6 +40,9 @@ library:
   - text
   - mtl
   - opaleye
+  - product-profunctors
+  - time
+  - postgresql-simple
   source-dirs: library
 license: MIT
 maintainer: Author name here
