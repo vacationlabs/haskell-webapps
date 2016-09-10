@@ -35,6 +35,9 @@ extra-source-files:
 ghc-options: -Wall
 github: githubuser/ServantOpaleye
 library:
+  exposed-modules:
+  - DB
+  - DomainApi
   dependencies:
   - base
   - text
@@ -43,7 +46,8 @@ library:
   - product-profunctors
   - time
   - postgresql-simple
-  source-dirs: library
+  - lens
+  # source-dirs: library
 license: MIT
 maintainer: Author name here
 name: ServantOpaleye

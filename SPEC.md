@@ -14,6 +14,9 @@ A typical shopping-cart (ecommerce) webapp. But it isn't the entire app with all
 
 # Domain-Level API to be implemented in Phase 1
 
+* Tenant creation
+* User creation
+* Tenant activation along with assigning owner
 * Simple email+password based authentication
 * Get list of products, with search, sort, and pagination
 * Get single product details (fixed/pre-decided JSON response)

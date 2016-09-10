@@ -2,7 +2,7 @@
 -- Tenants
 --
 
-create type tenant_status as enum('active', 'inactive');
+create type tenant_status as enum('active', 'inactive', 'new');
 create table tenants(
        id serial primary key
        ,created_at timestamp without time zone not null default current_timestamp
@@ -11,13 +11,13 @@ create table tenants(
        ,status tenant_status not null default 'inactive'
        ,owner_id integer
        ,backoffice_domain text not null
-       constraint ensure_not_null_owner_id check (tenent_status!='active' or owner_id is not null)
+       constraint ensure_not_null_owner_id check (status!='active' or owner_id is not null)
 );
 create unique index idx_index_owner_id on tenants(owner_id);
 create index idx_status on tenants(status);
 create index idx_tenants_created_at on tenants(created_at);
 create index idx_tenants_updated_at on tenants(updated_at);
-create index idx_tenants_backoffice_domain on tenants(lower(backoffice_domain));
+create unique index idx_unique_tenants_backoffice_domain on tenants(lower(backoffice_domain));
 
 --
 -- Users

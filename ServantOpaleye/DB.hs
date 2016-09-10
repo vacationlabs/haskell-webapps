@@ -3,6 +3,10 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 
 module DB where
 import           Prelude hiding (sum)
@@ -22,7 +26,7 @@ import           Data.Time(UTCTime)
 import           Control.Arrow (returnA, (<<<))
 import           Data.Text (Text)
 import qualified Database.PostgreSQL.Simple as PGS
-
+import Control.Lens
 
 --
 -- Common newtypes and data types
@@ -30,7 +34,7 @@ import qualified Database.PostgreSQL.Simple as PGS
 
 newtype TenantId = TenantId PGInt8
 newtype UserId = UserId PGInt8
-data TenantStatus = TenantActive | TenantInactive
+data TenantStatus = TenantActive | TenantInactive | TenantNew
 data UserStatus = UserActive | UserInactive | UserBlocked
 newtype BcryptText = BcryptText Text -- TODO: Should this be a ByteString?
 
@@ -52,14 +56,6 @@ data TenantPoly key createdAt updatedAt name status ownerId backofficeDomain = T
   ,tenantOwnerId :: ownerId
   ,tenantBackofficeDomain :: backofficeDomain
   }
-
-type Tenant = TenantPoly
-  TenantId -- key
-  UTCTime -- createdAt
-  UTCTime -- updatedAt 
-  TenantStatus -- status
-  (Maybe UserId) -- ownerId
-  Text -- backofficeDomain
 
 -- TODO: Fgure out how to map TenantStatus to PG
 type TenantPGWrite = TenantPoly
@@ -164,3 +160,9 @@ userTable = Table "users"
 userQuery :: Query UserPGRead
 userQuery = queryTable userTable
 
+--
+-- Lenses
+--
+
+$(makeLensesWith abbreviatedFields ''TenantPoly)
+$(makeLensesWith abbreviatedFields ''UserPoly)

@@ -3,12 +3,7 @@ module DomainApi where
 import qualified Data.Text as T
 import Control.Monad.Identity
 import Opaleye (Query)
-
--- TODO: Figure out the right monad-transformed stack for the domain API. We'll have to do the following:
--- * DB operations
--- * Logging
--- * Redis operations, potentitally
-type App = Identity
+import Domain.Base 
 
 --
 -- Simple email+password based authentication
@@ -63,7 +58,6 @@ newtype ProductId = ProductId Int -- TODO: Will change to whatever Opaleye needs
 getProductList3 :: ProductFilter -> App (Query ProductId)
 getProductList3 filter = undefined
 
-data User = User{}
 getProductList4 :: User -> ProductFilter -> App [Product]
 getProductList4 user filter = undefined
 
