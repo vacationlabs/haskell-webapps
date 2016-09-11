@@ -1,6 +1,8 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE ViewPatterns #-}
+
 module Domain.Tenant where
 
 import Domain.Base
@@ -11,12 +13,14 @@ import Control.Lens
 import qualified Database.PostgreSQL.Simple as PGS
 import Control.Monad.Reader (runReaderT)
 import Data.String.Conv
-
+import Control.Monad.Catch
+import Database.PostgreSQL.Simple.Errors
+import Database.PostgreSQL.Simple (SqlError)
 --
 -- Tenant creation
 --
 
-data TenantCreationError = NonUniqueBackofficeDomainError
+data TenantCreationError = DuplicateBackofficeDomainError Text deriving Show
 
 
 -- NOTE: Going with simple data-types for now (i.e. not creating different
@@ -28,9 +32,13 @@ data TenantCreationError = NonUniqueBackofficeDomainError
 createTenant :: NewTenant -> AppM (Either TenantCreationError Tenant)
 createTenant newTenant = do
   conn <- askDbConnection
-  liftIO $ do
-    -- TODO: Handle validation errors
-    (Right . head) <$> runInsertManyReturning conn tenantTable [newTenantToPg newTenant] id
+  liftIO $ catchViolation catcher (createTenant_ conn)
+  where
+    createTenant_ conn = (Right . head) <$> runInsertManyReturning conn tenantTable [newTenantToPg newTenant] id
+
+    -- TODO: Figure out how to write this in a pattern-matching style
+    catcher _ (UniqueViolation s) | s == toS "idx_unique_tenants_backoffice_domain" = return $ Left $ DuplicateBackofficeDomainError $ newTenant ^. backofficeDomain
+    catcher sqlError _ = throwM sqlError
 
 -- activateTenant :: TenantId -> AppM (Tenant)
 -- activateTenant tenantId@(TenantId tid) = do

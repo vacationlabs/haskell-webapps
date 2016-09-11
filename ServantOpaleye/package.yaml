@@ -51,6 +51,7 @@ library:
   - bytestring
   - string-conv
   - data-default
+  - exceptions
   # source-dirs: library
 license: MIT
 maintainer: Author name here

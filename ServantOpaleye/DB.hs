@@ -31,11 +31,11 @@ import Database.PostgreSQL.Simple.FromField (FromField, fromField, ResultError(.
 import Data.String.Conv
 import qualified Data.Default as Def
 
-newtype TenantId = TenantId Int64
-newtype UserId = UserId Int64
-data TenantStatus = TenantActive | TenantInactive | TenantNew
-data UserStatus = UserActive | UserInactive | UserBlocked
-newtype BcryptText = BcryptText Text -- TODO: Should this be a ByteString?
+newtype TenantId = TenantId Int64 deriving Show
+newtype UserId = UserId Int64 deriving Show
+data TenantStatus = TenantActive | TenantInactive | TenantNew deriving Show
+data UserStatus = UserActive | UserInactive | UserBlocked deriving Show
+newtype BcryptText = BcryptText Text deriving Show -- TODO: Should this be a ByteString?
 
 -- printSql :: Default Unpackspec a a => Query a -> IO ()
 -- printSql = putStrLn . showSqlForPostgres
@@ -82,7 +82,7 @@ data TenantPoly key createdAt updatedAt name status ownerId backofficeDomain = T
   ,tenantStatus :: status
   ,tenantOwnerId :: ownerId
   ,tenantBackofficeDomain :: backofficeDomain
-  }
+  } deriving Show
 
 -- TODO: Figure out how to map TenantStatus to PG
 type TenantPGWrite = TenantPoly
@@ -198,7 +198,8 @@ data UserPoly key createdAt updatedAt tenantId username password firstName lastN
   ,userFirstName :: firstName
   ,userLastName :: lastName
   ,userStatus :: status
-  }
+  } deriving Show
+
 type User = UserPoly
   UserId -- key
   UTCTime -- createdAt
