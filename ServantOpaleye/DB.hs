@@ -10,36 +10,63 @@
 
 module DB where
 import           Prelude hiding (sum)
-import           Opaleye (Column, Nullable, matchNullable, isNull,
-                         Table(Table), required, queryTable, optional,
-                         Query, QueryArr, restrict, (.==), (.<=), (.&&), (.<),
-                         (.===),
-                         (.++), ifThenElse, pgString, aggregate, groupBy,
-                         count, avg, sum, leftJoin, runQuery,
-                         showSqlForPostgres, Unpackspec,
-                         PGInt4, PGInt8, PGText, PGDate, PGFloat8, PGBool, Nullable)
-import           Data.Profunctor.Product (p2, p3)
+-- import           Opaleye (Column, Nullable, matchNullable, isNull,
+--                          Table(Table), required, queryTable, optional,
+--                          Query, QueryArr, restrict, (.==), (.<=), (.&&), (.<),
+--                          (.===),
+--                          (.++), ifThenElse, pgString, aggregate, groupBy,
+--                          count, avg, sum, leftJoin, runQuery,
+--                          showSqlForPostgres, Unpackspec,
+--                          PGInt4, PGInt8, PGText, PGDate, PGFloat8, PGBool, Nullable)
+import Opaleye
+-- import           Data.Profunctor.Product (p2, p3)
 import           Data.Profunctor.Product.Default (Default)
 import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
-import           Data.Time.Calendar (Day)
 import           Data.Time(UTCTime)
 import           Control.Arrow (returnA, (<<<))
 import           Data.Text (Text)
-import qualified Database.PostgreSQL.Simple as PGS
 import Control.Lens
+import GHC.Int
+import Database.PostgreSQL.Simple.FromField (FromField, fromField, ResultError(..), returnError)
+import Data.String.Conv
+import qualified Data.Default as Def
 
---
--- Common newtypes and data types
---
-
-newtype TenantId = TenantId PGInt8
-newtype UserId = UserId PGInt8
+newtype TenantId = TenantId Int64
+newtype UserId = UserId Int64
 data TenantStatus = TenantActive | TenantInactive | TenantNew
 data UserStatus = UserActive | UserInactive | UserBlocked
 newtype BcryptText = BcryptText Text -- TODO: Should this be a ByteString?
 
-printSql :: Default Unpackspec a a => Query a -> IO ()
-printSql = putStrLn . showSqlForPostgres
+-- printSql :: Default Unpackspec a a => Query a -> IO ()
+-- printSql = putStrLn . showSqlForPostgres
+
+--
+-- Setting up ENUM mappings
+--
+instance FromField TenantStatus where
+  -- TODO: How to check OID? HINT: Use `typename`
+  fromField field Nothing = returnError UnexpectedNull field ""
+  fromField field (Just bytestring) = case (toS bytestring) of
+    "active" -> return TenantActive
+    "inactive" -> return TenantInactive
+    "new" -> return TenantNew
+    _ -> returnError ConversionFailed field $ "Unknown value in tenant_status: " ++ (toS bytestring)
+
+instance QueryRunnerColumnDefault PGText TenantStatus where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+instance FromField UserId where
+  fromField field mBytestring = fmap UserId (fromField field mBytestring)
+
+instance QueryRunnerColumnDefault PGInt8 UserId where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+instance FromField TenantId where
+  fromField field mBytestring = fmap TenantId (fromField field mBytestring)
+
+instance QueryRunnerColumnDefault PGInt8 TenantId where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
+
 
 --
 -- Tenant
@@ -57,11 +84,11 @@ data TenantPoly key createdAt updatedAt name status ownerId backofficeDomain = T
   ,tenantBackofficeDomain :: backofficeDomain
   }
 
--- TODO: Fgure out how to map TenantStatus to PG
+-- TODO: Figure out how to map TenantStatus to PG
 type TenantPGWrite = TenantPoly
   (Maybe (Column PGInt8)) -- key
-  (Maybe (Column UTCTime)) -- createdAt
-  (Maybe (Column UTCTime)) -- updatedAt
+  (Maybe (Column PGTimestamptz)) -- createdAt
+  (Maybe (Column PGTimestamptz)) -- updatedAt
   (Column PGText) -- name
   (Column PGText) -- status
   (Column (Nullable PGInt8)) -- ownerId
@@ -69,14 +96,34 @@ type TenantPGWrite = TenantPoly
 
 type TenantPGRead = TenantPoly
   (Column PGInt8) -- key
-  (Column UTCTime) -- createdAt
-  (Column UTCTime) -- updatedAt
+  (Column PGTimestamptz) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
   (Column PGText) -- name
   (Column PGText) -- status
   (Column (Nullable PGInt8)) -- ownerId
   (Column PGText) -- backofficeDomain
 
+type NewTenant = TenantPoly
+  () -- key
+  () -- createdAt
+  () -- updatedAt
+  Text -- name
+  () -- status
+  (Maybe UserId) -- ownerId
+  Text -- backofficeDomain
+
+type Tenant = TenantPoly
+  TenantId -- key
+  UTCTime -- createdAt
+  UTCTime -- updatedAt
+  Text -- name
+  TenantStatus -- status
+  (Maybe UserId) -- ownerId
+  Text -- backofficeDomain
+
 $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
+$(makeLensesWith abbreviatedFields ''TenantPoly)
+
 
 tenantTable :: Table TenantPGWrite TenantPGRead
 tenantTable = Table "tenants" (pTenant Tenant{
@@ -91,6 +138,51 @@ tenantTable = Table "tenants" (pTenant Tenant{
 
 tenantQuery :: Query TenantPGRead
 tenantQuery = queryTable tenantTable
+
+tenantById :: TenantId -> Query TenantPGRead
+tenantById (TenantId tid) = proc () -> do
+  tenant <- tenantQuery -< ()
+  restrict -< (tenant ^. key) .== (pgInt8 tid)
+  returnA -< tenant
+
+pgUserId :: UserId -> Column PGInt8
+pgUserId (UserId uid) = pgInt8 uid
+
+maybeToNullableColumn :: (a -> Column b) -> Maybe a -> Column (Nullable b)
+maybeToNullableColumn _ Nothing = Opaleye.null
+maybeToNullableColumn f (Just m) = toNullable (f m)
+
+newTenantToPg :: NewTenant -> TenantPGWrite
+newTenantToPg = pTenant Tenant{
+  tenantKey = const Nothing
+  ,tenantCreatedAt = const Nothing
+  ,tenantUpdatedAt = const Nothing
+  ,tenantName = pgStrictText
+  ,tenantStatus = const $ pgString "new"
+  ,tenantOwnerId = maybeToNullableColumn pgUserId
+  ,tenantBackofficeDomain = pgStrictText
+  }
+
+tenantToPg :: Tenant -> TenantPGWrite
+tenantToPg = pTenant Tenant{
+  tenantKey = const Nothing
+  ,tenantCreatedAt = const Nothing
+  ,tenantUpdatedAt = Just . pgUTCTime
+  ,tenantName = pgStrictText
+  ,tenantStatus = const $ pgString "new" -- TODO
+  ,tenantOwnerId = maybeToNullableColumn pgUserId
+  ,tenantBackofficeDomain = pgStrictText
+  }
+
+
+instance Def.Default NewTenant where
+  def =  Tenant{
+    tenantKey = ()
+    ,tenantCreatedAt = ()
+    ,tenantUpdatedAt = ()
+    ,tenantStatus = ()
+    ,tenantOwnerId = Nothing
+    }
 
 --
 -- User
@@ -142,6 +234,7 @@ type UserPGRead = UserPoly
 
 
 $(makeAdaptorAndInstance "pUser" ''UserPoly)
+$(makeLensesWith abbreviatedFields ''UserPoly)
 
 userTable :: Table UserPGWrite UserPGRead
 userTable = Table "users"
@@ -160,9 +253,3 @@ userTable = Table "users"
 userQuery :: Query UserPGRead
 userQuery = queryTable userTable
 
---
--- Lenses
---
-
-$(makeLensesWith abbreviatedFields ''TenantPoly)
-$(makeLensesWith abbreviatedFields ''UserPoly)

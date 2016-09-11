@@ -8,4 +8,4 @@ module Domain.Base(
 import qualified Data.Text as T
 import Opaleye (Query)
 import Domain.BaseTypes
-import DB hiding (Tenant)
+import DB

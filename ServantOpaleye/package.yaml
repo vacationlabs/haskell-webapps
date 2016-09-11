@@ -42,11 +42,15 @@ library:
   - base
   - text
   - mtl
-  - opaleye
+  - opaleye >= 0.5.1.1
   - product-profunctors
   - time
   - postgresql-simple
   - lens
+  - transformers
+  - bytestring
+  - string-conv
+  - data-default
   # source-dirs: library
 license: MIT
 maintainer: Author name here

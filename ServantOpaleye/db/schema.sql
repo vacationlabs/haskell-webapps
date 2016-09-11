@@ -5,8 +5,8 @@
 create type tenant_status as enum('active', 'inactive', 'new');
 create table tenants(
        id serial primary key
-       ,created_at timestamp without time zone not null default current_timestamp
-       ,updated_at timestamp without time zone not null default current_timestamp
+       ,created_at timestamp with time zone not null default current_timestamp
+       ,updated_at timestamp with time zone not null default current_timestamp
        ,name text not null
        ,status tenant_status not null default 'inactive'
        ,owner_id integer
@@ -26,8 +26,8 @@ create unique index idx_unique_tenants_backoffice_domain on tenants(lower(backof
 create type user_status as enum('active', 'inactive', 'blocked');
 create table users(
        id serial primary key
-       ,created_at timestamp without time zone not null default current_timestamp
-       ,updated_at timestamp without time zone not null default current_timestamp
+       ,created_at timestamp with time zone not null default current_timestamp
+       ,updated_at timestamp with time zone not null default current_timestamp
        ,tenant_id integer not null references tenants(id)
        ,username text not null
        ,password text not null
@@ -57,8 +57,8 @@ create table roles(
        ,tenant_id integer not null references tenants(id)
        ,name text not null
        ,permissions text[] not null constraint at_least_one_permission check (array_length(permissions, 1)>0)
-       ,created_at timestamp without time zone not null default current_timestamp
-       ,updated_at timestamp without time zone not null default current_timestamp
+       ,created_at timestamp with time zone not null default current_timestamp
+       ,updated_at timestamp with time zone not null default current_timestamp
 );
 create unique index idx_roles_name on roles(tenant_id, lower(name));
 create index idx_roles_created_at on roles(created_at);
@@ -77,7 +77,7 @@ create table audit_logs(
        ,auditable_table_name text not null
        ,summary text not null
        ,changes jsonb not null
-       ,created_at timestamp without time zone not null default current_timestamp
+       ,created_at timestamp with time zone not null default current_timestamp
        constraint ensure_user_id check ((user_id is not null and not changed_by_system) or (user_id is null and changed_by_system))
 );
 create index idx_audit_logs_auditable_row on audit_logs(auditable_id, auditable_table_name);
@@ -95,8 +95,8 @@ create index idx_audit_logs_created_at on audit_logs(created_at);
 create type product_type as enum('physical', 'digital');
 create table products(
        id serial primary key
-       ,created_at timestamp without time zone not null default current_timestamp
-       ,updated_at timestamp without time zone not null default current_timestamp
+       ,created_at timestamp with time zone not null default current_timestamp
+       ,updated_at timestamp with time zone not null default current_timestamp
        ,tenant_id integer not null references tenants(id)
        ,name text not null
        ,description text
@@ -125,8 +125,8 @@ create index idx_product_is_published on products(is_published);
 create type weight_unit as enum('grams', 'kgs', 'pounds');
 create table variants(
        id serial primary key
-       ,created_at timestamp without time zone not null default current_timestamp
-       ,updated_at timestamp without time zone not null default current_timestamp
+       ,created_at timestamp with time zone not null default current_timestamp
+       ,updated_at timestamp with time zone not null default current_timestamp
        ,tenant_id integer not null references tenants(id)
        ,product_id integer not null references products(id)
        ,name text not null
@@ -177,7 +177,7 @@ create constraint trigger trig_weight_reqd_for_physical_products
 
 create table photos(
        id serial primary key
-       ,created_at timestamp without time zone not null default current_timestamp
+       ,created_at timestamp with time zone not null default current_timestamp
        -- no updated_at on purpose
        ,tenant_id integer not null references tenants(id)
        ,product_id integer references products(id)
