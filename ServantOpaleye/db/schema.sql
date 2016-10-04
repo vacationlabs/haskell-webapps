@@ -91,6 +91,9 @@ create index idx_audit_logs_created_at on audit_logs(created_at);
 -- TODO: Evolve this schema to have a "price on request" feature. Evolve this
 -- say whether the comparison_price is computed automatically or manually set by
 -- the user.
+--
+-- TODO: do we need an is_deleted housekeeping column in every table? Is that
+-- really required, given that we have an audit log?
 
 create type product_type as enum('physical', 'digital');
 create table products(
@@ -107,6 +110,7 @@ create table products(
        ,comparison_price numeric not null
        ,type product_type not null
        ,is_published boolean not null default false
+       ,properties jsonb
 );
 
 create unique index idx_products_name on products(tenant_id, lower(name));
@@ -194,3 +198,203 @@ create index idx_photos_fingerprint on photos(fingerprint);
 create index idx_photos_variant_id on photos(variant_id);
 create index idx_photos_product_id on photos(product_id);
 
+---
+--- Taxes
+---
+
+create type tax_type as enum('flat', 'percentage'); 
+create table taxes(
+       id serial primary key
+       ,created_at timestamp with time zone not null default current_timestamp
+       -- no updated_at on purpose. This is supposed to be an "immutable" row
+       ,is_active boolean not null default true
+       ,tenant_id integer not null references tenants(id)
+       ,name text not null
+       ,we_from timestamp with time zone not null
+       ,we_to timestamp with time zone
+       ,type tax_type not null
+       ,amount numeric not null
+);
+create index idx_taxes_created_at on taxes(created_at);
+create index idx_taxes_tenant_id on taxes(tenant_id, is_active);
+create index idx_tax_with_effect on taxes (we_from, we_to);
+
+--
+-- Customers
+--
+
+create table customers(
+       id serial primary key
+       ,created_at timestamp with time zone not null default current_timestamp
+       ,updated_at timestamp with time zone not null default current_timestamp
+       ,tenant_id integer not null references tenants(id)
+       ,first_name text not null
+       ,last_name text not null
+       ,email text not null
+       ,phone text not null
+       ,order_count integer not null default (0)
+       ,default_address_id integer
+);
+create index idx_customers_created_at on customers(created_at);
+create index idx_customers_updated_at on customers(updated_at);
+create index idx_customers_first_name on customers(first_name);
+create index idx_customers_last_name on customers(last_name);
+create index idx_customers_email on customers(email);
+create index idx_customers_phone on customers(phone);
+
+--
+-- Addresses
+--
+
+create table addresses(
+       id serial primary key
+       ,created_at timestamp with time zone not null default current_timestamp
+       -- no updated_at, due to immutability
+       ,tenant_id integer not null references tenants(id)
+       ,customer_id integer not null references customers(id)
+       ,first_name text not null
+       ,last_name text not null
+       ,address1 text not null
+       ,address2 text
+       ,city text not null
+       ,country text not null
+       ,country_code char(2) not null
+       ,postal_code text not null
+       ,phone text not null
+);
+create index idx_addresses_created_at on addresses(created_at);
+       alter table customers
+       add constraint fk_customer_default_address_id
+       foreign key (default_address_id)
+       references addresses(id);
+
+
+
+---
+--- Orders
+---
+--- TODO: Will need to add more columns here
+---
+
+create table orders(
+       id serial primary key
+       ,created_at timestamp with time zone not null default current_timestamp
+       ,updated_at timestamp with time zone not null default current_timestamp
+       ,tenant_id integer not null references tenants(id)
+       ,customer_id integer not null references customers(id)
+       ,order_ref text not null
+       ,is_shippable boolean not null default true
+       ,billing_address_id integer not null references addresses(id)
+       ,shipping_address_id integer references addresses(id)
+       constraint ensure_shipping_address_if_shippable check (is_shippable=false or shipping_address_id is not null)
+);
+create index idx_orders_created_at on orders(created_at);
+create index idx_orders_updated_at on orders(updated_at);
+create index idx_orders_tenant_id on orders(tenant_id);
+create unique index idx_orders_ref on orders(tenant_id, order_ref);
+
+--
+-- Order line-items
+--
+--
+-- TODO: Shippping?
+
+create type line_item_type as enum('product', 'gift_card', 'shipping', 'tax', 'other');
+create table line_items(
+       id serial primary key
+       ,created_at timestamp with time zone not null default current_timestamp
+       ,updated_at timestamp with time zone not null default current_timestamp
+       ,tenant_id integer not null references tenants(id)
+       ,order_id integer not null references orders(id)
+       ,type line_item_type not null
+       ,parent_line_item_id integer references line_items(id)
+       ,product_type product_type
+       ,product_id integer references products(id)
+       ,variant_id integer references variants(id)
+       ,tax_id integer references taxes(id)
+       ,sku text
+       ,name text not null
+       ,variant_name text
+       ,quantity numeric not null
+       ,amount numeric not null
+       ,total_discount numeric
+       ,total_tax numeric
+       ,total_amount numeric not null -- includes discounts & taxes
+       ,total_weight_in_grams numeric
+       constraint ensure_product_line_item_columns check (type!='product' or
+                  (parent_line_item_id is not null
+                  and product_type is not null
+                  and product_id is not null
+                  and variant_id is not null
+                  and sku is not null
+                  and quantity is not null
+                  and variant_name is not null
+                  and total_discount is not null
+                  and total_tax is not null))
+       constraint ensure_weight_for_physical_products check (product_type!='physical' or total_weight_in_grams is not null)
+       constraint ensure_shipping_line_item_columns check (type!='shipping' or
+                  (sku is null
+                  and variant_name is null
+                  and total_discount is null
+                  and total_tax is not null
+                  and total_weight_in_grams is null))
+       constraint ensure_gift_card_line_item_columns check (type!='gift_card' or
+                  (sku is null
+                  and variant_name is null
+                  and total_discount is null
+                  and total_tax is not null
+                  and total_weight_in_grams is null))
+       constraint ensure_tax_line_item_columns check (type!='tax' or
+                  (sku is null
+                  and variant_name is null
+                  and total_discount is null
+                  and total_tax is not null
+                  and total_weight_in_grams is null
+                  and tax_id is not null))
+);
+create index idx_line_items_created_at on line_items(created_at);
+create index idx_line_items_updated_at on line_items(updated_at);
+
+
+--
+-- SCRATCH
+--
+
+
+-- Simpler schema for order line-items
+-- 
+-- create table line_items(
+-- id serial primary key
+-- ,created_at timestamp with time zone not null default current_timestamp
+-- ,updated_at timestamp with time zone not null default current_timestamp
+-- ,tenant_id integer not null references tenants(id)
+-- ,order_id integer not null references orders(id)
+-- ,type line_item_type not null
+-- ,product_type product_type not null
+-- ,variant_id integer not null references variants(id)
+-- ,sku text not null
+-- ,product_name text not null
+-- ,variant_name text not null
+-- ,quantity numeric not null
+-- ,price numeric not null
+-- ,total_discount numeric not null
+-- ,total_tax numeric not null
+-- ,total_price numeric not null -- includes discounts & taxes
+-- ,total_weight_in_grams numeric
+-- ,fulfillment_status fulfillment_status not null
+-- constraint ensure_weight_for_physical_products check ((total_weight_in_grams is not null) or product_type='digital')
+-- );
+
+
+-- --
+-- -- Taxes on line-items
+-- --
+-- -- This is our many:many join-through table
+-- --
+
+-- create table tax_lines(
+-- id serial primary key
+-- ,line_item_id integer not null references line_items(id)
+-- ,tax_id integer not null references taxes(id)
+-- ,amount numeric not null
+-- )
