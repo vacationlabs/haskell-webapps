@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Shopping Cart</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/themes/prism-okaidia.min.css" />
+    <style>
+      blockquote {
+        border-left: solid 4px #eee;
+        padding-left: 8px;
+        font-style: italic;
+        margin-left: 0;
+        padding: 8px;
+      }
+
+      .ui.micro.label {
+        font-size: .25rem;
+      }
+
+      .ui.transaction.accordion .title {
+        text-align: center;
+      }
+
+      .ui.transaction.accordion .content {
+        border-top: solid 1px #ddd !important;
+        border-bottom: solid 1px #ddd !important;
+        background-color: rgba(0,0,0,.03);
+        padding: 0.5em 1em !important;
+      }
+
+      .ui.transaction.accordion .content.active {
+        margin-top: 0.5em;
+      }
+
+      .ui.basic.label {
+        text-align: left;
+        overflow: auto;
+      }
+
+      .resource .ui.sub.header {
+        text-transform: none;
+      }
+
+      @media only screen and (min-width: 768px) {
+        .sidewrap {
+          margin-right: 2rem;
+        }
+
+        .sidenav {
+          left: 0;
+          top: 0;
+          width: inherit;
+          position: fixed !important;
+          height: 100% !important;
+          overflow-y: auto !important;
+          padding-left: 0.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ui padded grid">
+      <div class="sidewrap four wide computer five wide tablet sixteen wide mobile column">
+        <div class="sidenav">
+          
+<div class="ui horizontal divider">
+  <a href="#introduction">Introduction</a>
+</div>
+<div class="ui fluid secondary vertical menu">
+  <a class="item" href="#introduction">Shopping Cart</a>
+</div>
+
+
+<div class="ui horizontal divider">
+  <a href="#tenants">Tenants</a>
+</div>
+
+<div class="ui accordion fluid">
+  
+    
+    <div class="title active">
+      <i class="dropdown icon"></i>
+      
+        <strong>Create a tenant</strong>
+      
+    </div>
+    <div class="content active">
+      <div class="ui fluid secondary vertical menu">
+      
+        <a class="item" href="#tenants-create-a-tenant-create-a-tenant">
+          
+            <i class="ui blue empty circular label"></i> Create a tenant
+          
+        </a>
+      
+      </div>
+    </div>
+    
+  
+    
+    <div class="title ">
+      <i class="dropdown icon"></i>
+      
+        <strong>Get tenant details</strong>
+      
+    </div>
+    <div class="content ">
+      <div class="ui fluid secondary vertical menu">
+      
+        <a class="item" href="#tenants-get-tenant-details-get-tenant-details">
+          
+            <i class="ui green empty circular label"></i> Get tenant details
+          
+        </a>
+      
+      </div>
+    </div>
+    
+  
+    
+    <div class="title ">
+      <i class="dropdown icon"></i>
+      
+        <strong>Activate a tenant</strong>
+      
+    </div>
+    <div class="content ">
+      <div class="ui fluid secondary vertical menu">
+      
+        <a class="item" href="#tenants-activate-a-tenant-activate-a-tenant">
+          
+            <i class="ui green empty circular label"></i> Activate a tenant
+          
+        </a>
+      
+      </div>
+    </div>
+    
+  
+</div>
+
+
+        </div>
+      </div>
+      <div class="eleven wide computer ten wide tablet sixteen wide mobile column">
+        
+<div class="ui hidden divider header"></div>
+<h1 class="ui huge header" id="introduction">Shopping Cart</h1>
+<hr class="ui divider">
+<div class="description">
+  <p>This is our &ldquo;minimum viable&rdquo; JSON API spec for a hypothetical multi-tenant shopping cart application.</p>
+
+</div>
+
+        <div class="ui hidden divider"></div>
+        
+
+
+  <div class="ui horizontal divider" id="tenants">
+    Tenants
+  </div>
+  <div class="ui header center aligned">
+    <div class="ui sub header">
+      <p>API endpoints related to tenant management.</p>
+
+    </div>
+  </div>
+  
+    
+      <div class="ui stacked segments">
+        <div class="ui basic segment resource">
+          <div class="ui purple huge ribbon label">
+            Create a tenant
+          </div>
+          <div class="ui header">
+            <div class="ui sub header">
+              
+            </div>
+          </div>
+        </div>
+
+        
+          
+<div class="ui grey horizontal small divider header">
+  <i class="ui grey micro circular label"></i>
+  <i class="ui pink micro circular label"></i>
+  <i class="ui grey micro circular label"></i>
+</div>
+
+          <div class="ui basic segment">
+            <h3 class="ui block center aligned header" id="tenants-create-a-tenant-create-a-tenant">
+              Create a tenant
+            </h3>
+            <div class="description"><p>Create a new tenant in an <strong>inactive</strong> state</p>
+</div>
+
+            
+              <h4 class="ui horizontal divider">
+                REQUEST
+              </h4>
+              <div class="fluid ui large labeled button">
+                <div class="ui blue large button">
+                  <h3>POST</h3>
+                </div>
+                <a class="ui basic fluid blue label">
+                  <code>/tenants/new</code>
+                </a>
+              </div>
+              
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+                <div class="ui stacked segment">
+                  <div class="ui fluid transaction accordion">
+                    <div class="title">
+                      <code>application/json</code>
+                    </div>
+                    <div class="content">
+                      <pre style="white-space: inherit">
+                        <code class="language-json">{
+&#34;name&#34;: &#34;Acme Stores&#34;
+,&#34;backoffice_domain&#34;: &#34;acmestores.shopoola.com&#34;
+,&#34;first_name&#34;: &#34;Saurabh&#34;
+,&#34;last_name&#34;: &#34;Nanda&#34;
+,&#34;email&#34;: &#34;saurabhnanda@gmail.com&#34;
+,&#34;phone&#34;: &#34;&#43;91934234234&#34;
+}
+</code>
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              
+
+              <h4 class="ui horizontal divider">RESPONSE</h4>
+              
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Location</td>
+      <td><code>/tenants/1</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              <div class="ui stacked blue segment">
+                <div class="ui fluid transaction accordion">
+                  <div class="title center aligned">
+                    <a class="ui blue circular label">
+                      201
+                    </a>
+                    <code>application/json</code>
+                  </div>
+                  <div class="content">
+                    <pre style="white-space: inherit">
+                      <code class="language-json">{
+&#34;id&#34;: 1
+,&#34;created_at&#34;: &#34;2016-10-04T12:30:00&#43;0000&#34;
+,&#34;updated_at&#34;: &#34;2016-10-04T12:30:00&#43;0000&#34;
+,&#34;name&#34;: &#34;Acme Stores&#34;
+,&#34;backoffice_domain&#34;: &#34;acmestores.shopoola.com&#34;
+,&#34;first_name&#34;: &#34;Saurabh&#34;
+,&#34;last_name&#34;: &#34;Nanda&#34;
+,&#34;email&#34;: &#34;saurabhnanda@gmail.com&#34;
+,&#34;phone&#34;: &#34;&#43;91934234234&#34;
+,&#34;status&#34;: &#34;inactive&#34;
+,&#34;owner_id&#34;: null
+}
+
+</code>
+                    </pre>
+                    
+                    
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+        
+        </div>
+      <div class="ui hidden divider"></div>
+    
+  
+    
+      <div class="ui stacked segments">
+        <div class="ui basic segment resource">
+          <div class="ui purple huge ribbon label">
+            Get tenant details
+          </div>
+          <div class="ui header">
+            <div class="ui sub header">
+              
+            </div>
+          </div>
+        </div>
+
+        
+          
+<div class="ui grey horizontal small divider header">
+  <i class="ui grey micro circular label"></i>
+  <i class="ui pink micro circular label"></i>
+  <i class="ui grey micro circular label"></i>
+</div>
+
+          <div class="ui basic segment">
+            <h3 class="ui block center aligned header" id="tenants-get-tenant-details-get-tenant-details">
+              Get tenant details
+            </h3>
+            <div class="description"></div>
+
+            
+              <h4 class="ui horizontal divider">
+                REQUEST
+              </h4>
+              <div class="fluid ui large labeled button">
+                <div class="ui green large button">
+                  <h3>GET</h3>
+                </div>
+                <a class="ui basic fluid green label">
+                  <code>/tenants/{tenant_id}</code>
+                </a>
+              </div>
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="4">Parameters</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>tenant_id</code></td>
+      <td class="center aligned">
+        <code>number<code>
+        
+      </td>
+      <td class="eight wide"><p>the tenant ID</p>
+</td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+              
+
+              <h4 class="ui horizontal divider">RESPONSE</h4>
+              
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              <div class="ui stacked blue segment">
+                <div class="ui fluid transaction accordion">
+                  <div class="title center aligned">
+                    <a class="ui blue circular label">
+                      200
+                    </a>
+                    <code>application/json</code>
+                  </div>
+                  <div class="content">
+                    <pre style="white-space: inherit">
+                      <code class="language-json">{
+  &#34;id&#34;: 1,
+  &#34;created_at&#34;: &#34;2016&#34;,
+  &#34;updated_at&#34;: &#34;2016&#34;,
+  &#34;first_name&#34;: &#34;Saurabh&#34;,
+  &#34;last_name&#34;: &#34;Nanda&#34;,
+  &#34;email&#34;: &#34;saurabhnanda@gmail.com&#34;,
+  &#34;phone&#34;: &#34;&#43;91 982347982374&#34;,
+  &#34;status&#34;: &#34;active&#34;
+}</code>
+                    </pre>
+                    
+                    
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+        
+        </div>
+      <div class="ui hidden divider"></div>
+    
+  
+    
+      <div class="ui stacked segments">
+        <div class="ui basic segment resource">
+          <div class="ui purple huge ribbon label">
+            Activate a tenant
+          </div>
+          <div class="ui header">
+            <div class="ui sub header">
+              
+            </div>
+          </div>
+        </div>
+
+        
+          
+<div class="ui grey horizontal small divider header">
+  <i class="ui grey micro circular label"></i>
+  <i class="ui pink micro circular label"></i>
+  <i class="ui grey micro circular label"></i>
+</div>
+
+          <div class="ui basic segment">
+            <h3 class="ui block center aligned header" id="tenants-activate-a-tenant-activate-a-tenant">
+              Activate a tenant
+            </h3>
+            <div class="description"></div>
+
+            
+              <h4 class="ui horizontal divider">
+                REQUEST
+              </h4>
+              <div class="fluid ui large labeled button">
+                <div class="ui green large button">
+                  <h3>GET</h3>
+                </div>
+                <a class="ui basic fluid green label">
+                  <code>/tenants/{tenant_id}/activate</code>
+                </a>
+              </div>
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="4">Parameters</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>tenant_id</code></td>
+      <td class="center aligned">
+        <code>number<code>
+        
+      </td>
+      <td class="eight wide"><p>the tenant ID</p>
+</td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+                <div class="ui stacked segment">
+                  <div class="ui fluid transaction accordion">
+                    <div class="title">
+                      <code>application/json</code>
+                    </div>
+                    <div class="content">
+                      <pre style="white-space: inherit">
+                        <code class="language-json">{
+&#34;activation_key&#34;: 2343-32432-3434-3443&#34;
+,&#34;owner&#34;: {
+  &#34;username&#34;: &#34;saurabhnanda@gmail.com&#34;
+  ,&#34;password&#34;: &#34;fklgfjgfgfdgl&#34;
+  ,&#34;password_confirmation&#34;: &#34;lkjdflgkjdfg&#34;
+  ,&#34;first_name&#34;: &#34;Saurabh&#34;
+  ,&#34;last_name&#34;: &#34;Nanda&#34;
+}
+}
+
+</code>
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              
+
+              <h4 class="ui horizontal divider">RESPONSE</h4>
+              
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              <div class="ui stacked blue segment">
+                <div class="ui fluid transaction accordion">
+                  <div class="title center aligned">
+                    <a class="ui blue circular label">
+                      201
+                    </a>
+                    <code>application/json</code>
+                  </div>
+                  <div class="content">
+                    <pre style="white-space: inherit">
+                      <code class="language-json">{
+&#34;tenant&#34;: {
+  &#34;id&#34;: 1
+  ,&#34;created_at&#34;: &#34;2016-10-04T12:30:00&#43;0000&#34;
+  ,&#34;updated_at&#34;: &#34;2016-10-04T12:30:00&#43;0000&#34;
+  ,&#34;name&#34;: &#34;Acme Stores&#34;
+  ,&#34;backoffice_domain&#34;: &#34;acmestores.shopoola.com&#34;
+  ,&#34;first_name&#34;: &#34;Saurabh&#34;
+  ,&#34;last_name&#34;: &#34;Nanda&#34;
+  ,&#34;email&#34;: &#34;saurabhnanda@gmail.com&#34;
+  ,&#34;phone&#34;: &#34;&#43;91934234234&#34;
+  ,&#34;status&#34;: &#34;active&#34;
+  ,&#34;owner_id&#34;: 1
+}
+,&#34;owner&#34;: {
+  &#34;id&#34;: 1
+  ,&#34;created_at&#34;: &#34;2016-10-04T12:30:00&#43;0000&#34;
+  ,&#34;updated_at&#34;: &#34;2016-10-04T12:30:00&#43;0000&#34;
+  ,&#34;username&#34;: &#34;saurabhnanda@gmail.com&#34;
+  ,&#34;first_name&#34;: &#34;Saurabh&#34;
+  ,&#34;last_name&#34;: &#34;Nanda&#34;
+  ,&#34;status&#34;: &#34;active&#34;
+}
+}
+
+</code>
+                    </pre>
+                    
+                    
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+        
+        </div>
+      <div class="ui hidden divider"></div>
+    
+  
+
+
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/components/accordion.min.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/prism.min.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/prism/1.5.1/components/prism-json.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      $('.ui.accordion').accordion({ animateChildren: false, duration: 0 });
+    });
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

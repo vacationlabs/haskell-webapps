@@ -1,0 +1,106 @@
+FORMAT: 1A
+
+
+# Shopping Cart
+
+This is our "minimum viable" JSON API spec for a hypothetical multi-tenant shopping cart application.
+
+## Data Structures
+
+### Tenant
++ id: 1 (number)
++ created_at: 2016-10-04T12:30:00+0000 (string)
++ updated_at: 2016-10-04T12:30:00+0000 (string)
++ first_name: Saurabh (string)
++ last_name: Nanda (string)
++ email: saurabhnanda@gmail.com (string)
++ phone: +91 982347982374 (string)
++ status: active (string)
+
+# Group Tenants
+API endpoints related to tenant management.
+
+## Create a tenant [POST /tenants/new]
+Create a new tenant in an **inactive** state
+
++ Request (application/json)
+  {
+    "name": "Acme Stores"
+    ,"backoffice_domain": "acmestores.shopoola.com"
+    ,"first_name": "Saurabh"
+    ,"last_name": "Nanda"
+    ,"email": "saurabhnanda@gmail.com"
+    ,"phone": "+91934234234"
+  }
+
+
++ Response 201 (application/json)
+  + Headers
+    Location: /tenants/1
+  + Body
+    {
+      "id": 1
+      ,"created_at": "2016-10-04T12:30:00+0000"
+      ,"updated_at": "2016-10-04T12:30:00+0000"
+      ,"name": "Acme Stores"
+      ,"backoffice_domain": "acmestores.shopoola.com"
+      ,"first_name": "Saurabh"
+      ,"last_name": "Nanda"
+      ,"email": "saurabhnanda@gmail.com"
+      ,"phone": "+91934234234"
+      ,"status": "inactive"
+      ,"owner_id": null
+    }
+
+## Get tenant details [GET /tenants/{tenant_id}]
+
++ Parameters
+  + tenant_id (number) - the tenant ID
+
++ Response 200 (application/json)  
+  + Attributes (Tenant)
+
+## Activate a tenant [GET /tenants/{tenant_id}/activate]
+
++ Parameters
+  + tenant_id (number) - the tenant ID
+
++ Request (application/json)
+  + Body
+      {
+        "activation_key": 2343-32432-3434-3443"
+        ,"owner": {
+          "username": "saurabhnanda@gmail.com"
+          ,"password": "fklgfjgfgfdgl"
+          ,"password_confirmation": "lkjdflgkjdfg"
+          ,"first_name": "Saurabh"
+          ,"last_name": "Nanda"
+        }
+      }
+
++ Response 201 (application/json) 
+  + Body 
+      {
+        "tenant": {
+          "id": 1
+          ,"created_at": "2016-10-04T12:30:00+0000"
+          ,"updated_at": "2016-10-04T12:30:00+0000"
+          ,"name": "Acme Stores"
+          ,"backoffice_domain": "acmestores.shopoola.com"
+          ,"first_name": "Saurabh"
+          ,"last_name": "Nanda"
+          ,"email": "saurabhnanda@gmail.com"
+          ,"phone": "+91934234234"
+          ,"status": "active"
+          ,"owner_id": 1
+        }
+        ,"owner": {
+          "id": 1
+          ,"created_at": "2016-10-04T12:30:00+0000"
+          ,"updated_at": "2016-10-04T12:30:00+0000"
+          ,"username": "saurabhnanda@gmail.com"
+          ,"first_name": "Saurabh"
+          ,"last_name": "Nanda"
+          ,"status": "active"
+        }
+      }
