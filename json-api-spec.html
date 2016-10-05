@@ -132,7 +132,125 @@
       
         <a class="item" href="#tenants-activate-a-tenant-activate-a-tenant">
           
-            <i class="ui green empty circular label"></i> Activate a tenant
+            <i class="ui blue empty circular label"></i> Activate a tenant
+          
+        </a>
+      
+      </div>
+    </div>
+    
+  
+</div>
+
+
+<div class="ui horizontal divider">
+  <a href="#authentication">authentication</a>
+</div>
+
+<div class="ui accordion fluid">
+  
+    
+    <div class="title active">
+      <i class="dropdown icon"></i>
+      
+        <strong>Authenticate a user</strong>
+      
+    </div>
+    <div class="content active">
+      <div class="ui fluid secondary vertical menu">
+      
+        <a class="item" href="#authentication-authenticate-a-user-authenticate-a-user">
+          
+            <i class="ui blue empty circular label"></i> Authenticate a user
+          
+        </a>
+      
+      </div>
+    </div>
+    
+  
+    
+    <div class="title ">
+      <i class="dropdown icon"></i>
+      
+        <strong>Refresh a session</strong>
+      
+    </div>
+    <div class="content ">
+      <div class="ui fluid secondary vertical menu">
+      
+        <a class="item" href="#authentication-refresh-a-session-refresh-a-session">
+          
+            <i class="ui blue empty circular label"></i> Refresh a session
+          
+        </a>
+      
+      </div>
+    </div>
+    
+  
+    
+    <div class="title ">
+      <i class="dropdown icon"></i>
+      
+        <strong>Destroy a session</strong>
+      
+    </div>
+    <div class="content ">
+      <div class="ui fluid secondary vertical menu">
+      
+        <a class="item" href="#authentication-destroy-a-session-destroy-a-session">
+          
+            <i class="ui blue empty circular label"></i> Destroy a session
+          
+        </a>
+      
+      </div>
+    </div>
+    
+  
+</div>
+
+
+<div class="ui horizontal divider">
+  <a href="#products">Products</a>
+</div>
+
+<div class="ui accordion fluid">
+  
+    
+    <div class="title active">
+      <i class="dropdown icon"></i>
+      
+        <strong>Get a single product</strong>
+      
+    </div>
+    <div class="content active">
+      <div class="ui fluid secondary vertical menu">
+      
+        <a class="item" href="#products-get-a-single-product-get-a-single-product">
+          
+            <i class="ui green empty circular label"></i> Get a single product
+          
+        </a>
+      
+      </div>
+    </div>
+    
+  
+    
+    <div class="title ">
+      <i class="dropdown icon"></i>
+      
+        <strong>Get a list of products</strong>
+      
+    </div>
+    <div class="content ">
+      <div class="ui fluid secondary vertical menu">
+      
+        <a class="item" href="#products-get-a-list-of-products-get-a-list-of-products">
+          
+            <i class="ui green empty circular label"></i> Get a list of products
           
         </a>
       
@@ -465,10 +583,10 @@
                 REQUEST
               </h4>
               <div class="fluid ui large labeled button">
-                <div class="ui green large button">
-                  <h3>GET</h3>
+                <div class="ui blue large button">
+                  <h3>POST</h3>
                 </div>
-                <a class="ui basic fluid green label">
+                <a class="ui basic fluid blue label">
                   <code>/tenants/{tenant_id}/activate</code>
                 </a>
               </div>
@@ -596,6 +714,950 @@
   ,&#34;status&#34;: &#34;active&#34;
 }
 }
+
+</code>
+                    </pre>
+                    
+                    
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+        
+        </div>
+      <div class="ui hidden divider"></div>
+    
+  
+
+  <div class="ui horizontal divider" id="authentication">
+    authentication
+  </div>
+  <div class="ui header center aligned">
+    <div class="ui sub header">
+      
+    </div>
+  </div>
+  
+    
+      <div class="ui stacked segments">
+        <div class="ui basic segment resource">
+          <div class="ui purple huge ribbon label">
+            Authenticate a user
+          </div>
+          <div class="ui header">
+            <div class="ui sub header">
+              
+            </div>
+          </div>
+        </div>
+
+        
+          
+<div class="ui grey horizontal small divider header">
+  <i class="ui grey micro circular label"></i>
+  <i class="ui pink micro circular label"></i>
+  <i class="ui grey micro circular label"></i>
+</div>
+
+          <div class="ui basic segment">
+            <h3 class="ui block center aligned header" id="authentication-authenticate-a-user-authenticate-a-user">
+              Authenticate a user
+            </h3>
+            <div class="description"><p>If <strong>remember_me</strong> is <strong>true</strong> then sends back a non-expiring <strong>auth_token</strong> (as a cookie) that can be reused to generate the <strong>session_id</strong>, else just the <strong>session_id</strong> as a cookie.</p>
+</div>
+
+            
+              <h4 class="ui horizontal divider">
+                REQUEST
+              </h4>
+              <div class="fluid ui large labeled button">
+                <div class="ui blue large button">
+                  <h3>POST</h3>
+                </div>
+                <a class="ui basic fluid blue label">
+                  <code>/sessions/new</code>
+                </a>
+              </div>
+              
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+                <div class="ui stacked segment">
+                  <div class="ui fluid transaction accordion">
+                    <div class="title">
+                      <code>application/json</code>
+                    </div>
+                    <div class="content">
+                      <pre style="white-space: inherit">
+                        <code class="language-json">{
+&#34;username&#34;: &#34;saurabhnanda&#34;
+,&#34;password&#34;: &#34;jdslkjsdf&#34;
+,&#34;remember_me&#34;: true
+}
+
+</code>
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              
+
+              <h4 class="ui horizontal divider">RESPONSE</h4>
+              
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Set-Cookie</td>
+      <td><code>auth_token=encrypted; Expires=01 Jan, 2018 00:00:00 GMT; Secure</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Set-Cookie</td>
+      <td><code>session_id=encrypted; Secure</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              <div class="ui stacked blue segment">
+                <div class="ui fluid transaction accordion">
+                  <div class="title center aligned">
+                    <a class="ui blue circular label">
+                      200
+                    </a>
+                    <code></code>
+                  </div>
+                  <div class="content">
+                    <pre style="white-space: inherit">
+                      <code class="language-"></code>
+                    </pre>
+                    
+                    
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+        
+        </div>
+      <div class="ui hidden divider"></div>
+    
+  
+    
+      <div class="ui stacked segments">
+        <div class="ui basic segment resource">
+          <div class="ui purple huge ribbon label">
+            Refresh a session
+          </div>
+          <div class="ui header">
+            <div class="ui sub header">
+              
+            </div>
+          </div>
+        </div>
+
+        
+          
+<div class="ui grey horizontal small divider header">
+  <i class="ui grey micro circular label"></i>
+  <i class="ui pink micro circular label"></i>
+  <i class="ui grey micro circular label"></i>
+</div>
+
+          <div class="ui basic segment">
+            <h3 class="ui block center aligned header" id="authentication-refresh-a-session-refresh-a-session">
+              Refresh a session
+            </h3>
+            <div class="description"><p>Requires only the <strong>cookies</strong>. Do we need to do anything with the POST body?</p>
+</div>
+
+            
+              <h4 class="ui horizontal divider">
+                REQUEST
+              </h4>
+              <div class="fluid ui large labeled button">
+                <div class="ui blue large button">
+                  <h3>POST</h3>
+                </div>
+                <a class="ui basic fluid blue label">
+                  <code>/sessions/refresh</code>
+                </a>
+              </div>
+              
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Cookie</td>
+      <td><code>auth_token=encrypted</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+
+              <h4 class="ui horizontal divider">RESPONSE</h4>
+              
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Set-Cookie</td>
+      <td><code>session_id=encrypted; Secure</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              <div class="ui stacked blue segment">
+                <div class="ui fluid transaction accordion">
+                  <div class="title center aligned">
+                    <a class="ui blue circular label">
+                      200
+                    </a>
+                    <code></code>
+                  </div>
+                  <div class="content">
+                    <pre style="white-space: inherit">
+                      <code class="language-"></code>
+                    </pre>
+                    
+                    
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+        
+        </div>
+      <div class="ui hidden divider"></div>
+    
+  
+    
+      <div class="ui stacked segments">
+        <div class="ui basic segment resource">
+          <div class="ui purple huge ribbon label">
+            Destroy a session
+          </div>
+          <div class="ui header">
+            <div class="ui sub header">
+              
+            </div>
+          </div>
+        </div>
+
+        
+          
+<div class="ui grey horizontal small divider header">
+  <i class="ui grey micro circular label"></i>
+  <i class="ui pink micro circular label"></i>
+  <i class="ui grey micro circular label"></i>
+</div>
+
+          <div class="ui basic segment">
+            <h3 class="ui block center aligned header" id="authentication-destroy-a-session-destroy-a-session">
+              Destroy a session
+            </h3>
+            <div class="description"><p>Requires only the <strong>cookies</strong>. Do we need to do anything with the POST body?</p>
+</div>
+
+            
+              <h4 class="ui horizontal divider">
+                REQUEST
+              </h4>
+              <div class="fluid ui large labeled button">
+                <div class="ui blue large button">
+                  <h3>POST</h3>
+                </div>
+                <a class="ui basic fluid blue label">
+                  <code>/sessions/destroy</code>
+                </a>
+              </div>
+              
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Cookie</td>
+      <td><code>session_id=encrypted</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+
+              <h4 class="ui horizontal divider">RESPONSE</h4>
+              
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Set-Cookie</td>
+      <td><code>session_id=blank</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Set-Cookie</td>
+      <td><code>auth_token=blank</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              <div class="ui stacked blue segment">
+                <div class="ui fluid transaction accordion">
+                  <div class="title center aligned">
+                    <a class="ui blue circular label">
+                      200
+                    </a>
+                    <code></code>
+                  </div>
+                  <div class="content">
+                    <pre style="white-space: inherit">
+                      <code class="language-"></code>
+                    </pre>
+                    
+                    
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+        
+        </div>
+      <div class="ui hidden divider"></div>
+    
+  
+
+  <div class="ui horizontal divider" id="products">
+    Products
+  </div>
+  <div class="ui header center aligned">
+    <div class="ui sub header">
+      
+    </div>
+  </div>
+  
+    
+      <div class="ui stacked segments">
+        <div class="ui basic segment resource">
+          <div class="ui purple huge ribbon label">
+            Get a single product
+          </div>
+          <div class="ui header">
+            <div class="ui sub header">
+              
+            </div>
+          </div>
+        </div>
+
+        
+          
+<div class="ui grey horizontal small divider header">
+  <i class="ui grey micro circular label"></i>
+  <i class="ui pink micro circular label"></i>
+  <i class="ui grey micro circular label"></i>
+</div>
+
+          <div class="ui basic segment">
+            <h3 class="ui block center aligned header" id="products-get-a-single-product-get-a-single-product">
+              Get a single product
+            </h3>
+            <div class="description"><p><strong>NOTE:</strong> There are two ways to design this API. Please refer to <a href="https://github.com/vacationlabs/haskell-webapps/issues/9">issue #9</a> and <a href="https://github.com/vacationlabs/haskell-webapps/issues/10">issue #10</a> for a complete discussion. The sample response in this documentation is for: <code>GET /products/1?fields=name,currency,advertised_price,photos,variants.name,variants.sku,variants.photos&amp;photo_sizes=100x100,300x250&amp;variants.photo_sizes=thumbnail,wide</code></p>
+</div>
+
+            
+              <h4 class="ui horizontal divider">
+                REQUEST
+              </h4>
+              <div class="fluid ui large labeled button">
+                <div class="ui green large button">
+                  <h3>GET</h3>
+                </div>
+                <a class="ui basic fluid green label">
+                  <code>/products/{product_id}</code>
+                </a>
+              </div>
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="4">Parameters</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>product_id</code></td>
+      <td class="center aligned">
+        <code>number<code>
+        
+      </td>
+      <td class="eight wide"><p>the product ID</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>fields</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>which fields should be included in the JSON response. If omitted, all fields visible to the user (based on the authorization) will be included in the JSON.</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>photo_sizes</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>The exact geometry (eg. <code>100x100</code> or <code>300x250</code>) or pre-defined name (eg. <code>thumbnail</code> or <code>wide</code> or <code>tall</code>)</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>variants.photo_sizes</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>The exact geometry (eg. <code>100x100</code> or <code>300x250</code>) or pre-defined name (eg. <code>thumbnail</code> or <code>wide</code> or <code>tall</code>)</p>
+</td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Cookie</td>
+      <td><code>session_id=encrypted</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+
+              <h4 class="ui horizontal divider">RESPONSE</h4>
+              
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              <div class="ui stacked blue segment">
+                <div class="ui fluid transaction accordion">
+                  <div class="title center aligned">
+                    <a class="ui blue circular label">
+                      200
+                    </a>
+                    <code>application/json</code>
+                  </div>
+                  <div class="content">
+                    <pre style="white-space: inherit">
+                      <code class="language-json">{
+&#34;name&#34;: &#34;Ceramic mug&#34;
+,&#34;currency&#34;: &#34;INR&#34;
+,&#34;advertised_price&#34;: &#34;129.50&#34;
+,&#34;photos&#34;: [
+  {
+    &#34;100x100&#34;: &#34;http://somethin.com/a/b/c/100x100.png&#34;
+    ,&#34;300x250&#34;: &#34;http://somethin.com/a/b/c/300x250.png&#34;
+  }
+]
+,&#34;variants&#34;: [
+  {
+    &#34;name&#34;: &#34;Red color&#34;
+    ,&#34;sku&#34;: &#34;MUGRED&#34;
+    ,&#34;photos&#34;: [
+      {
+        &#34;thumbnail&#34;: &#34;http://somethin.com/a/b/c/thumbnail.png&#34;
+        ,&#34;wide&#34;: &#34;http://somethin.com/a/b/c/wide.png&#34;
+      }
+    ]
+  }
+  ,{
+    &#34;name&#34;: &#34;Blue color&#34;
+    ,&#34;sku&#34;: &#34;MUGBLUE&#34;
+    ,&#34;photos&#34;: [
+      {
+        &#34;thumbnail&#34;: &#34;http://somethin.com/a/b/c/thumbnail.png&#34;
+        ,&#34;wide&#34;: &#34;http://somethin.com/a/b/c/wide.png&#34;
+      }
+    ]
+  }
+]
+}
+
+</code>
+                    </pre>
+                    
+                    
+                  </div>
+                </div>
+              </div>
+            
+          </div>
+        
+        </div>
+      <div class="ui hidden divider"></div>
+    
+  
+    
+      <div class="ui stacked segments">
+        <div class="ui basic segment resource">
+          <div class="ui purple huge ribbon label">
+            Get a list of products
+          </div>
+          <div class="ui header">
+            <div class="ui sub header">
+              
+            </div>
+          </div>
+        </div>
+
+        
+          
+<div class="ui grey horizontal small divider header">
+  <i class="ui grey micro circular label"></i>
+  <i class="ui pink micro circular label"></i>
+  <i class="ui grey micro circular label"></i>
+</div>
+
+          <div class="ui basic segment">
+            <h3 class="ui block center aligned header" id="products-get-a-list-of-products-get-a-list-of-products">
+              Get a list of products
+            </h3>
+            <div class="description"><p><strong>TODO:</strong> There are two ways to design this API. Please refer to <a href="https://github.com/vacationlabs/haskell-webapps/issues/9">issue #9</a> and <a href="https://github.com/vacationlabs/haskell-webapps/issues/10">issue #10</a> for a complete discussion. The sample response in this documentation is for: <code>GET /products?fields=name,currency,advertised_price,variants.name,variants.sku</code></p>
+</div>
+
+            
+              <h4 class="ui horizontal divider">
+                REQUEST
+              </h4>
+              <div class="fluid ui large labeled button">
+                <div class="ui green large button">
+                  <h3>GET</h3>
+                </div>
+                <a class="ui basic fluid green label">
+                  <code>/products</code>
+                </a>
+              </div>
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="4">Parameters</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>ids</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>comma separated list of specific product IDs required in the response</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>q</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>full-text search over all relevant fields of the product</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>title</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>filter by product title</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>sku</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>filter by product/variant SKU code</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>type</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>filter by product type</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>tags</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>filter by list of tags (should be comma separated). TODO: Should products return EACH tag or ANY tag?</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>created_at_min</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>filter product created on/after this timestamp (specified in iso8601 format)</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>created_at_max</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>filter product created before this timestamp (specified in iso8601 format)</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>updated_at_min</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>filter product updated on/after this timestamp (specified in iso8601 format)</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>updated_at_max</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>filter product updated before this timestamp (specified in iso8601 format)</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>limit</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>filter product updated before this timestamp (specified in iso8601 format)</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>limit</code></td>
+      <td class="center aligned">
+        <code>number<code>
+        
+      </td>
+      <td class="eight wide"><p>number of results to show. Should be less than 50.</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>offset</code></td>
+      <td class="center aligned">
+        <code>number<code>
+        
+      </td>
+      <td class="eight wide"><p>starting position in the result list (maps to limit/offset in SQL)</p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>orderby</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>can be any valid field accepted by the <code>fields</code> parameter, concatenated by <code>.asc</code> or <code>.desc</code>, eg. <code>created_at.asc</code>. Default is <code>updated.desc</code></p>
+</td>
+    </tr>
+  
+    <tr>
+      <td class="center aligned one wide">
+        <i class="ui empty circular label grey"></i>
+      </td>
+      <td><code>fields</code></td>
+      <td class="center aligned">
+        <code>string<code>
+        
+      </td>
+      <td class="eight wide"><p>which fields should be included in the JSON response. If omitted, all fields visible to the user (based on the authorization) will be included in the JSON.</p>
+</td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Cookie</td>
+      <td><code>session_id=encrypted</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+
+              <h4 class="ui horizontal divider">RESPONSE</h4>
+              
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              <div class="ui stacked blue segment">
+                <div class="ui fluid transaction accordion">
+                  <div class="title center aligned">
+                    <a class="ui blue circular label">
+                      200
+                    </a>
+                    <code>application/json</code>
+                  </div>
+                  <div class="content">
+                    <pre style="white-space: inherit">
+                      <code class="language-json">[
+{
+  &#34;name&#34;: &#34;Ceramic mug&#34;
+  ,&#34;currency&#34;: &#34;INR&#34;
+  ,&#34;advertised_price&#34;: &#34;129.50&#34;
+  ,&#34;variants&#34;: [
+    {
+      &#34;name&#34;: &#34;Red color&#34;
+      ,&#34;sku&#34;: &#34;MUGRED&#34;
+    }
+    ,{
+      &#34;name&#34;: &#34;Blue color&#34;
+      ,&#34;sku&#34;: &#34;MUGBLUE&#34;
+    }
+  ]
+}
+,{
+  &#34;name&#34;: &#34;Water bottle&#34;
+  ,&#34;currency&#34;: &#34;INR&#34;
+  ,&#34;advertised_price&#34;: &#34;49.00&#34;
+  ,&#34;variants&#34;: [
+    {
+      &#34;name&#34;: &#34;Plain&#34;
+      ,&#34;sku&#34;: &#34;BTLP&#34;
+    }
+    ,{
+      &#34;name&#34;: &#34;Printed&#34;
+      ,&#34;sku&#34;: &#34;BTLDSN&#34;
+    }
+  ]
+}
+]
 
 </code>
                     </pre>

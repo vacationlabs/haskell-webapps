@@ -60,7 +60,7 @@ Create a new tenant in an **inactive** state
 + Response 200 (application/json)  
   + Attributes (Tenant)
 
-## Activate a tenant [GET /tenants/{tenant_id}/activate]
+## Activate a tenant [POST /tenants/{tenant_id}/activate]
 
 + Parameters
   + tenant_id (number) - the tenant ID
@@ -104,3 +104,158 @@ Create a new tenant in an **inactive** state
           ,"status": "active"
         }
       }
+
+# Group authentication
+
+## Authenticate a user [POST /sessions/new]
+If **remember_me** is **true** then sends back a non-expiring **auth_token** (as a cookie) that can be reused to generate the **session_id**, else just the **session_id** as a cookie.
+
+  + Request (application/json)
+    + Body
+      {
+        "username": "saurabhnanda"
+        ,"password": "jdslkjsdf"
+        ,"remember_me": true
+      }
+
+  + Response 200 (application/json)
+    + Headers
+      Set-Cookie: auth_token=encrypted; Expires=01 Jan, 2018 00:00:00 GMT; Secure
+      Set-Cookie: session_id=encrypted; Secure
+
+## Refresh a session [POST /sessions/refresh]
+Requires only the **cookies**. Do we need to do anything with the POST body?
+
+  + Request (application/json)
+    + Headers
+      Cookie: auth_token=encrypted
+
+  + Response 200 (application/json)
+    + Headers
+      Set-Cookie: session_id=encrypted; Secure
+
+## Destroy a session [POST /sessions/destroy]
+Requires only the **cookies**. Do we need to do anything with the POST body?
+
+  + Request (application/json)
+    + Headers
+      Cookie: session_id=encrypted
+
+  + Response 200 (application/json)
+    + Headers
+      Set-Cookie: session_id=blank
+      Set-Cookie: auth_token=blank
+
+# Group Products
+
+# Get a single product [GET /products/{product_id}]
+
+**NOTE:** There are two ways to design this API. Please refer to [issue #9](https://github.com/vacationlabs/haskell-webapps/issues/9) and [issue #10](https://github.com/vacationlabs/haskell-webapps/issues/10) for a complete discussion. The sample response in this documentation is for: ```GET /products/1?fields=name,currency,advertised_price,photos,variants.name,variants.sku,variants.photos&photo_sizes=100x100,300x250&variants.photo_sizes=thumbnail,wide```
+
+  + Parameters
+    + product_id (number) - the product ID
+    + fields (string) - which fields should be included in the JSON response. If omitted, all fields visible to the user (based on the authorization) will be included in the JSON.
+    + photo_sizes (string) - The exact geometry (eg. `100x100` or `300x250`) or pre-defined name (eg. `thumbnail` or `wide` or `tall`)
+    + variants.photo_sizes (string) - The exact geometry (eg. `100x100` or `300x250`) or pre-defined name (eg. `thumbnail` or `wide` or `tall`)
+
+
+  + Request (application/json)
+    + Headers
+      Cookie: session_id=encrypted
+
+  + Response 200 (application/json)
+    + Body
+      {
+        "name": "Ceramic mug"
+        ,"currency": "INR"
+        ,"advertised_price": "129.50"
+        ,"photos": [
+          {
+            "100x100": "http://somethin.com/a/b/c/100x100.png"
+            ,"300x250": "http://somethin.com/a/b/c/300x250.png"
+          }
+        ]
+        ,"variants": [
+          {
+            "name": "Red color"
+            ,"sku": "MUGRED"
+            ,"photos": [
+              {
+                "thumbnail": "http://somethin.com/a/b/c/thumbnail.png"
+                ,"wide": "http://somethin.com/a/b/c/wide.png"
+              }
+            ]
+          }
+          ,{
+            "name": "Blue color"
+            ,"sku": "MUGBLUE"
+            ,"photos": [
+              {
+                "thumbnail": "http://somethin.com/a/b/c/thumbnail.png"
+                ,"wide": "http://somethin.com/a/b/c/wide.png"
+              }
+            ]
+          }
+        ]
+      }
+
+# Get a list of products [GET /products]
+
+**TODO:** There are two ways to design this API. Please refer to [issue #9](https://github.com/vacationlabs/haskell-webapps/issues/9) and [issue #10](https://github.com/vacationlabs/haskell-webapps/issues/10) for a complete discussion. The sample response in this documentation is for: ```GET /products?fields=name,currency,advertised_price,variants.name,variants.sku```
+
+  + Parameters
+    + ids (string) - comma separated list of specific product IDs required in the response
+    + q (string) - full-text search over all relevant fields of the product
+    + title (string) - filter by product title
+    + sku (string) - filter by product/variant SKU code
+    + type (string) - filter by product type
+    + tags (string) - filter by list of tags (should be comma separated). TODO: Should products return EACH tag or ANY tag?
+    + created_at_min (iso8601) - filter product created on/after this timestamp (specified in iso8601 format)
+    + created_at_max (iso8601) - filter product created before this timestamp (specified in iso8601 format)
+    + updated_at_min (iso8601) - filter product updated on/after this timestamp (specified in iso8601 format)
+    + updated_at_max (iso8601) - filter product updated before this timestamp (specified in iso8601 format)
+    + limit (iso8601) - filter product updated before this timestamp (specified in iso8601 format)
+    + limit (number) - number of results to show. Should be less than 50.
+    + offset (number) - starting position in the result list (maps to limit/offset in SQL)
+    + orderby (string) - can be any valid field accepted by the `fields` parameter, concatenated by `.asc` or `.desc`, eg. `created_at.asc`. Default is `updated.desc`
+    + fields (string) - which fields should be included in the JSON response. If omitted, all fields visible to the user (based on the authorization) will be included in the JSON.
+
+
+  + Request (application/json)
+    + Headers
+      Cookie: session_id=encrypted
+
+  + Response 200 (application/json)
+    + Body
+      [
+        {
+          "name": "Ceramic mug"
+          ,"currency": "INR"
+          ,"advertised_price": "129.50"
+          ,"variants": [
+            {
+              "name": "Red color"
+              ,"sku": "MUGRED"
+            }
+            ,{
+              "name": "Blue color"
+              ,"sku": "MUGBLUE"
+            }
+          ]
+        }
+        ,{
+          "name": "Water bottle"
+          ,"currency": "INR"
+          ,"advertised_price": "49.00"
+          ,"variants": [
+            {
+              "name": "Plain"
+              ,"sku": "BTLP"
+            }
+            ,{
+              "name": "Printed"
+              ,"sku": "BTLDSN"
+            }
+          ]
+        }
+      ]
