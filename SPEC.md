@@ -4,13 +4,19 @@ A typical shopping-cart (ecommerce) webapp. But it isn't the entire app with all
 
 # Things to cover in the spec
 
-* Siged-out (not logged-in) operations
-* Signed-in operations for an unprivileged user (regular user)
-* Signed-in operations for two separate types of privileged users (eg. super-admin and limited-admin) -- will help implement POC for authorization
-* Domain-level operations that require DB transactions
-* A moderately complex web-form (to complete the user-input validation and user-feedback loop)
-* Searching the app's core data based on user-input
-* Sending out emails? (should this be included in the scope?)
+| Requirement / Case / Scenaro | How is it covered in the spec? |
+| --- | --- |
+| Siged-out (not logged-in) operations | End-customer visiting the storefront |
+| Signed-in operations for users with different priveleges | Editing various fields in a product can require different set of permissions |
+| Domain-level operations that require DB transactions | (a) Creating & editing a product with variants, (b) changing any record in the DB along with audit logs |
+| Complex web-form with validations and error messages | (a) Product creation/editing (b) Image uploads |
+| Searching the app's core data based on user-input | (a) Admin-side product listing page (b) End-customer facing product listing page |
+| Sending out plain text & HTML emails with attachments | Tenant activation email. We can attach a logo inline for use by the HTML part of the email |
+| JSONB support | `audit_logs.changes` and `products.propertes` |
+| Array support | `roles.permissions` |
+| 1:1 association | Tenant:Account-owner |
+| 1:many associations | (a) Product:variant, (b) Product:Photo, (c) Variant:Photo |
+| many:many associations | **TODO** |
 
 # Domain-Level API to be implemented in Phase 1
 
@@ -25,23 +31,9 @@ A typical shopping-cart (ecommerce) webapp. But it isn't the entire app with all
 * Create a new product
   * Requires "product admin" privileges
   * Upload & auto-crop images to various geometries
-* Create a new discount code
-  * Requires "marketing admin" privileges
 * Modify an existing product
   * Tags
   * Variants
   * Images
   * Only 
-* Place an order (containing multiple products) as a regular user
-  * Requires a DB transaction
-  * Stock cannot become negative
-  * Validations
-    * Stock for any product cannot become negative after the order is placed
-    * Basic contact detail validations (email, name, phone number)
-    * Basic address validations (city+state+country should match the zipcode)
-    * All products should be shippable to the zipcode
-* Place an order (containing multiple products) as an administrator
-  * Requires a DB transaction
-  * Validations
-    * All end-user validations to be turned to warnings.
-    * Admin should be able to override all validations
+
