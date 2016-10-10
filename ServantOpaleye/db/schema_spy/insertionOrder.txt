@@ -1,0 +1,7 @@
+tenants
+users
+products
+variants
+roles
+audit_logs
+photos

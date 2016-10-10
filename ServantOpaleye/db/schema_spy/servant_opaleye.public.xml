@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<database name="servant_opaleye" schema="public" type="PostgreSQL - 9.4.5">
+   <tables>
+      <table name="audit_logs" numRows="0" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('audit_logs_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial"/>
+         <column autoUpdated="false" digits="0" id="1" name="tenant_id" nullable="false" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="audit_logs_tenant_id_fkey" implied="false" onDeleteCascade="false" table="tenants"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="2" name="user_id" nullable="true" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="audit_logs_user_id_fkey" implied="false" onDeleteCascade="false" table="users"/>
+         </column>
+         <column autoUpdated="false" defaultValue="false" digits="0" id="3" name="changed_by_system" nullable="false" remarks="" size="1" type="bool"/>
+         <column autoUpdated="false" digits="0" id="4" name="auditable_id" nullable="false" remarks="" size="10" type="int4"/>
+         <column autoUpdated="false" digits="0" id="5" name="auditable_table_name" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="6" name="summary" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="7" name="changes" nullable="false" remarks="" size="2147483647" type="jsonb"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="8" name="created_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="audit_logs_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="idx_audit_logs_auditable_row" unique="false">
+            <column ascending="true" name="auditable_id"/>
+            <column ascending="true" name="auditable_table_name"/>
+         </index>
+         <index name="idx_audit_logs_created_at" unique="false">
+            <column ascending="true" name="created_at"/>
+         </index>
+         <index name="idx_audit_logs_tenant_user_id" unique="false">
+            <column ascending="true" name="tenant_id"/>
+            <column ascending="true" name="user_id"/>
+         </index>
+      </table>
+      <table name="photos" numRows="0" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('photos_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="1" name="created_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <column autoUpdated="false" digits="0" id="2" name="tenant_id" nullable="false" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="photos_tenant_id_fkey" implied="false" onDeleteCascade="false" table="tenants"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="3" name="product_id" nullable="true" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="photos_product_id_fkey" implied="false" onDeleteCascade="false" table="products"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="4" name="variant_id" nullable="true" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="photos_variant_id_fkey" implied="false" onDeleteCascade="false" table="variants"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="5" name="file_size" nullable="false" remarks="" size="10" type="int4"/>
+         <column autoUpdated="false" digits="0" id="6" name="file_type" nullable="false" remarks="" size="10" type="int4"/>
+         <column autoUpdated="false" digits="0" id="7" name="file_original_path" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="8" name="processed_styles" nullable="true" remarks="" size="2147483647" type="jsonb"/>
+         <column autoUpdated="false" digits="0" id="9" name="fingerprint" nullable="false" remarks="" size="2147483647" type="text"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="photos_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="idx_photos_created_at" unique="false">
+            <column ascending="true" name="created_at"/>
+         </index>
+         <index name="idx_photos_fingerprint" unique="false">
+            <column ascending="true" name="fingerprint"/>
+         </index>
+         <index name="idx_photos_product_id" unique="false">
+            <column ascending="true" name="product_id"/>
+         </index>
+         <index name="idx_photos_variant_id" unique="false">
+            <column ascending="true" name="variant_id"/>
+         </index>
+      </table>
+      <table name="products" numRows="0" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('products_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial">
+            <child column="product_id" foreignKey="photos_product_id_fkey" implied="false" onDeleteCascade="false" table="photos"/>
+            <child column="product_id" foreignKey="variants_product_id_fkey" implied="false" onDeleteCascade="false" table="variants"/>
+         </column>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="1" name="created_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="2" name="updated_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <column autoUpdated="false" digits="0" id="3" name="tenant_id" nullable="false" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="products_tenant_id_fkey" implied="false" onDeleteCascade="false" table="tenants"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="4" name="name" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="5" name="description" nullable="true" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="6" name="url_slug" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" defaultValue="'{}'::text[]" digits="0" id="7" name="tags" nullable="false" remarks="" size="2147483647" type="_text"/>
+         <column autoUpdated="false" digits="0" id="8" name="currency" nullable="false" remarks="" size="3" type="bpchar"/>
+         <column autoUpdated="false" digits="0" id="9" name="advertised_price" nullable="false" remarks="" size="131089" type="numeric"/>
+         <column autoUpdated="false" digits="0" id="10" name="comparison_price" nullable="false" remarks="" size="131089" type="numeric"/>
+         <column autoUpdated="false" digits="0" id="11" name="cost_price" nullable="true" remarks="" size="131089" type="numeric"/>
+         <column autoUpdated="false" digits="0" id="12" name="type" nullable="false" remarks="" size="2147483647" type="product_type"/>
+         <column autoUpdated="false" defaultValue="false" digits="0" id="13" name="is_published" nullable="false" remarks="" size="1" type="bool"/>
+         <column autoUpdated="false" digits="0" id="14" name="properties" nullable="true" remarks="" size="2147483647" type="jsonb"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="products_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="idx_product_is_published" unique="false">
+            <column ascending="true" name="is_published"/>
+         </index>
+         <index name="idx_product_type" unique="false">
+            <column ascending="true" name="type"/>
+         </index>
+         <index name="idx_products_comparison_price" unique="false">
+            <column ascending="true" name="comparison_price"/>
+         </index>
+         <index name="idx_products_created_at" unique="false">
+            <column ascending="true" name="created_at"/>
+         </index>
+         <index name="idx_products_name" unique="true">
+            <column ascending="true" name="tenant_id"/>
+         </index>
+         <index name="idx_products_tags" unique="false">
+            <column ascending="true" name="tags"/>
+         </index>
+         <index name="idx_products_updated_at" unique="false">
+            <column ascending="true" name="updated_at"/>
+         </index>
+         <index name="idx_products_url_sluf" unique="true">
+            <column ascending="true" name="tenant_id"/>
+         </index>
+      </table>
+      <table name="roles" numRows="0" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('roles_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial"/>
+         <column autoUpdated="false" digits="0" id="1" name="tenant_id" nullable="false" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="roles_tenant_id_fkey" implied="false" onDeleteCascade="false" table="tenants"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="2" name="name" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="3" name="permissions" nullable="false" remarks="" size="2147483647" type="_text"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="4" name="created_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="updated_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="roles_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="idx_roles_created_at" unique="false">
+            <column ascending="true" name="created_at"/>
+         </index>
+         <index name="idx_roles_name" unique="true">
+            <column ascending="true" name="tenant_id"/>
+         </index>
+         <index name="idx_roles_updated_at" unique="false">
+            <column ascending="true" name="updated_at"/>
+         </index>
+      </table>
+      <table name="tenants" numRows="0" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('tenants_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial">
+            <child column="tenant_id" foreignKey="audit_logs_tenant_id_fkey" implied="false" onDeleteCascade="false" table="audit_logs"/>
+            <child column="tenant_id" foreignKey="photos_tenant_id_fkey" implied="false" onDeleteCascade="false" table="photos"/>
+            <child column="tenant_id" foreignKey="products_tenant_id_fkey" implied="false" onDeleteCascade="false" table="products"/>
+            <child column="tenant_id" foreignKey="roles_tenant_id_fkey" implied="false" onDeleteCascade="false" table="roles"/>
+            <child column="tenant_id" foreignKey="users_tenant_id_fkey" implied="false" onDeleteCascade="false" table="users"/>
+            <child column="tenant_id" foreignKey="variants_tenant_id_fkey" implied="false" onDeleteCascade="false" table="variants"/>
+         </column>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="1" name="created_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="2" name="updated_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <column autoUpdated="false" digits="0" id="3" name="name" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" defaultValue="'inactive'::tenant_status" digits="0" id="4" name="status" nullable="false" remarks="" size="2147483647" type="tenant_status"/>
+         <column autoUpdated="false" digits="0" id="5" name="owner_id" nullable="true" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="fk_tenants_owner_id" implied="false" onDeleteCascade="false" table="users"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="6" name="backoffice_domain" nullable="false" remarks="" size="2147483647" type="text"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="tenants_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="idx_index_owner_id" unique="true">
+            <column ascending="true" name="owner_id"/>
+         </index>
+         <index name="idx_status" unique="false">
+            <column ascending="true" name="status"/>
+         </index>
+         <index name="idx_tenants_created_at" unique="false">
+            <column ascending="true" name="created_at"/>
+         </index>
+         <index name="idx_tenants_updated_at" unique="false">
+            <column ascending="true" name="updated_at"/>
+         </index>
+         <index name="idx_unique_tenants_backoffice_domain" unique="true"/>
+      </table>
+      <table name="users" numRows="0" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('users_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial">
+            <child column="user_id" foreignKey="audit_logs_user_id_fkey" implied="false" onDeleteCascade="false" table="audit_logs"/>
+            <child column="owner_id" foreignKey="fk_tenants_owner_id" implied="false" onDeleteCascade="false" table="tenants"/>
+         </column>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="1" name="created_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="2" name="updated_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <column autoUpdated="false" digits="0" id="3" name="tenant_id" nullable="false" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="users_tenant_id_fkey" implied="false" onDeleteCascade="false" table="tenants"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="4" name="username" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="5" name="password" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="6" name="first_name" nullable="true" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="7" name="last_name" nullable="true" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" defaultValue="'inactive'::user_status" digits="0" id="8" name="status" nullable="false" remarks="" size="2147483647" type="user_status"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="users_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="idx_users_created_at" unique="false">
+            <column ascending="true" name="created_at"/>
+         </index>
+         <index name="idx_users_status" unique="false">
+            <column ascending="true" name="status"/>
+         </index>
+         <index name="idx_users_updated_at" unique="false">
+            <column ascending="true" name="updated_at"/>
+         </index>
+         <index name="idx_users_username" unique="true"/>
+      </table>
+      <table name="variants" numRows="0" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('variants_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial">
+            <child column="variant_id" foreignKey="photos_variant_id_fkey" implied="false" onDeleteCascade="false" table="photos"/>
+         </column>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="1" name="created_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="2" name="updated_at" nullable="false" remarks="" size="35" type="timestamptz"/>
+         <column autoUpdated="false" digits="0" id="3" name="tenant_id" nullable="false" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="variants_tenant_id_fkey" implied="false" onDeleteCascade="false" table="tenants"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="4" name="product_id" nullable="false" remarks="" size="10" type="int4">
+            <parent column="id" foreignKey="variants_product_id_fkey" implied="false" onDeleteCascade="false" table="products"/>
+         </column>
+         <column autoUpdated="false" digits="0" id="5" name="name" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="6" name="sku" nullable="false" remarks="" size="2147483647" type="text"/>
+         <column autoUpdated="false" digits="0" id="7" name="currency" nullable="false" remarks="" size="3" type="bpchar"/>
+         <column autoUpdated="false" digits="0" id="8" name="price" nullable="false" remarks="" size="131089" type="numeric"/>
+         <column autoUpdated="false" digits="0" id="9" name="quantity" nullable="true" remarks="" size="10" type="int4"/>
+         <column autoUpdated="false" digits="0" id="10" name="weight_in_grams" nullable="true" remarks="" size="10" type="int4"/>
+         <column autoUpdated="false" digits="0" id="11" name="weight_display_unit" nullable="true" remarks="" size="2147483647" type="weight_unit"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="variants_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="idx_variants_created_at" unique="false">
+            <column ascending="true" name="created_at"/>
+         </index>
+         <index name="idx_variants_updated_at" unique="false">
+            <column ascending="true" name="updated_at"/>
+         </index>
+      </table>
+   </tables>
+</database>
