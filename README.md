@@ -1,5 +1,7 @@
 # Request For Comments
 
+[![Join the chat at https://gitter.im/haskell-webapps/Lobby](https://badges.gitter.im/haskell-webapps/Lobby.svg)](https://gitter.im/haskell-webapps/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 > Any relevant full-featured libraries that have been missed?
 > Any libraries that are de-facto standards (eg. Aeson for JSON) which can reduce the scope of this seemingly humongous task?
 > Any library that has a known better alternative, for all practical purposes?
