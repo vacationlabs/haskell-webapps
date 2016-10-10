@@ -14,6 +14,7 @@ A typical shopping-cart (ecommerce) webapp. But it isn't the entire app with all
 | Complex web-form with validations and error messages | (a) Product creation/editing (b) Image uploads |
 | Searching the app's core data based on user-input | (a) Admin-side product listing page (b) End-customer facing product listing page |
 | Sending out plain text & HTML emails with attachments | Tenant activation email. We can attach a logo inline for use by the HTML part of the email |
+| ENUM support | `tenant_status`, `user_status`, `product_type`, `weight_unit` |
 | JSONB support | `audit_logs.changes` and `products.propertes` |
 | Array support | `roles.permissions` |
 | 1:1 association | Tenant:Account-owner |
@@ -29,7 +30,7 @@ A typical shopping-cart (ecommerce) webapp. But it isn't the entire app with all
 | Integration tests | **TODO** |
 | Static assets during development | **TODO** |
 | Deployment | **TODO** |
-
+  
 # Domain-Level API to be implemented in Phase 1
 
 * Tenant creation
