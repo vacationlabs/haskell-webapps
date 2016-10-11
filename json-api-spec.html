@@ -380,6 +380,18 @@
 <div class="description">
   <p>This is our &ldquo;minimum viable&rdquo; JSON API spec for a hypothetical multi-tenant shopping cart application.</p>
 
+<h3>Common things to be implemented</h3>
+
+<ul>
+<li><p>Every write to the Postgres DB should result in a corresponding entry in the <code>audit_logs</code> table</p></li>
+
+<li><p>Common format for validation errors</p>
+
+<ul>
+<li>TODO</li>
+</ul></li>
+</ul>
+
 </div>
 
         <div class="ui hidden divider"></div>
@@ -421,7 +433,28 @@
             <h3 class="ui block center aligned header" id="tenants-create-a-tenant-create-a-tenant">
               Create a tenant
             </h3>
-            <div class="description"><p>Create a new tenant in an <strong>inactive</strong> state</p>
+            <div class="description"><ul>
+<li><p>Create a new tenant in an <strong>inactive</strong> state.</p></li>
+
+<li><p>Validations to be implemented:</p>
+
+<ul>
+<li>backoffice domain should be unique</li>
+<li>name should be present and be at least 3 characters in length</li>
+<li>first name &amp; last name should be present</li>
+<li>email should be present and valid</li>
+<li>phone should be present and valid (with country code prefix)</li>
+</ul></li>
+
+<li><p>Send an email with an activation link to the tenant&rsquo;s email ID (multi-part email with text part, HTML part, and a logo as an attachment, which is referenced inline by the HTML part.)</p>
+
+<ul>
+<li>The activation link will contain a unique+random activation-key, which should be stored against the tenant&rsquo;s row in the DB.</li>
+<li>We can simply use a UUID for the activation-key.</li>
+</ul></li>
+
+<li><p>Upon clicking the activation link the tenant will be taken to an account activation UI, which will finally call the tenant activate endpoint (documented below).</p></li>
+</ul>
 </div>
 
             
@@ -685,7 +718,20 @@
             <h3 class="ui block center aligned header" id="tenants-activate-a-tenant-activate-a-tenant">
               Activate a tenant
             </h3>
-            <div class="description"></div>
+            <div class="description"><ul>
+<li><p>Change the tenant&rsquo;s status in the DB from <code>inactive</code> to <code>active</code></p></li>
+
+<li><p>Validations to be implemented</p>
+
+<ul>
+<li>Tenant ID and activation-key should correspond.</li>
+<li>Tenant should be only in the <code>inactive</code> state. It&rsquo;s an error if the tenant is in any other state.</li>
+<li>Following fields in the nested <code>owner</code> object should be present and valid: <code>username</code>, <code>password</code>, <code>password_confirmation</code>, <code>first_name</code>, <code>last_name</code></li>
+</ul></li>
+
+<li><p>This will result in multiple reads &amp; writes to the DB, therefore needs to be wrapped in a <strong>DB transaction</strong></p></li>
+</ul>
+</div>
 
             
               <h4 class="ui horizontal divider">

@@ -5,6 +5,12 @@ FORMAT: 1A
 
 This is our "minimum viable" JSON API spec for a hypothetical multi-tenant shopping cart application.
 
+### Common things to be implemented
+
+* Every write to the Postgres DB should result in a corresponding entry in the `audit_logs` table
+* Common format for validation errors
+  * TODO
+
 ## Data Structures
 
 ### Tenant
@@ -21,7 +27,17 @@ This is our "minimum viable" JSON API spec for a hypothetical multi-tenant shopp
 API endpoints related to tenant management.
 
 ## Create a tenant [POST /tenants/new]
-Create a new tenant in an **inactive** state
+* Create a new tenant in an **inactive** state.
+* Validations to be implemented:
+  * backoffice domain should be unique
+  * name should be present and be at least 3 characters in length
+  * first name & last name should be present
+  * email should be present and valid
+  * phone should be present and valid (with country code prefix)
+* Send an email with an activation link to the tenant's email ID (multi-part email with text part, HTML part, and a logo as an attachment, which is referenced inline by the HTML part.)
+  * The activation link will contain a unique+random activation-key, which should be stored against the tenant's row in the DB.
+  * We can simply use a UUID for the activation-key.
+* Upon clicking the activation link the tenant will be taken to an account activation UI, which will finally call the tenant activate endpoint (documented below).
 
 + Request (application/json)
   {
@@ -61,6 +77,12 @@ Create a new tenant in an **inactive** state
   + Attributes (Tenant)
 
 ## Activate a tenant [POST /tenants/{tenant_id}/activate]
+* Change the tenant's status in the DB from `inactive` to `active`
+* Validations to be implemented
+  * Tenant ID and activation-key should correspond.
+  * Tenant should be only in the `inactive` state. It's an error if the tenant is in any other state.
+  * Following fields in the nested `owner` object should be present and valid: `username`, `password`, `password_confirmation`, `first_name`, `last_name`
+* This will result in multiple reads & writes to the DB, therefore needs to be wrapped in a **DB transaction**
 
 + Parameters
   + tenant_id (number) - the tenant ID
