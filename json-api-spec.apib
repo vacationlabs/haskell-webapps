@@ -69,19 +69,28 @@ API endpoints related to tenant management.
     }
 
 ## Get tenant details [GET /tenants/{tenant_id}]
+* This is **not** a publicly available API. This needs some kind of authorization, which is why we need the `session_id` cookie to be present.
+* Validations
+  * The tenant ID in the URL should match the tenant ID of the currently signed-in user, else this shold result in a 401
+  * In the future, we can extend this to look at the role of the current user. If it is a super-privileged role, then we *may* allow access to any tenant record via this API.
 
 + Parameters
   + tenant_id (number) - the tenant ID
+
++ Request
+  + Headers
+    session_id: encrypted
 
 + Response 200 (application/json)  
   + Attributes (Tenant)
 
 ## Activate a tenant [POST /tenants/{tenant_id}/activate]
-* Change the tenant's status in the DB from `inactive` to `active`
+* Change the tenant's status in the DB from `inactive` to `active`. Remove the activation-key from the DB once successfully activated.
 * Validations to be implemented
   * Tenant ID and activation-key should correspond.
   * Tenant should be only in the `inactive` state. It's an error if the tenant is in any other state.
   * Following fields in the nested `owner` object should be present and valid: `username`, `password`, `password_confirmation`, `first_name`, `last_name`
+* The nested `owner` resource will get stored in the `users` table, with `tenants.owner_id` pointing to the newly created user.
 * This will result in multiple reads & writes to the DB, therefore needs to be wrapped in a **DB transaction**
 
 + Parameters

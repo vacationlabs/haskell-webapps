@@ -598,7 +598,17 @@
             <h3 class="ui block center aligned header" id="tenants-get-tenant-details-get-tenant-details">
               Get tenant details
             </h3>
-            <div class="description"></div>
+            <div class="description"><ul>
+<li><p>This is <strong>not</strong> a publicly available API. This needs some kind of authorization, which is why we need the <code>session_id</code> cookie to be present.</p></li>
+
+<li><p>Validations</p>
+
+<ul>
+<li>The tenant ID in the URL should match the tenant ID of the currently signed-in user, else this shold result in a 401</li>
+<li>In the future, we can extend this to look at the role of the current user. If it is a super-privileged role, then we <em>may</em> allow access to any tenant record via this API.</li>
+</ul></li>
+</ul>
+</div>
 
             
               <h4 class="ui horizontal divider">
@@ -639,6 +649,24 @@
 </table>
 
               
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">session_id</td>
+      <td><code>encrypted</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
               
               
 
@@ -719,7 +747,7 @@
               Activate a tenant
             </h3>
             <div class="description"><ul>
-<li><p>Change the tenant&rsquo;s status in the DB from <code>inactive</code> to <code>active</code></p></li>
+<li><p>Change the tenant&rsquo;s status in the DB from <code>inactive</code> to <code>active</code>. Remove the activation-key from the DB once successfully activated.</p></li>
 
 <li><p>Validations to be implemented</p>
 
@@ -728,6 +756,8 @@
 <li>Tenant should be only in the <code>inactive</code> state. It&rsquo;s an error if the tenant is in any other state.</li>
 <li>Following fields in the nested <code>owner</code> object should be present and valid: <code>username</code>, <code>password</code>, <code>password_confirmation</code>, <code>first_name</code>, <code>last_name</code></li>
 </ul></li>
+
+<li><p>The nested <code>owner</code> resource will get stored in the <code>users</code> table, with <code>tenants.owner_id</code> pointing to the newly created user.</p></li>
 
 <li><p>This will result in multiple reads &amp; writes to the DB, therefore needs to be wrapped in a <strong>DB transaction</strong></p></li>
 </ul>
