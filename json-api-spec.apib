@@ -138,6 +138,8 @@ API endpoints related to tenant management.
 
 # Group authentication
 
+We need to discuss the authentication spec before implementing it. Please refer to https://github.com/vacationlabs/haskell-webapps/issues/25
+
 ## Authenticate a user [POST /sessions/new]
 If **remember_me** is **true** then sends back a non-expiring **auth_token** (as a cookie) that can be reused to generate the **session_id**, else just the **session_id** as a cookie.
 
