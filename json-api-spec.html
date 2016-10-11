@@ -270,7 +270,7 @@
       
         <a class="item" href="#products-create-a-product-create-a-product">
           
-            <i class="ui  empty circular label"></i> Create a product
+            <i class="ui blue empty circular label"></i> Create a product
           
         </a>
       
@@ -1464,7 +1464,7 @@
                       <code class="language-json">{
 &#34;name&#34;: &#34;Ceramic mug&#34;
 ,&#34;currency&#34;: &#34;INR&#34;
-,&#34;advertised_price&#34;: &#34;129.50&#34;
+,&#34;advertised_price&#34;: 129.50
 ,&#34;photos&#34;: [
   {
     &#34;100x100&#34;: &#34;http://somethin.com/a/b/c/100x100.png&#34;
@@ -1816,7 +1816,7 @@
 {
   &#34;name&#34;: &#34;Ceramic mug&#34;
   ,&#34;currency&#34;: &#34;INR&#34;
-  ,&#34;advertised_price&#34;: &#34;129.50&#34;
+  ,&#34;advertised_price&#34;: 129.50
   ,&#34;variants&#34;: [
     {
       &#34;name&#34;: &#34;Red color&#34;
@@ -1831,7 +1831,7 @@
 ,{
   &#34;name&#34;: &#34;Water bottle&#34;
   ,&#34;currency&#34;: &#34;INR&#34;
-  ,&#34;advertised_price&#34;: &#34;49.00&#34;
+  ,&#34;advertised_price&#34;: 49.00
   ,&#34;variants&#34;: [
     {
       &#34;name&#34;: &#34;Plain&#34;
@@ -1884,8 +1884,194 @@
             <h3 class="ui block center aligned header" id="products-create-a-product-create-a-product">
               Create a product
             </h3>
-            <div class="description"></div>
+            <div class="description"><ul>
+<li><p>Validations</p>
 
+<ul>
+<li>Required fields: <code>name</code>, <code>description</code>, <code>currency</code>, <code>product_type</code>, <code>variants</code>, <code>variants.name</code>, <code>variants.sku</code>, <code>variants.price</code>, <code>variants.sku</code></li>
+<li>At least one variant should be present</li>
+<li><code>variants.sku</code> should be unique for the tenant.</li>
+<li>If <code>product_type=physical</code> then <code>variants.weight_in_grams</code> and <code>variants.weight_display_unit</code> are required. On the other hand, if <code>product_type=digital</code> then the weight related field should NOT be present. Sending weight for a digital product should be an error. And NOT sending weight for a physical product should also be an error.</li>
+<li>Currency at the product level and the variant level should be the same</li>
+<li>Optional field: <code>advertised_price</code>, if absent (or blank) should automatically be calculated as minimum <code>price</code> of all variants.</li>
+<li>Optional field: <code>comparison_price</code>, if absent (or blank) should automatically be calculated as the <code>advertised_price</code></li>
+<li>Optional field: <code>cost_price</code>, if absent or blank, should be set to <code>NULL</code> in the DB</li>
+<li>Optional field: <code>url_slug</code>, if absent or blank, should be set to the parameterized/sluggified version of the product name. eg. <code>Ceramic mug =&gt; ceramic-mug</code>. The <code>url_slug</code> should be unique for the tenant. So, if an automatically generated URL slug is not unique, a number should be suffixed to the slug to make it unique. If a URL slug specified in the the JSON is not unique, then it should result in a validation error.</li>
+<li><code>properties</code> is a free from key-value pair which will be stored in the corresponding JSONB field in the DB</li>
+</ul></li>
+
+<li><p>Product &amp; variant creation should be wrapped in a <strong>DB transaction</strong></p></li>
+</ul>
+</div>
+
+            
+              <h4 class="ui horizontal divider">
+                REQUEST
+              </h4>
+              <div class="fluid ui large labeled button">
+                <div class="ui blue large button">
+                  <h3>POST</h3>
+                </div>
+                <a class="ui basic fluid blue label">
+                  <code>/products/new</code>
+                </a>
+              </div>
+              
+              
+                
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">session_id</td>
+      <td><code>encrypted</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              
+              
+                <div class="ui stacked segment">
+                  <div class="ui fluid transaction accordion">
+                    <div class="title">
+                      <code>application/json</code>
+                    </div>
+                    <div class="content">
+                      <pre style="white-space: inherit">
+                        <code class="language-json">{
+&#34;name&#34;: &#34;Ceramic mug&#34;
+,&#34;description&#34;: &#34;Very beautiful ceramic mug with flower prints&#34;
+,&#34;currency&#34;: &#34;INR&#34;
+,&#34;advertised_price&#34;: 129.50
+,&#34;comparison_price&#34;: 12.50
+,&#34;cost_price&#34;: 100
+,&#34;product_type&#34;: &#34;physical&#34;
+,&#34;properties&#34;: {
+&#34;Ideal for&#34;: &#34;Gifting&#34;
+,&#34;Breakable&#34;: &#34;Yes&#34;
+}
+,&#34;variants&#34;: [
+{
+  &#34;name&#34;: &#34;Red color&#34;
+  ,&#34;sku&#34;: &#34;MUGRED&#34;
+  ,&#34;currency&#34;: &#34;INR&#34;
+  ,&#34;price&#34;: 129.50
+  ,&#34;weight_in_grams&#34;: 300
+  ,&#34;weight_display_unit&#34;: &#34;grams&#34;
+}
+,{
+  &#34;name&#34;: &#34;Blue color&#34;
+  ,&#34;sku&#34;: &#34;MUGBLUE&#34;
+  ,&#34;price&#34;: 132
+  ,&#34;weight_in_grams&#34;: 300
+  ,&#34;weight_display_unit&#34;: &#34;grams&#34;
+}
+]
+}
+
+</code>
+                      </pre>
+                    </div>
+                  </div>
+                </div>
+              
+
+              <h4 class="ui horizontal divider">RESPONSE</h4>
+              
+<table class="ui celled definition table">
+  <thead>
+    <tr>
+      <th colspan="2">Headers</th>
+    </tr>
+  <thead>
+  <tbody>
+  
+    <tr>
+      <td class="four wide">Content-Type</td>
+      <td><code>application/json</code></td>
+    </tr>
+  
+    <tr>
+      <td class="four wide">Location</td>
+      <td><code>/products/123</code></td>
+    </tr>
+  
+  </tbody>
+</table>
+
+              <div class="ui stacked blue segment">
+                <div class="ui fluid transaction accordion">
+                  <div class="title center aligned">
+                    <a class="ui blue circular label">
+                      200
+                    </a>
+                    <code>application/json</code>
+                  </div>
+                  <div class="content">
+                    <pre style="white-space: inherit">
+                      <code class="language-json">{
+&#34;id&#34;: 123
+,&#34;tenant_id&#34;: 1
+,&#34;created_at&#34;: &#34;2016-10-10T14:45:23&#43;0000&#34;
+,&#34;updated_at&#34;: &#34;2016-10-10T14:45:23&#43;0000&#34;
+,&#34;name&#34;: &#34;Ceramic mug&#34;
+,&#34;description&#34;: &#34;Very beautiful ceramic mug with flower prints&#34;
+,&#34;currency&#34;: &#34;INR&#34;
+,&#34;advertised_price&#34;: 129.50
+,&#34;comparison_price&#34;: 12.50
+,&#34;cost_price&#34;: 100
+,&#34;product_type&#34;: &#34;physical&#34;
+,&#34;properties&#34;: {
+&#34;Ideal for&#34;: &#34;Gifting&#34;
+,&#34;Breakable&#34;: &#34;Yes&#34;
+}
+,&#34;variants&#34;: [
+{
+  &#34;id&#34;: 342
+  ,&#34;tenant_id&#34;: 1
+  ,&#34;product_id&#34;: 123
+  ,&#34;created_at&#34;: &#34;2016-10-10T14:45:23&#43;0000&#34;
+  ,&#34;updated_at&#34;: &#34;2016-10-10T14:45:23&#43;0000&#34;
+  ,&#34;name&#34;: &#34;Red color&#34;
+  ,&#34;sku&#34;: &#34;MUGRED&#34;
+  ,&#34;currency&#34;: &#34;INR&#34;
+  ,&#34;price&#34;: 129.50
+  ,&#34;weight_in_grams&#34;: 300
+  ,&#34;weight_display_unit&#34;: &#34;grams&#34;
+}
+,{
+  &#34;id&#34;: 343
+  ,&#34;tenant_id&#34;: 1
+  ,&#34;product_id&#34;: 123
+  ,&#34;created_at&#34;: &#34;2016-10-10T14:45:23&#43;0000&#34;
+  ,&#34;updated_at&#34;: &#34;2016-10-10T14:45:23&#43;0000&#34;
+  ,&#34;name&#34;: &#34;Blue color&#34;
+  ,&#34;sku&#34;: &#34;MUGBLUE&#34;
+  ,&#34;price&#34;: 132
+  ,&#34;weight_in_grams&#34;: 300
+  ,&#34;weight_display_unit&#34;: &#34;grams&#34;
+}
+]
+}
+
+</code>
+                    </pre>
+                    
+                    
+                  </div>
+                </div>
+              </div>
             
           </div>
         

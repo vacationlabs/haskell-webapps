@@ -201,7 +201,7 @@ Requires only the **cookies**. Do we need to do anything with the POST body?
       {
         "name": "Ceramic mug"
         ,"currency": "INR"
-        ,"advertised_price": "129.50"
+        ,"advertised_price": 129.50
         ,"photos": [
           {
             "100x100": "http://somethin.com/a/b/c/100x100.png"
@@ -264,7 +264,7 @@ Requires only the **cookies**. Do we need to do anything with the POST body?
         {
           "name": "Ceramic mug"
           ,"currency": "INR"
-          ,"advertised_price": "129.50"
+          ,"advertised_price": 129.50
           ,"variants": [
             {
               "name": "Red color"
@@ -279,7 +279,7 @@ Requires only the **cookies**. Do we need to do anything with the POST body?
         ,{
           "name": "Water bottle"
           ,"currency": "INR"
-          ,"advertised_price": "49.00"
+          ,"advertised_price": 49.00
           ,"variants": [
             {
               "name": "Plain"
@@ -294,8 +294,105 @@ Requires only the **cookies**. Do we need to do anything with the POST body?
       ]
 
 ## Create a product [POST /products/new]
+* Validations
+  * Required fields: `name`, `description`, `currency`, `product_type`, `variants`, `variants.name`, `variants.sku`, `variants.price`, `variants.sku`
+  * At least one variant should be present
+  * `variants.sku` should be unique for the tenant.
+  * If `product_type=physical` then `variants.weight_in_grams` and `variants.weight_display_unit` are required. On the other hand, if `product_type=digital` then the weight related field should NOT be present. Sending weight for a digital product should be an error. And NOT sending weight for a physical product should also be an error.
+  * Currency at the product level and the variant level should be the same
+  * Optional field: `advertised_price`, if absent (or blank) should automatically be calculated as minimum `price` of all variants.
+  * Optional field: `comparison_price`, if absent (or blank) should automatically be calculated as the `advertised_price`
+  * Optional field: `cost_price`, if absent or blank, should be set to `NULL` in the DB
+  * Optional field: `url_slug`, if absent or blank, should be set to the parameterized/sluggified version of the product name. eg. `Ceramic mug => ceramic-mug`. The `url_slug` should be unique for the tenant. So, if an automatically generated URL slug is not unique, a number should be suffixed to the slug to make it unique. If a URL slug specified in the the JSON is not unique, then it should result in a validation error.
+  * `properties` is a free from key-value pair which will be stored in the corresponding JSONB field in the DB
+* Product & variant creation should be wrapped in a **DB transaction**
+
+
++ Request (application/json)
+  + Headers 
+    session_id: encrypted
+  + Body
+    {
+      "name": "Ceramic mug"
+      ,"description": "Very beautiful ceramic mug with flower prints"
+      ,"currency": "INR"
+      ,"advertised_price": 129.50
+      ,"comparison_price": 12.50
+      ,"cost_price": 100
+      ,"product_type": "physical"
+      ,"properties": {
+        "Ideal for": "Gifting"
+        ,"Breakable": "Yes"
+      }
+      ,"variants": [
+        {
+          "name": "Red color"
+          ,"sku": "MUGRED"
+          ,"currency": "INR"
+          ,"price": 129.50
+          ,"weight_in_grams": 300
+          ,"weight_display_unit": "grams"
+        }
+        ,{
+          "name": "Blue color"
+          ,"sku": "MUGBLUE"
+          ,"price": 132
+          ,"weight_in_grams": 300
+          ,"weight_display_unit": "grams"
+        }
+      ]
+    }
++ Response (application/json)
+  + Headers
+    Location: /products/123
+  + Body
+    {
+      "id": 123
+      ,"tenant_id": 1
+      ,"created_at": "2016-10-10T14:45:23+0000"
+      ,"updated_at": "2016-10-10T14:45:23+0000"
+      ,"name": "Ceramic mug"
+      ,"description": "Very beautiful ceramic mug with flower prints"
+      ,"currency": "INR"
+      ,"advertised_price": 129.50
+      ,"comparison_price": 12.50
+      ,"cost_price": 100
+      ,"product_type": "physical"
+      ,"properties": {
+        "Ideal for": "Gifting"
+        ,"Breakable": "Yes"
+      }
+      ,"variants": [
+        {
+          "id": 342
+          ,"tenant_id": 1
+          ,"product_id": 123
+          ,"created_at": "2016-10-10T14:45:23+0000"
+          ,"updated_at": "2016-10-10T14:45:23+0000"
+          ,"name": "Red color"
+          ,"sku": "MUGRED"
+          ,"currency": "INR"
+          ,"price": 129.50
+          ,"weight_in_grams": 300
+          ,"weight_display_unit": "grams"
+        }
+        ,{
+          "id": 343
+          ,"tenant_id": 1
+          ,"product_id": 123
+          ,"created_at": "2016-10-10T14:45:23+0000"
+          ,"updated_at": "2016-10-10T14:45:23+0000"
+          ,"name": "Blue color"
+          ,"sku": "MUGBLUE"
+          ,"price": 132
+          ,"weight_in_grams": 300
+          ,"weight_display_unit": "grams"
+        }
+      ]
+    }
 
 ## Edit a product [POST /products/{product_id}]
+
 
 # Group Photos
 
