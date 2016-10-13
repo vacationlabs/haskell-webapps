@@ -1,40 +1,29 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators   #-}
-module Lib
-    ( startApp
-    ) where
+{-# LANGUAGE DeriveGeneric   #-}
+module DatabaseTypes
+    where
 
 import Data.Aeson
 import Data.Aeson.TH
-import Database.Persist.Sql
 import Database.Persist.TH
 import GHC.Generics
 import Data.Time.Clock
 import Data.Text
 
-data TenantStatus = NewT | InactiveT | ActiveT deriving (Read, Show)
+data TenantStatus = NewT | InactiveT | ActiveT deriving (Read, Show,Generic)
+instance ToJSON TenantStatus
+instance FromJSON TenantStatus
 derivePersistField "TenantStatus"
-data UserStatus = BlockedU | InactiveU | ActiveU deriving (Read, Show)
+data UserStatus = BlockedU | InactiveU | ActiveU deriving (Read, Show,Generic)
+instance ToJSON UserStatus
+instance FromJSON UserStatus
 derivePersistField "UserStatus"
 
-share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
-Tenant json
-    name Text
-    backofficeDomain Text
-    ownerId UserId Maybe
-    tenantStatus TenantStatus
-    tenantTime TimeStamp
-    deriving Show
+data TimeStamp = TS { createdAt :: UTCTime
+                    , updatedAt :: UTCTime } deriving (Read, Show, Generic)
 
-User json
-    firstName Text
-    lastName Text
-    tenantID TenantID
-    username Text
-    password Text
-    userTime TimeStamp
-    userStatus UserStatus
-    deriving Show
-]
-
+instance ToJSON TimeStamp
+instance FromJSON TimeStamp
+derivePersistFieldJSON "TimeStamp"

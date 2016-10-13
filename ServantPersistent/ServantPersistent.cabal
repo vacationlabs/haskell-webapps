@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     API, Types, Auth, Server
+  exposed-modules:     API, Types, Auth, Server, Environ, DatabaseTypes, Models
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , servant-server
@@ -24,9 +24,12 @@ library
                      , cereal
                      , wai
                      , text
+                     , time
                      , bytestring
                      , warp
                      , mtl
+                     , persistent
+                     , persistent-template
   default-language:    Haskell2010
 
 executable ServantPersistent-exe
