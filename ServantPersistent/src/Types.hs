@@ -18,12 +18,33 @@ import GHC.Generics
 import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Serialize
+import Data.Text
+
+data Environment = Test | Devel | Production deriving (Eq, Show)
 
 data Config = Config
     { authSettings :: AuthCookieSettings
     , randomSource :: RandomSource
     , serverKey :: ServerKey
+    , environment :: Environment
     }
 
 type App = ReaderT Config (ExceptT ServantErr IO)
+
+data LoginForm = Login { username :: String
+                       , password :: String
+                       } deriving (Show, Generic)
+
+instance Serialize LoginForm
+instance FromJSON LoginForm
+instance ToJSON LoginForm
+
+data Session = Session { sessionUser :: String
+                       } deriving (Show, Generic)
+
+instance Serialize Session
+instance FromJSON Session
+instance ToJSON Session
+
+
 

@@ -24,7 +24,6 @@ type ProductID = Int
 type Tenant = ()
 type ActivationRequest = ()
 type ActivationResponse = ()
-type LoginForm = Session
 type Product = ()
 
 type TenantAPI = 
@@ -47,23 +46,4 @@ type API = "tenants"  :> TenantAPI
 
 api :: Proxy API
 api = Proxy
-
-type TestAPI = SessionAPI :<|> AppAuth :> ProductAPI
-
-testAPI :: Proxy TestAPI
-testAPI = Proxy
-
-type instance AuthCookieData = Session
-
-newSession :: LoginForm -> App (Headers '[Header "set-cookie" ByteString] ())
-newSession session = do
-    Config{..} <- ask
-    addSession authSettings randomSource serverKey session ()
-
-sessionHandler :: ServerT TestAPI App
-sessionHandler = newSession :<|> \Session{..} -> (\_ -> return ())
-            :<|> return [()]
-
-server :: Config -> Server TestAPI
-server config = enter (Nat $ flip runReaderT config) sessionHandler
 

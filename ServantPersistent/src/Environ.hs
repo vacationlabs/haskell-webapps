@@ -2,8 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators   #-}
 {-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE TypeFamilies #-}
-module Auth
+module Environ
     where
 
 import Data.Aeson
@@ -16,14 +15,16 @@ import Servant.Server.Experimental.Auth.Cookie
 import Data.ByteString
 import Data.Proxy
 import GHC.Generics
+import Control.Monad.Except
+import Control.Monad.Reader
 import Data.Serialize
 import Data.Text
 import Types
 
-type AppAuth = AuthProtect "cookie-auth"
+withEnvironment :: Environment -> App () -> App ()
+withEnvironment e m = do
+    env <- asks environment
+    when (e == env) m
 
-type instance AuthCookieData = Session
-
-validateLogin :: LoginForm -> App Bool
-validateLogin _ = return True
-
+inDevel :: App () -> App ()
+inDevel = withEnvironment Devel
