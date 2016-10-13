@@ -55,11 +55,94 @@ authDestroy = return "should destroy the session"
 
 authHandlers = authNew :<|> authRefresh :<|> authDestroy
 
+-- Products
 
-type ShoppingCart = TenantAPI :<|> AuthAPI
+data Product = Product
+    { ids               :: String
+    , q                 :: String
+    , title             :: String
+    , sku               :: String
+    , prod_type         :: String
+    , tags              :: String
+    , created_at_min    :: String
+    , created_at_max    :: String
+    , updated_at_min    :: String
+    , updated_at_max    :: String
+    , limit             :: String
+    , limit_count       :: Int
+    , offset            :: Int
+    , orderby           :: String
+    , fields            :: String
+    } deriving (Generic)
+
+instance FromJSON Product -- where 
+ --   parseJSON (Object v) = Product "" "" "" "" "" "" "" "" "" "" "" 0 0 "" ""
+
+
+type ProductResult = String
+type ProductAPI = "products" :>
+                (Capture "product_id" Int :>
+                    QueryParam "fields" String :>
+                    QueryParam "photo_sizes" String :>
+                    QueryParam "varants.photo_sizes" ProductResult :>
+                        Get '[JSON] String 
+            :<|> QueryParam "ids" String :>
+                 QueryParam "q" String :>
+                 QueryParam "title" String :>
+                 QueryParam "sku" String :>
+                 QueryParam "type" String :>
+                 QueryParam "tags" String :>
+                 QueryParam "created_at_min" String :>
+                 QueryParam "created_at_max" String :>
+                 QueryParam "updated_at_min" String :>
+                 QueryParam "updated_at_max" String :>
+                 QueryParam "limit" String :>
+                 QueryParam "limit" Int :>
+                 QueryParam "offset" Int :>
+                 QueryParam "orderby" String :>
+                 QueryParam "fields" String :>
+                    Get '[JSON] ProductResult 
+            :<|> "new" :>
+                 ReqBody '[JSON] Product :>
+                    Post '[JSON] ProductResult)
+
+productGet id fields photo_sizes variants  = return $ "get a product from id " ++ show id
+
+productList ids q title sku item_type tags created_at_mix created_at_max
+    updated_at_min updated_at_max limit limit_count offset orderby fields = return "list products by query params"
+
+productNew :: Product -> ExceptT ServantErr IO String
+productNew product = return "create a new product"
+
+productHandlers = productGet :<|> productList :<|> productNew 
+
+-- Photos
+
+type PhotoAPI = "photos" :>
+                (Capture "path_segment_1" String :>
+                 Capture "path_segment_2" String :>
+                 Capture "geometry_or_style" String :>
+                 Capture "original_filename" String :>
+                    Get '[JSON] String)
+
+photoGet path1 path2 geometry filename = return "return a photo"
+
+photoHandlers = photoGet
+
+-- ShoppingCart
+
+type ShoppingCart = 
+                 TenantAPI
+            :<|> AuthAPI
+            :<|> ProductAPI 
+            :<|> PhotoAPI
 
 server :: Server ShoppingCart
-server =  tenantHandlers :<|> authHandlers
+server =  
+             tenantHandlers 
+        :<|> authHandlers
+        :<|> productHandlers 
+        :<|> photoHandlers
 
 shoppingCart :: Proxy ShoppingCart
 shoppingCart = Proxy
