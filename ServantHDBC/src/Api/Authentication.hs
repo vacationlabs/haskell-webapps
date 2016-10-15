@@ -10,22 +10,36 @@
 module Api.Authentication (AuthAPI, authHandlers) where
 
 import Control.Monad.Trans.Except
+import Data.Aeson
+import GHC.Generics
 import Servant
 
-type Auth = String
-type AuthAPI = "sessions" :>
-                         ("new" :> Post '[JSON] Auth
-                          :<|> "refresh" :> Post '[JSON] Auth
-                          :<|> "destroy" :> Post '[JSON] Auth)
+data Auth = Auth String
+    deriving (Generic)
 
-authNew :: ExceptT ServantErr IO Auth
-authNew = return "should create a cookie"
+instance FromJSON Auth
 
-authRefresh :: ExceptT ServantErr IO Auth
-authRefresh = return "should refresh session timeout"
+type AuthAPI = "sessions" :> AuthAPI'
 
-authDestroy :: ExceptT ServantErr IO Auth
-authDestroy = return "should destroy the session"
+type AuthAPI' = 
+            "new" 
+                :> ReqBody '[JSON] Auth
+                    :> Post '[JSON] String
+       :<|> "refresh" 
+                :> ReqBody '[JSON] Auth
+                    :> Post '[JSON] String
+       :<|> "destroy" 
+                :> ReqBody '[JSON] Auth
+                    :> Post '[JSON] String
+
+authNew :: Auth -> ExceptT ServantErr IO String
+authNew _ = return "should create a cookie"
+
+authRefresh :: Auth -> ExceptT ServantErr IO String
+authRefresh _ = return "should refresh session timeout"
+
+authDestroy :: Auth -> ExceptT ServantErr IO String
+authDestroy _ = return "should destroy the session"
 
 authHandlers = authNew :<|> authRefresh :<|> authDestroy
 

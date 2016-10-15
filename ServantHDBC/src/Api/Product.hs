@@ -64,33 +64,40 @@ data ProductOrdering = ProductOrdering Int
 instance FromHttpApiData ProductOrdering where
     parseUrlPiece x = fmap ProductOrdering (parseUrlPiece x :: Either Text Int)
 
-type ProductAPI = "products" :>
-                (Capture "product_id" Int :>
+type ProductAPI = "products" :> ProductAPI'
+
+type ProductAPI' =
+                Capture "product_id" Int :>
                     QueryParams "fields" Field :>
                     QueryParam "photo_sizes" String :>
                     QueryParam "varants.photo_sizes" String :>
                         Get '[JSON] String 
-            :<|> QueryParams "ids" ProductId :>
-                 QueryParam "q" String :>
-                 QueryParam "title" String :> 
-                 QueryParam "sku" Sku :>
-                 QueryParam "type" ProductType :>
-                 QueryParam "tags" String :>
-                 QueryParam "created_at_min" UTCTime :>
-                 QueryParam "created_at_max" UTCTime :>
-                 QueryParam "updated_at_min" UTCTime :>
-                 QueryParam "updated_at_max" UTCTime :>
-                 QueryParam "limit" Int :>
-                 QueryParam "offset" Int :>
-                 QueryParam "orderby" ProductOrdering :>
-                 QueryParams "fields" Field :>
+           :<|> QueryParams "ids" ProductId :>
+                QueryParam "q" String :>
+                QueryParam "title" String :> 
+                QueryParam "sku" Sku :>
+                QueryParam "type" ProductType :>
+                QueryParam "tags" String :>
+                QueryParam "created_at_min" UTCTime :>
+                QueryParam "created_at_max" UTCTime :>
+                QueryParam "updated_at_min" UTCTime :>
+                QueryParam "updated_at_max" UTCTime :>
+                QueryParam "limit" Int :>
+                QueryParam "offset" Int :>
+                QueryParam "orderby" ProductOrdering :>
+                QueryParams "fields" Field :>
                     Get '[JSON] String
-            :<|> "new" :>
-                 ReqBody '[JSON] Product :>
-                    Post '[JSON] String )
+           :<|> "new" :>
+                ReqBody '[JSON] Product :>
+                   Post '[JSON] String
 
-productGet :: Int -> [Field] -> Maybe String -> Maybe String -> ExceptT ServantErr IO String
-productGet id fields photo_sizes variants  = return $ "get a product from id " ++ show id
+productGet :: Int -> 
+              [Field] -> 
+              Maybe String -> 
+              Maybe String -> 
+              ExceptT ServantErr IO String
+productGet id fields photo_sizes variants = 
+    return $ "get a product from id " ++ show id
 
 productList
   :: [ProductId]
@@ -110,7 +117,8 @@ productList
      -> ExceptT ServantErr IO String
 
 productList ids q title sku item_type tags created_at_mix created_at_max
-    updated_at_min updated_at_max limit offset orderby fields = return "list products by query params"
+    updated_at_min updated_at_max limit offset orderby fields 
+        = return "list products by query params"
 
 productNew :: Product -> ExceptT ServantErr IO String
 productNew product = return "create a new product"
