@@ -21,7 +21,7 @@ import Types
 import API
 import Environ
 
-type TestAPI = SessionAPI :<|> AppAuth :> ProductAPI
+type TestAPI = SessionAPI :<|> ProtectEndpoints ProductAPI
 
 testAPI :: Proxy TestAPI
 testAPI = Proxy
@@ -38,9 +38,13 @@ newSession login = do
        else error "Invalid Login"
 
 testSessionHandler :: ServerT TestAPI App
-testSessionHandler = newSession :<|> 
-                   (\Session{..} -> (\_ -> return ())
-                               :<|> return [()])
+testSessionHandler = newSession :<|> productHandler
+
+productHandler :: ServerT (ProtectEndpoints ProductAPI) App
+productHandler = (\id -> either handleError (liftIO . print))
+            :<|> (\s -> return [()])
+  where handleError NotPresent = throwError $ err403 { errBody = "Please log in" }
+        handleError _ = throwError $ err403 { errBody = "Session invalid" }
 
 testServer :: Config -> Server TestAPI
 testServer config = enter (Nat $ flip runReaderT config) testSessionHandler

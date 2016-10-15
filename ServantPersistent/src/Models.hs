@@ -35,5 +35,6 @@ User json
     password Text
     userTime TimeStamp
     userStatus UserStatus
+    UniqueUsername username
 |]
 
