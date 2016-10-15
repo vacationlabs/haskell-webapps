@@ -11,21 +11,28 @@
 module Api.Tenant (TenantAPI, tenantHandlers) where
 
 import Control.Monad.Trans.Except
+import Data.Aeson
+import GHC.Generics
 import Servant
 
-type Tenant = String
-type TenantAPI = "tenants" :> 
-                         ("new" :> Post '[JSON] Tenant
-                          :<|> Capture "x" Int :> Get '[JSON] Tenant
-                          :<|> Capture "x" Int :> "activate" :> Post '[JSON] Tenant)
+data Tenant = Tenant String
+    deriving (Generic)
 
-tenantNew :: ExceptT ServantErr IO Tenant
+instance FromJSON Tenant
+type TenantAPI = "tenants" :> 
+                         ("new" :> Post '[JSON] String
+                          :<|> Capture "x" Int :> Get '[JSON] String
+                          :<|> Capture "x" Int :> "activate" 
+                            :> ReqBody '[JSON] Tenant 
+                            :> Post '[JSON] String)
+
+tenantNew :: ExceptT ServantErr IO String
 tenantNew = return "new tenant"
 
-tenantGet :: Int -> ExceptT ServantErr IO Tenant 
+tenantGet :: Int -> ExceptT ServantErr IO String
 tenantGet x = return $ "get tenant " ++ show x
 
-tenantActivate :: Int -> ExceptT ServantErr IO Tenant
-tenantActivate x = return $ "activating " ++ show x
+tenantActivate :: Int -> Tenant -> ExceptT ServantErr IO String
+tenantActivate x (Tenant t) = return $ "activating " ++ show x ++ " " ++ show t
 
 tenantHandlers = tenantNew :<|> tenantGet :<|> tenantActivate
