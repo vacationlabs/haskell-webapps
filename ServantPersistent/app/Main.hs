@@ -19,7 +19,7 @@ main :: IO ()
 main = do
     randomSource <- mkRandomSource drgNew 10000
     serverKey <- mkServerKey 256 Nothing
-    let config = Config def randomSource serverKey Devel
+    let config = Config (def {acsCookieFlags = ["HttpOnly"]}) randomSource serverKey Devel
     run 8080 $ serveWithContext (testAPI)
                                 ((cookieAuthHandler def serverKey) :. EmptyContext)
                                 (testServer config)

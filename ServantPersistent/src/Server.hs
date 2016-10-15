@@ -35,14 +35,14 @@ newSession login = do
     let session = Session (username login)
     if loginValid
        then addSession authSettings randomSource serverKey session ()
-       else error "Invalid Login"
+       else throwError $ err400 { errBody = "Invalid login." }
 
 testSessionHandler :: ServerT TestAPI App
 testSessionHandler = newSession :<|> productHandler
 
 productHandler :: ServerT (ProtectEndpoints ProductAPI) App
 productHandler = (\id -> either handleError (liftIO . print))
-            :<|> (\s -> return [()])
+            :<|> (either handleError $ const $ return [()])
   where handleError NotPresent = throwError $ err403 { errBody = "Please log in" }
         handleError _ = throwError $ err403 { errBody = "Session invalid" }
 

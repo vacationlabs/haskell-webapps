@@ -21,10 +21,10 @@ import Data.Serialize
 import Data.Text
 import Types
 
-withEnvironment :: Environment -> App () -> App ()
-withEnvironment e m = do
+inEnvironment :: Environment -> App () -> App ()
+inEnvironment e m = do
     env <- asks environment
     when (e == env) m
 
 inDevel :: App () -> App ()
-inDevel = withEnvironment Devel
+inDevel = inEnvironment Devel

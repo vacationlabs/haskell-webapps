@@ -26,6 +26,7 @@ Tenant json
     ownerId UserId Maybe
     tenantStatus TenantStatus
     tenantTime TimeStamp
+    UniqueTenant name backofficeDomain
 
 User json
     firstName Text
@@ -33,8 +34,8 @@ User json
     tenantID TenantId
     username Text
     password Text
-    userTime TimeStamp
     userStatus UserStatus
+    userTime TimeStamp
     UniqueUsername username
 |]
 
