@@ -50,8 +50,6 @@ DBUser
     UniqueUsername username
 |]
 
-tbdbIso :: Iso' (TenantBase (TenantStatus,Maybe DBUserId)) DBTenant
-tbdbIso = iso (\(TB ti c u (status, id)) -> DBTenant (ti ^. name) (ti ^. backofficeDomain) id status c u) (\dbt -> TB (dbt ^. tenantIdent) (dbt ^. createdAt) (dbt ^. updatedAt) ((dbt ^. dBTenantStatus), (dbt ^. dBTenantOwnerId)))
 
 instance HasTimestamp DBTenant where
     createdAt = dBTenantCreatedAt

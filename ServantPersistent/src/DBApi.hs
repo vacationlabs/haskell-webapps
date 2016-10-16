@@ -40,10 +40,13 @@ data TenantOutputField = TOF { status :: TenantStatus
                              , ownerId :: Maybe DBUserId
                              } deriving (Generic, ToJSON)
 
+tbdbIso :: Iso' (TenantBase TenantOutputField) DBTenant
+tbdbIso = iso (\(TB ti c u (TOF status id)) -> DBTenant (ti ^. name) (ti ^. backofficeDomain) id status c u) (\dbt -> TB (dbt ^. tenantIdent) (dbt ^. createdAt) (dbt ^. updatedAt) (TOF (dbt ^. dBTenantStatus)  (dbt ^. dBTenantOwnerId)))
+
 dbGetTenant :: TenantID -> App (Maybe TenantOutput)
 dbGetTenant tid = runDb $ do
     result <- get tid
-    return $ fmap (fmap (\(s,o) -> TOF s o) . (view $ Control.Lens.from tbdbIso)) result
+    return $ fmap (view $ Control.Lens.from tbdbIso) result
 
 dbCreateTenant :: Tenant NewT -> App (Maybe (Key DBTenant))
 dbCreateTenant t = do
@@ -109,5 +112,5 @@ toDBTenant t =
                    }
   in case reify (Proxy @s) of
        TNew -> dbt NewT Nothing
-       TActive -> dbt ActiveT (Just $ t ^. tenantBase . tbOwner)
-       TInactive -> dbt InactiveT (t ^. tenantBase . tbOwner)
+       TActive -> dbt ActiveT (Just $ t ^. tenantBase . tbVal)
+       TInactive -> dbt InactiveT (t ^. tenantBase . tbVal)

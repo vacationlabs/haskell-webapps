@@ -100,7 +100,7 @@ data TenantBase a =
     TB { _tbTenantIdent :: TenantIdent
        , _tbCreatedAt :: UTCTime
        , _tbUpdatedAt :: UTCTime
-       , _tbOwner :: a
+       , _tbVal :: a
        } deriving (Functor,Generic)
 makeLenses ''TenantBase
 instance HasTenantIdent (TenantBase a) where
@@ -116,8 +116,9 @@ instance ToJSON a => ToJSON (TenantBase a) where
                 where (Object m1) = object ["createdAt" .= (tb ^. createdAt)
                                            ,"updatedAt" .= (tb ^. updatedAt)
                                            ]
-                      (Object m2) = case toJSON (tb ^. tbOwner) of
+                      (Object m2) = case toJSON (tb ^. tbVal) of
                                         (Object a) -> Object a
                                         (Null) -> Object Data.HashMap.Strict.empty
+                                        (Array _) -> Object Data.HashMap.Strict.empty
                                         b -> object ["ownerId" .= b]
 
