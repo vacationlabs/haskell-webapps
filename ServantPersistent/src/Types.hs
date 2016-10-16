@@ -10,6 +10,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE PolyKinds  #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GADTs  #-}
 module Types
     where
@@ -35,6 +36,7 @@ import Control.Lens hiding ((.=))
 import Database.Persist.Sql
 import Database.Persist.TH
 import Data.Type.Equality
+import Data.HashMap.Strict (unions,empty)
 
 data Environment = Test | Devel | Production deriving (Eq, Show)
 
@@ -85,15 +87,21 @@ class HasTimestamp s where
 data TenantIdent =
     TI { _name :: Text
        , _backofficeDomain :: Text
-       } deriving (Generic, FromJSON, ToJSON)
+       } deriving (Generic)
+instance FromJSON TenantIdent where
+    parseJSON = genericParseJSON (defaultOptions { fieldLabelModifier = Prelude.drop 1})
+instance ToJSON TenantIdent where
+    toEncoding = genericToEncoding (defaultOptions { fieldLabelModifier = Prelude.drop 1})
+    toJSON = genericToJSON (defaultOptions { fieldLabelModifier = Prelude.drop 1})
 makeClassy ''TenantIdent
+type TenantInput = TenantIdent
 
 data TenantBase a =
     TB { _tbTenantIdent :: TenantIdent
        , _tbCreatedAt :: UTCTime
        , _tbUpdatedAt :: UTCTime
        , _tbOwner :: a
-       } deriving (Functor,Generic, ToJSON)
+       } deriving (Functor,Generic)
 makeLenses ''TenantBase
 instance HasTenantIdent (TenantBase a) where
     tenantIdent = tbTenantIdent
@@ -101,4 +109,15 @@ instance HasTimestamp (TenantBase a) where
     createdAt = tbCreatedAt
     updatedAt = tbUpdatedAt
 
-type TenantInput = TenantIdent
+instance ToJSON a => ToJSON (TenantBase a) where
+    toJSON tb =
+        case toJSON (tb ^. tenantIdent) of
+             (Object m) -> Object $ unions [m,m1,m2]
+                where (Object m1) = object ["createdAt" .= (tb ^. createdAt)
+                                           ,"updatedAt" .= (tb ^. updatedAt)
+                                           ]
+                      (Object m2) = case toJSON (tb ^. tbOwner) of
+                                        (Object a) -> Object a
+                                        (Null) -> Object Data.HashMap.Strict.empty
+                                        b -> object ["ownerId" .= b]
+

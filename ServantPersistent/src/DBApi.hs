@@ -7,12 +7,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
 module DBApi
     where
 
@@ -33,12 +34,16 @@ import Data.Proxy
 import Models
 import Safe
 
-type TenantOutput = TenantBase (Maybe DBUserId)
+type TenantOutput = TenantBase TenantOutputField
+
+data TenantOutputField = TOF { status :: TenantStatus
+                             , ownerId :: Maybe DBUserId
+                             } deriving (Generic, ToJSON)
 
 dbGetTenant :: TenantID -> App (Maybe TenantOutput)
 dbGetTenant tid = runDb $ do
     result <- get tid
-    return $ fmap (fmap snd . (view $ Control.Lens.from tbdbIso)) result
+    return $ fmap (fmap (\(s,o) -> TOF s o) . (view $ Control.Lens.from tbdbIso)) result
 
 dbCreateTenant :: Tenant NewT -> App (Maybe (Key DBTenant))
 dbCreateTenant t = do

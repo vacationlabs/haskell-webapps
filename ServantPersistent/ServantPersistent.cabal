@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     API, Types, Auth, Server, Environ, Models, DBApi, Safe
+  exposed-modules:     API, Types, Auth, Server, Environ, Models, DBApi
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , servant-server
@@ -34,6 +34,7 @@ library
                      , monad-logger
                      , exceptions
                      , lens
+                     , unordered-containers
   default-language:    Haskell2010
 
 executable ServantPersistent-exe
