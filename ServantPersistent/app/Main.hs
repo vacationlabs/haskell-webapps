@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
 import API
@@ -13,13 +14,27 @@ import Types
 import Data.Default
 import Network.Wai.Handler.Warp
 import Server
+import Models
+import Control.Monad.Logger
+import Database.Persist.Postgresql
 
 
 main :: IO ()
 main = do
     randomSource <- mkRandomSource drgNew 10000
     serverKey <- mkServerKey 256 Nothing
-    let config = Config (def {acsCookieFlags = ["HttpOnly"]}) randomSource serverKey Devel
+    pool <- makePool
+    flip runSqlPool pool $ runMigration migrateAll
+    let config = Config { authSettings = (def {acsCookieFlags = ["HttpOnly"]}) 
+                        , randomSource = randomSource
+                        , serverKey = serverKey
+                        , environment = Devel
+                        , dbPool = pool
+                        }
     run 8080 $ serveWithContext (testAPI)
                                 ((cookieAuthHandler def serverKey) :. EmptyContext)
                                 (testServer config)
+
+connStr = "host=localhost dbname=perservant user=test password=test port=5432"
+
+makePool = runStdoutLoggingT $ createPostgresqlPool connStr 1

@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     API, Types, Auth, Server, Environ, DatabaseTypes, Models
+  exposed-modules:     API, Types, Auth, Server, Environ, Models, DBApi, Safe
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , servant-server
@@ -30,7 +30,10 @@ library
                      , mtl
                      , persistent
                      , persistent-template
+                     , persistent-postgresql
+                     , monad-logger
                      , exceptions
+                     , lens
   default-language:    Haskell2010
 
 executable ServantPersistent-exe
@@ -42,6 +45,8 @@ executable ServantPersistent-exe
                      , servant-server
                      , servant
                      , servant-auth-cookie
+                     , persistent-postgresql
+                     , monad-logger
                      , wai
                      , warp
                      , cryptonite

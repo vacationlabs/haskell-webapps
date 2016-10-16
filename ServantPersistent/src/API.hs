@@ -3,6 +3,8 @@
 {-# LANGUAGE TypeOperators   #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
+{-# LANGUAGE LiberalTypeSynonyms #-}
 module API
     where
 
@@ -18,18 +20,19 @@ import Control.Monad.Reader
 import Servant.Server.Experimental.Auth.Cookie
 import Auth
 import Types
+import DBApi
+import Models
 
-type TenantID = Int
 type ProductID = Int
-type Tenant = ()
 type ActivationRequest = ()
 type ActivationResponse = ()
 type Product = ()
 
 type TenantAPI = 
-      ReqBody '[JSON] Tenant :> Post '[JSON] (Headers '[Header "location" String] Tenant)
- :<|> Capture "id" TenantID  :> Get '[JSON] Tenant
- :<|> Capture "id" TenantID  :> "activate" :> ReqBody '[JSON] ActivationRequest :> Post '[JSON] ActivationResponse
+      "new" :> ReqBody '[JSON] TenantInput 
+                :> Post '[JSON] (Headers '[Header "location" String] TenantID)
+ :<|> Capture "id" TenantID  :> Get '[JSON] TenantOutput
+--      :<|> Capture "id" TenantID  :> "activate" :> ReqBody '[JSON] ActivationRequest :> Post '[JSON] ActivationResponse
 
 type SessionAPI = 
       "new" :> ReqBody '[JSON] LoginForm :> Post '[JSON] (Headers '[Header "set-cookie" ByteString] ())
@@ -42,7 +45,7 @@ type ProductAPI =
 
 type API = "tenants"  :> TenantAPI
       :<|> "session"  :> SessionAPI
-      :<|> "products" :> AppAuth :> ProductAPI
+      :<|> "products" :> ProtectEndpoints ProductAPI
 
 api :: Proxy API
 api = Proxy

@@ -3,6 +3,8 @@
 {-# LANGUAGE TypeOperators   #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Server
     where
 
@@ -20,12 +22,31 @@ import Auth
 import Types
 import API
 import Environ
+import DBApi
+import Data.Time
+import Safe
 
-type TestAPI = SessionAPI :<|> ProtectEndpoints ProductAPI
+type TestAPI = API
 
 testAPI :: Proxy TestAPI
 testAPI = Proxy
 
+newTenant :: TenantInput -> App (Headers '[Header "location" String] TenantID)
+newTenant ti = do
+    time <- liftIO $ getCurrentTime
+    let t :: Tenant NewT
+        t = liftTB $ TB ti time time ()
+    result <- dbCreateTenant t 
+    case result of
+         Nothing -> throwError $ err400 { errBody = "Tenant already exists" }
+         Just id -> return $ addHeader (show id) id
+
+getTenant :: TenantID -> App TenantOutput
+getTenant tid = do
+    result <- dbGetTenant tid
+    case result of
+         Nothing -> throwError $ err404 { errBody = "Tenant doesn't exist" }
+         Just t -> return t
 
 newSession :: LoginForm -> App (Headers '[Header "set-cookie" ByteString] ())
 newSession login = do
@@ -38,7 +59,7 @@ newSession login = do
        else throwError $ err400 { errBody = "Invalid login." }
 
 testSessionHandler :: ServerT TestAPI App
-testSessionHandler = newSession :<|> productHandler
+testSessionHandler = (newTenant :<|> getTenant) :<|> newSession :<|> productHandler
 
 productHandler :: ServerT (ProtectEndpoints ProductAPI) App
 productHandler = (\id -> either handleError (liftIO . print))
