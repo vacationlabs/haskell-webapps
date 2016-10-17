@@ -15,13 +15,15 @@ This is our "minimum viable" JSON API spec for a hypothetical multi-tenant shopp
 
 ### Tenant
 + id: 1 (number)
-+ created_at: 2016-10-04T12:30:00+0000 (string)
-+ updated_at: 2016-10-04T12:30:00+0000 (string)
++ created_at: iso8601timestamp (string)
++ updated_at: iso8601timestamp (string)
 + first_name: Saurabh (string)
 + last_name: Nanda (string)
 + email: saurabhnanda@gmail.com (string)
 + phone: +91 982347982374 (string)
 + status: active (string)
++ owner_id: null (number)
++ backoffice_domain: acmestores.shopoola.com
 
 # Group Tenants
 API endpoints related to tenant management.
@@ -54,19 +56,7 @@ API endpoints related to tenant management.
   + Headers
     Location: /tenants/1
   + Body
-    {
-      "id": 1
-      ,"created_at": "2016-10-04T12:30:00+0000"
-      ,"updated_at": "2016-10-04T12:30:00+0000"
-      ,"name": "Acme Stores"
-      ,"backoffice_domain": "acmestores.shopoola.com"
-      ,"first_name": "Saurabh"
-      ,"last_name": "Nanda"
-      ,"email": "saurabhnanda@gmail.com"
-      ,"phone": "+91934234234"
-      ,"status": "inactive"
-      ,"owner_id": null
-    }
+    + Attributes (Tenant)
 
 ## Get tenant details [GET /tenants/{tenant_id}]
 * This is **not** a publicly available API. This needs some kind of authorization, which is why we need the `session_id` cookie to be present.
