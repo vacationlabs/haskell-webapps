@@ -19,7 +19,7 @@ A typical shopping-cart (ecommerce) webapp. But it isn't the entire app with all
 | Array support | `roles.permissions` |
 | 1:1 association | Tenant:Account-owner |
 | 1:many associations | (a) Product:variant, (b) Product:Photo, (c) Variant:Photo |
-| many:many associations | **TODO** |
+| many:many associations | `users_roles` join-through table |
 | Fields in response JSON should depend in incoming request | `/products/:id?fields=` [discussion](https://github.com/vacationlabs/haskell-webapps/issues/10) |
 | Redis caching at object-level | Individual product JSONs should be cached in Redis **TODO: Discussion** |
 | Redis caching at page-level | Final HTML of individual product pages should be cached in Redis **TODO: Discussion** |

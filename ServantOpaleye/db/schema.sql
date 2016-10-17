@@ -68,6 +68,19 @@ create unique index idx_roles_name on roles(tenant_id, lower(name));
 create index idx_roles_created_at on roles(created_at);
 create index idx_roles_updated_at on roles(updated_at);
 
+-- 
+-- User<>roles
+--
+-- Join-through table between users and roles
+--
+
+create table users_roles(
+       user_id integer not null references users(id)
+       ,role_id integer not null references roles(id)
+);
+create unique index idx_users_roles on users_roles(user_id, role_id);
+
+
 --
 -- Audit log
 --

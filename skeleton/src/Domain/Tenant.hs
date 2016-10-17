@@ -11,3 +11,4 @@ activateTenant tenant activationKey = undefined
 
 getTenant :: TenantID -> AppM(Tenant)
 getTenant tid = undefined
+
