@@ -8,6 +8,10 @@ create table tenants(
        ,created_at timestamp with time zone not null default current_timestamp
        ,updated_at timestamp with time zone not null default current_timestamp
        ,name text not null
+       ,first_name text not null
+       ,last_name text not null
+       ,email text not null
+       ,phone text not null
        ,status tenant_status not null default 'inactive'
        ,owner_id integer
        ,backoffice_domain text not null
