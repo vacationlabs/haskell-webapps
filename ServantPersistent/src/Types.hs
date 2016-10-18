@@ -36,7 +36,6 @@ import Control.Lens hiding ((.=))
 import Database.Persist.Sql
 import Database.Persist.TH
 import Data.Type.Equality
-import Data.HashMap.Strict (unions,empty)
 
 data Environment = Test | Devel | Production deriving (Eq, Show)
 
@@ -59,8 +58,6 @@ data LoginForm = Login { username :: String
 data Session = Session { sessionUser :: String
                        } deriving (Show, Generic, Serialize, FromJSON , ToJSON)
 
-class Reify s a | a -> s where
-    reify :: Proxy a -> s a
 
 data UserStatus = BlockedU | InactiveU | ActiveU
                         deriving (Read, Show, Generic, Serialize, FromJSON , ToJSON)
@@ -69,16 +66,6 @@ derivePersistField "UserStatus"
 data TenantStatus = NewT | InactiveT | ActiveT
                         deriving (Eq, Read, Show, Generic, Serialize, FromJSON , ToJSON)
 derivePersistField "TenantStatus"
-data TSSingleton (s :: TenantStatus) where
-    TNew :: TSSingleton NewT
-    TInactive :: TSSingleton InactiveT
-    TActive :: TSSingleton ActiveT
-instance Reify TSSingleton 'NewT where
-    reify _ = TNew
-instance Reify TSSingleton 'InactiveT where
-    reify _ = TInactive
-instance Reify TSSingleton 'ActiveT where
-    reify _ = TActive
 
 class HasTimestamp s where
     createdAt :: Lens' s UTCTime
@@ -95,30 +82,4 @@ instance ToJSON TenantIdent where
     toJSON = genericToJSON (defaultOptions { fieldLabelModifier = Prelude.drop 1})
 makeClassy ''TenantIdent
 type TenantInput = TenantIdent
-
-data TenantBase a =
-    TB { _tbTenantIdent :: TenantIdent
-       , _tbCreatedAt :: UTCTime
-       , _tbUpdatedAt :: UTCTime
-       , _tbVal :: a
-       } deriving (Functor,Generic)
-makeLenses ''TenantBase
-instance HasTenantIdent (TenantBase a) where
-    tenantIdent = tbTenantIdent
-instance HasTimestamp (TenantBase a) where
-    createdAt = tbCreatedAt
-    updatedAt = tbUpdatedAt
-
-instance ToJSON a => ToJSON (TenantBase a) where
-    toJSON tb =
-        case toJSON (tb ^. tenantIdent) of
-             (Object m) -> Object $ unions [m,m1,m2]
-                where (Object m1) = object ["createdAt" .= (tb ^. createdAt)
-                                           ,"updatedAt" .= (tb ^. updatedAt)
-                                           ]
-                      (Object m2) = case toJSON (tb ^. tbVal) of
-                                        (Object a) -> Object a
-                                        (Null) -> Object Data.HashMap.Strict.empty
-                                        (Array _) -> Object Data.HashMap.Strict.empty
-                                        b -> object ["ownerId" .= b]
 

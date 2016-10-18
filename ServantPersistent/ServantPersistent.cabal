@@ -15,7 +15,13 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     API, Types, Auth, Server, Environ, Models, DBApi
+  exposed-modules:     API
+                     , Types
+                     , Auth
+                     , Server
+                     , Environ
+                     , Models
+                     , Domain.Tenant
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , servant-server

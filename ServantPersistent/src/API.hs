@@ -20,7 +20,6 @@ import Control.Monad.Reader
 import Servant.Server.Experimental.Auth.Cookie
 import Auth
 import Types
-import DBApi
 import Models
 
 type ProductID = Int

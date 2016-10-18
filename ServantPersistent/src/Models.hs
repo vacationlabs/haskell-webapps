@@ -21,12 +21,12 @@ import Database.Persist.TH
 import GHC.Generics
 import Data.Time.Clock
 import Data.Text
-import Types
 import Control.Monad.IO.Class
 import Control.Monad.Reader
 import Control.Lens
 import Data.ByteString
 import Data.Proxy
+import Types
 
 share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
 DBTenant json
@@ -50,6 +50,9 @@ DBUser
     UniqueUsername username
 |]
 
+type TenantID = Key DBTenant
+type Tenant = DBTenant
+type TenantOutput = DBTenant
 
 instance HasTimestamp DBTenant where
     createdAt = dBTenantCreatedAt

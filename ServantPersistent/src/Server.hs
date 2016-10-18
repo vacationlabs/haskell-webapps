@@ -22,9 +22,10 @@ import Auth
 import Types
 import API
 import Environ
-import DBApi
 import Data.Time
-import Safe
+import Models
+import Domain.Tenant
+
 
 type TestAPI = API
 
@@ -33,10 +34,7 @@ testAPI = Proxy
 
 newTenant :: TenantInput -> App (Headers '[Header "location" String] TenantID)
 newTenant ti = do
-    time <- liftIO $ getCurrentTime
-    let t :: Tenant NewT
-        t = liftTB $ TB ti time time ()
-    result <- dbCreateTenant t 
+    result <- dbCreateTenant ti
     case result of
          Nothing -> throwError $ err400 { errBody = "Tenant already exists" }
          Just id -> return $ addHeader (show id) id
