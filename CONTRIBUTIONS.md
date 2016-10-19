@@ -8,14 +8,14 @@
 5. Raise a PR to get feedback on the direction.
 6. If all is good, implement the other parts of the API: product, variants, photos
 7. Pick one [higher-order design goals](#higher-order-design-goals) problem, refactor your code, raise a PR, and repeat...
-8. Somewhere along the way, we'll be happy with the domain API and we'll use it to start building the web API on top of it.
+8. Somewhere in this process, you'll be happy with the domain API and can start building the web API on top of it.
 
 The central idea is to NOT deviate from the goals stated at the beginning of a development sprint (unless you hit a brick-wall during implementation!) You'll come across a lot of interesting problems that should be answered, hold on to them. Put them in a backlog. We'll tackle them in a later sprint.
 
 ## Formalizing your development sprints
 
-* Open a an issue on the [Github issue tracker](./issues) for your sprint. Tag it with the `sprint` label.
-* Try to formally state what you would like to achieve at the end of the sprint. Being detailed helps. Writing down your thoughts will help you structure them.
+* Open a an issue on the [Github issue tracker](https://github.com/vacationlabs/haskell-webapps/issues) for your sprint. Tag it with the `sprint` label.
+* Use the issue description to formally state what you would like to achieve at the end of the sprint. Being detailed helps. Writing down your thoughts will help you structure them.
 * Put a timeline to the sprint -- try to keep sprints short enough so that they fit within a week.
 * Raise a PR to close the issue.
 * Repeat.
@@ -59,7 +59,7 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 | Reflex FRP | No one yet |
 
 
-# Higer order design goals
+# Higher order design goals
 
 * Best way to deal with housekeeping columns, like `createdAt`, `updatedAt`
 * Implementing audit logs
@@ -80,7 +80,7 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 
 Been writing code since I was 12 years old. Wrote the same paint program in GwBasic, QBasic, Pascal, C, and C++ (remember BGI libraries?). Fell in love with Lisp at [Cleartrip](https://www.cleartrip.com), but sadly had to pivot to Java + Ruby because of lack of mature DB libraries (at the point in time). Now, building a company - [Vacation Labs](https://www.vacationlabs.com) which uses code to solve real-world problems in the travel space. Looking for something better after having written 250,000+ lines of Rails & AngularJS.
 
-[LinkedIn](https://in.linkedin.com/in/saurabhnanda1) [Twitter](https://www.twitter.com/saurabhnanda) [Github](https://www.github.com/saurabhnanda)
+[LinkedIn](https://in.linkedin.com/in/saurabhnanda1) | [Twitter](https://www.twitter.com/saurabhnanda) | [Github](https://www.github.com/saurabhnanda)
 
 ## Jason Foutz
 
