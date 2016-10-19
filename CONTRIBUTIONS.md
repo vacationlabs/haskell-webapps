@@ -71,6 +71,14 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 * Implementing validations
 * Lifting more invariants to the type-level
 * Changing response JSON based on incoming request
+* DB transactions
+* Implementing authorization
+* JSONB, ENUM, and Array support in DB library
+* Redis caching at object level
+* Redis caching at page level
+* Unit tests
+* Controller tests
+* Integration tests
 
 **Please raise a PR against this file to add more higher-order design goals**
 
