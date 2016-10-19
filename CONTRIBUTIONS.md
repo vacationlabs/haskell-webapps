@@ -5,6 +5,8 @@
 3. Pick a limited set of [higher-order design goals](#higher-order-design-goals) that you would like to in the first cut of the domain API.
 4. Quickly get a working implementation of **at least** the following APIs: tenant, user, role, permission.
   * Refer to the [Domain module in the skeleton folder](https://github.com/vacationlabs/haskell-webapps/tree/master/skeleton/src/Domain) to get a working idea. The type signatures will need to be modified depending on your DB library and design goals.
+  * Refer to the [JSON API spec](https://vacationlabs.github.io/haskell-webapps/json-api-spec.html) to understand how the domain API will finally be used in the web-app
+  * Refer to the [motivation behind the spec](https://github.com/vacationlabs/haskell-webapps/blob/master/SPEC.md) to get more context.
 5. Raise a PR to get feedback on the direction.
 6. If all is good, implement the other parts of the API: product, variants, photos
 7. Pick one [higher-order design goals](#higher-order-design-goals) problem, refactor your code, raise a PR, and repeat...
