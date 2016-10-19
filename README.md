@@ -1,3 +1,7 @@
+# Current project status
+
+We are invovling the community in this effort via a [Haskell Internship](https://www.vacationlabs.com/haskell-internship/). Please apply if you're interested. Contributions have already starting flowing in and you should read **[CONTRIBUTIONS](./CONTRIBUTIONS.md)** if you're interested.
+
 # Request For Comments
 
 [![Join the chat at https://gitter.im/haskell-webapps/Lobby](https://badges.gitter.im/haskell-webapps/Lobby.svg)](https://gitter.im/haskell-webapps/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
