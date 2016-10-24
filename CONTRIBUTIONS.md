@@ -30,38 +30,46 @@ The central idea is to NOT deviate from the goals stated at the beginning of a d
   * What will you work on today?
   * What obstacles or issues are impeding your progress?
 
+# Libraries worked on
+## Database Libraries
 
-# Database Libraries
+| DB library                | Who's working on it                                      |
+| ---                       | ---                                                      |
+| Persistent                | [sudhirvkumar](https://github.com/sudhirvkumar)          |
+| Opaleye                   | being worked upon by [wz1000](https://github.com/wz1000) |
+| HDBC                      | being worked upon by [jfoutz](https://github.com/jfoutz) |
+| Haskell Relational Record | no one, yet                                              |
+| HASQL                     | no one, yet                                              |
 
-| DB library | Who's working on it |
-| --- | --- |
-| Persistent | [sudhirvkumar](https://github.com/sudhirvkumar) |
-| Opaleye | being worked upon by [wz1000](https://github.com/sudhirvkumar) |
-| HDBC | being worked upon by [jfoutz](https://github.com/sudhirvkumar) |
-| Haskell Relational Record | no one, yet |
-| HASQL | no one, yet |
-
-# Web libraries
+## Web libraries
 
 A lot of people are excited about building a JSON API in Servant and everyone seems to be picking that. We're actively looking for contributors who can pick other web libraries.
 
 | Web library | Who's working on it |
 | --- | --- |
-| Servant | [sudhirvkumar](https://github.com/sudhirvkumar), [wz1000](https://github.com/sudhirvkumar), [jfoutz](https://github.com/sudhirvkumar) |
+| Servant | [sudhirvkumar](https://github.com/sudhirvkumar), [wz1000](https://github.com/wz1000), [jfoutz](https://github.com/jfoutz) |
 | Yesod | no one, yet |
 | Snap | no one, yet |
 | Happstack | no one, yet |
 
 ## UI languages/frameworks
 
-| Library/framewor | Who's working on it |
-| --- | --- |
-| Elm | No one yet |
-| Purescript | No one yet |
-| Reflex FRP | No one yet |
-
+| Library/framework | Who's working on it                     |
+| ---               | ---                                     |
+| Elm               | No one yet                              |
+| Purescript        | No one yet                              |
+| Reflex FRP        | [meditans](https://github.com/meditans) |
 
 # Higher order design goals
+
+## General principles
+* Making nonsensical states non-representible in the domain model. eg. product can have only two type -- physical and digital. Status can have only few values. Basically a lot of ADT usage.
+* Lifting more invariants to the type-level
+* Unit tests
+* Controller tests
+* Integration tests
+
+## Database domain
 
 * Best way to deal with housekeeping columns, like `createdAt`, `updatedAt`
 * Implementing audit logs
@@ -69,18 +77,17 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 * How to deal with DB updates? 
   * Should the domain API take the complete record as an argument? Who should be responsible for loading the record from the DB? How many times will we be loading the same record from the DB, if we need to chain/compose different update APIs together?
   * Should the domain API take a *diff* as an argument? How do we represent a diff in a typesafe manner?
-* Making nonsensical states non-representible in the domain model. eg. product can have only two type -- physical and digital. Status can have only few values. Basically a lot of ADT usage
 * Implementing validations
-* Lifting more invariants to the type-level
 * Changing response JSON based on incoming request
 * DB transactions
 * Implementing authorization
 * JSONB, ENUM, and Array support in DB library
 * Redis caching at object level
 * Redis caching at page level
-* Unit tests
-* Controller tests
-* Integration tests
+
+## UI Domain
+* Creating a reusable collection of abstractions for most used ui components (forms etc.)
+* Investigate the tradeoff of doing all the implementation in haskell vs. interface, via haskell, to html templates.
 
 **Please raise a PR against this file to add more higher-order design goals**
 
