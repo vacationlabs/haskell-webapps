@@ -30,8 +30,8 @@ The central idea is to NOT deviate from the goals stated at the beginning of a d
   * What will you work on today?
   * What obstacles or issues are impeding your progress?
 
-
-# Database Libraries
+# Libraries worked on
+## Database Libraries
 
 | DB library | Who's working on it |
 | --- | --- |
@@ -41,7 +41,7 @@ The central idea is to NOT deviate from the goals stated at the beginning of a d
 | Haskell Relational Record | no one, yet |
 | HASQL | no one, yet |
 
-# Web libraries
+## Web libraries
 
 A lot of people are excited about building a JSON API in Servant and everyone seems to be picking that. We're actively looking for contributors who can pick other web libraries.
 
@@ -54,14 +54,21 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 
 ## UI languages/frameworks
 
-| Library/framewor | Who's working on it |
-| --- | --- |
-| Elm | No one yet |
-| Purescript | No one yet |
-| Reflex FRP | No one yet |
-
+| Library/framework | Who's working on it                     |
+| ---               | ---                                     |
+| Elm               | No one yet                              |
+| Purescript        | No one yet                              |
+| Reflex FRP        | [meditans](https://github.com/meditans) |
 
 # Higher order design goals
+
+## General principles
+* Make nonsensical states non-representible in the domain model. eg. product can have only two type -- physical and digital. Status can have only few values. Basically a lot of ADT usage.
+* Lift more invariants to the type-level.
+* Investigate how testing is (or could be) done in the various domains, re-interpreting the type of test commonly used in web development (Unit, Controller, Integration tests) if necessary, to write them in idiomatic ways.
+* Create documentation for successful workflows/techniques.
+
+## Database domain
 
 * Best way to deal with housekeeping columns, like `createdAt`, `updatedAt`
 * Implementing audit logs
@@ -69,18 +76,26 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 * How to deal with DB updates? 
   * Should the domain API take the complete record as an argument? Who should be responsible for loading the record from the DB? How many times will we be loading the same record from the DB, if we need to chain/compose different update APIs together?
   * Should the domain API take a *diff* as an argument? How do we represent a diff in a typesafe manner?
-* Making nonsensical states non-representible in the domain model. eg. product can have only two type -- physical and digital. Status can have only few values. Basically a lot of ADT usage
 * Implementing validations
-* Lifting more invariants to the type-level
 * Changing response JSON based on incoming request
 * DB transactions
 * Implementing authorization
 * JSONB, ENUM, and Array support in DB library
 * Redis caching at object level
 * Redis caching at page level
-* Unit tests
-* Controller tests
-* Integration tests
+
+## UI Domain
+
+* Architectural concerns
+  - Create a reusable collection of abstractions for most used ui components (forms etc.)
+  - Develop a coherent story on how to share data structures with backend.
+  - Investigate the tradeoff of doing all the implementation in haskell vs. interface, via haskell, to html templates.
+  - Investigate how to integrate with existing jQuery widgets (calendar, accordion, search/sort tables, editable grids, etc)
+  - Forms relying only on server side validation or with mixed client/server side validation
+* Deployment concerns
+  - Minification toolchain to reduce the final JS size (closure compiler, specific ghcjs compilation options etc.)
+  - Progressive loading of JS files to reduce initial page-load time
+  - Server-side rendering of initial page-load
 
 **Please raise a PR against this file to add more higher-order design goals**
 
