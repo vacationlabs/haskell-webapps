@@ -8,13 +8,8 @@
 module Server
     where
 
-import Data.Aeson
-import Data.Aeson.TH
-import Network.Wai
-import Network.Wai.Handler.Warp
 import Servant
 import Data.ByteString
-import Data.Proxy
 import Control.Monad.Except
 import Control.Monad.Reader
 import Servant.Server.Experimental.Auth.Cookie
@@ -22,9 +17,8 @@ import Auth
 import Types
 import API
 import Environ
-import Data.Time
-import Models
 import Domain.Tenant
+import DBTypes
 
 
 type TestAPI = API
@@ -51,7 +45,7 @@ newSession login = do
     Config{..} <- ask
     loginValid <- validateLogin login
     inDevel $ liftIO $ print login
-    let session = Session (username login)
+    let session = Session (loginUsername login)
     if loginValid
        then addSession authSettings randomSource serverKey session ()
        else throwError $ err400 { errBody = "Invalid login." }

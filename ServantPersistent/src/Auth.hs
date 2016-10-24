@@ -10,21 +10,11 @@
 module Auth
     where
 
-import Data.Aeson
-import Data.Aeson.TH
-import Network.Wai
-import Network.Wai.Handler.Warp
 import Servant
-import Servant.API.Experimental.Auth
+import Network.Wai
 import Servant.Server.Experimental.Auth.Cookie
 import Servant.Server.Experimental.Auth
-import Data.ByteString
-import Data.Proxy
-import GHC.Generics
-import Data.Serialize
-import Data.Text
 import Control.Monad.Catch (try)
-import Control.Monad.Except
 import Types
 
 type instance AuthCookieData = Either CookieError Session

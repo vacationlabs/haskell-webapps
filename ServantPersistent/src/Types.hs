@@ -1,41 +1,25 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators   #-}
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DeriveFunctor  #-}
-{-# LANGUAGE TypeInType  #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE PolyKinds  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE GADTs  #-}
 module Types
     where
 
 import Data.Aeson
-import Data.Aeson.TH
-import Network.Wai
-import Network.Wai.Handler.Warp
 import Servant
-import Servant.API.Experimental.Auth
 import Servant.Server.Experimental.Auth.Cookie
-import Data.ByteString
-import Data.Proxy
 import GHC.Generics
 import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Serialize
 import Data.Text
-import Database.Persist
-import Database.Persist.Postgresql
 import Data.Time.Clock
 import Control.Lens hiding ((.=))
 import Database.Persist.Sql
 import Database.Persist.TH
-import Data.Type.Equality
 
 data Environment = Test | Devel | Production deriving (Eq, Show)
 
@@ -51,8 +35,8 @@ data Config = Config
 
 type App = (ReaderT Config (ExceptT ServantErr IO))
 
-data LoginForm = Login { username :: String
-                       , password :: String
+data LoginForm = Login { loginUsername :: String
+                       , loginPassword :: String
                        } deriving (Show, Generic, Serialize, FromJSON, ToJSON)
 
 data Session = Session { sessionUser :: String
@@ -71,15 +55,22 @@ class HasTimestamp s where
     createdAt :: Lens' s UTCTime
     updatedAt :: Lens' s UTCTime
 
-data TenantIdent =
-    TI { _name :: Text
-       , _backofficeDomain :: Text
-       } deriving (Generic)
-instance FromJSON TenantIdent where
-    parseJSON = genericParseJSON (defaultOptions { fieldLabelModifier = Prelude.drop 1})
-instance ToJSON TenantIdent where
-    toEncoding = genericToEncoding (defaultOptions { fieldLabelModifier = Prelude.drop 1})
-    toJSON = genericToJSON (defaultOptions { fieldLabelModifier = Prelude.drop 1})
-makeClassy ''TenantIdent
-type TenantInput = TenantIdent
+class HasName a where
+    name :: Lens' a Text
+class HasBackofficeDomain a where
+    backofficeDomain :: Lens' a Text
+
+class HasHumanName a where
+    firstName :: Lens' a Text
+    lastName :: Lens' a Text
+
+class HasContactDetails a where
+    email :: Lens' a Text
+    phone :: Lens' a Text
+
+class HasUsername a where
+    username :: Lens' a Text
+
+class HasPassword a where
+    password :: Lens' a Text
 

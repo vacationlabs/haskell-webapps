@@ -1,26 +1,15 @@
 {-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators   #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE LiberalTypeSynonyms #-}
 module API
     where
 
-import Data.Aeson
-import Data.Aeson.TH
-import Network.Wai
-import Network.Wai.Handler.Warp
 import Servant
 import Data.ByteString
-import Data.Proxy
-import Control.Monad.Except
-import Control.Monad.Reader
-import Servant.Server.Experimental.Auth.Cookie
+
 import Auth
+import DBTypes
 import Types
-import Models
 
 type ProductID = Int
 type ActivationRequest = ()

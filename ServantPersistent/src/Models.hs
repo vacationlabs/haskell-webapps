@@ -1,4 +1,3 @@
-{-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TypeOperators   #-}
@@ -14,18 +13,12 @@
 module Models
     where
 
-import Data.Aeson
-import Data.Aeson.TH
 import Database.Persist.Sql
 import Database.Persist.TH
-import GHC.Generics
 import Data.Time.Clock
 import Data.Text
 import Control.Monad.IO.Class
 import Control.Monad.Reader
-import Control.Lens
-import Data.ByteString
-import Data.Proxy
 import Types
 
 share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
@@ -36,23 +29,24 @@ DBTenant json
     status TenantStatus
     createdAt UTCTime
     updatedAt UTCTime
-    UniqueTenant name backofficeDomain
+    UniqueTenant name
+    UinqueBackofficeDomain backofficeDomain
 
 DBUser
     firstName Text
     lastName Text
     tenantID DBTenantId
     username Text
-    password ByteString
+    password Text
     status UserStatus
+    email Text
+    phone Text
     createdAt UTCTime
     updatedAt UTCTime
     UniqueUsername username
+    UniqueEmail email
 |]
 
-type TenantID = Key DBTenant
-type Tenant = DBTenant
-type TenantOutput = DBTenant
 
 instance HasTimestamp DBTenant where
     createdAt = dBTenantCreatedAt
@@ -61,13 +55,21 @@ instance HasTimestamp DBUser where
     createdAt = dBUserCreatedAt
     updatedAt = dBUserUpdatedAt
 
-instance HasTenantIdent DBTenant where
+instance HasName DBTenant where
     name = dBTenantName
+instance HasBackofficeDomain DBTenant where
     backofficeDomain = dBTenantBackofficeDomain
-    tenantIdent =
-        lens (TI <$> (^. name) <*> (^. backofficeDomain)) (\s b ->
-          s & (name .~) (b^.name)
-            & (backofficeDomain .~) (b^. backofficeDomain))
+
+instance HasHumanName DBUser where
+    firstName = dBUserFirstName
+    lastName = dBUserLastName
+instance HasContactDetails DBUser where
+    email = dBUserEmail
+    phone = dBUserPhone
+instance HasUsername DBUser where
+    username = dBUserUsername
+instance HasPassword DBUser where
+    password = dBUserPassword
 
 runDb :: (MonadReader Config m, MonadIO m) => SqlPersistT IO b -> m b
 runDb query = do

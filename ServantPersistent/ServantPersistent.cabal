@@ -22,6 +22,11 @@ library
                      , Environ
                      , Models
                      , Domain.Tenant
+                     , Domain.User
+                     , Updater
+                     , DBTypes
+                     , Operation
+  ghc-options:       -Wall
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , servant-server
@@ -29,6 +34,7 @@ library
                      , servant-auth-cookie
                      , cereal
                      , wai
+                     , ghc-prim
                      , text
                      , time
                      , bytestring
@@ -41,6 +47,7 @@ library
                      , exceptions
                      , lens
                      , unordered-containers
+                     , containers
   default-language:    Haskell2010
 
 executable ServantPersistent-exe
