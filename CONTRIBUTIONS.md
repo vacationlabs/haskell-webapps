@@ -33,13 +33,13 @@ The central idea is to NOT deviate from the goals stated at the beginning of a d
 # Libraries worked on
 ## Database Libraries
 
-| DB library | Who's working on it |
-| --- | --- |
-| Persistent | [sudhirvkumar](https://github.com/sudhirvkumar) |
-| Opaleye | being worked upon by [wz1000](https://github.com/sudhirvkumar) |
-| HDBC | being worked upon by [jfoutz](https://github.com/sudhirvkumar) |
-| Haskell Relational Record | no one, yet |
-| HASQL | no one, yet |
+| DB library                | Who's working on it                                      |
+| ---                       | ---                                                      |
+| Persistent                | [sudhirvkumar](https://github.com/sudhirvkumar)          |
+| Opaleye                   | being worked upon by [wz1000](https://github.com/wz1000) |
+| HDBC                      | being worked upon by [jfoutz](https://github.com/jfoutz) |
+| Haskell Relational Record | no one, yet                                              |
+| HASQL                     | no one, yet                                              |
 
 ## Web libraries
 
@@ -47,7 +47,7 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 
 | Web library | Who's working on it |
 | --- | --- |
-| Servant | [sudhirvkumar](https://github.com/sudhirvkumar), [wz1000](https://github.com/sudhirvkumar), [jfoutz](https://github.com/sudhirvkumar) |
+| Servant | [sudhirvkumar](https://github.com/sudhirvkumar), [wz1000](https://github.com/wz1000), [jfoutz](https://github.com/jfoutz) |
 | Yesod | no one, yet |
 | Snap | no one, yet |
 | Happstack | no one, yet |
