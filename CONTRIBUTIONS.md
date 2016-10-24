@@ -63,11 +63,10 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 # Higher order design goals
 
 ## General principles
-* Making nonsensical states non-representible in the domain model. eg. product can have only two type -- physical and digital. Status can have only few values. Basically a lot of ADT usage.
-* Lifting more invariants to the type-level
-* Unit tests
-* Controller tests
-* Integration tests
+* Make nonsensical states non-representible in the domain model. eg. product can have only two type -- physical and digital. Status can have only few values. Basically a lot of ADT usage.
+* Lift more invariants to the type-level.
+* Investigate how testing is (or could be) done in the various domains, re-interpreting the type of test commonly used in web development (Unit, Controller, Integration tests) if necessary, to write them in idiomatic ways.
+* Create documentation for successful workflows/techniques.
 
 ## Database domain
 
@@ -86,8 +85,17 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 * Redis caching at page level
 
 ## UI Domain
-* Creating a reusable collection of abstractions for most used ui components (forms etc.)
-* Investigate the tradeoff of doing all the implementation in haskell vs. interface, via haskell, to html templates.
+
+* Architectural concerns
+  - Create a reusable collection of abstractions for most used ui components (forms etc.)
+  - Develop a coherent story on how to share data structures with backend.
+  - Investigate the tradeoff of doing all the implementation in haskell vs. interface, via haskell, to html templates.
+  - Investigate how to integrate with existing jQuery widgets (calendar, accordion, search/sort tables, editable grids, etc)
+  - Forms relying only on server side validation or with mixed client/server side validation
+* Deployment concerns
+  - Minification toolchain to reduce the final JS size (closure compiler, specific ghcjs compilation options etc.)
+  - Progressive loading of JS files to reduce initial page-load time
+  - Server-side rendering of initial page-load
 
 **Please raise a PR against this file to add more higher-order design goals**
 
