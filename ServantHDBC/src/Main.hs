@@ -9,56 +9,80 @@
 
 module Main where
 
-import Api.Authentication
-import Api.Photo
-import Api.Product
-import Api.Tenant
+import Config
 import Control.Monad.Trans.Except
-import Control.Monad.Trans.Reader
-import Data.Aeson
-import GHC.Generics
+import Control.Monad.Reader
+import Data.Maybe
+import Data.Time.Clock
+import DomainApi
 import Network.Wai
 import Network.Wai.Handler.Warp
+import RestApi
 import Servant
+import Types
 
 import qualified Database.HDBC as DB
 import Database.HDBC.PostgreSQL
 
 
--- ShoppingCart
+readerToHandler :: Config -> AppM :~> ExceptT ServantErr IO
+readerToHandler cfg = Nat $ \x -> runReaderT x cfg
 
-type ShoppingCart = 
-                 TenantAPI
-            :<|> AuthAPI
-            :<|> ProductAPI 
-            :<|> PhotoAPI
+cartServer :: Config -> Server ShoppingCartAPI 
+cartServer cfg = enter (readerToHandler cfg) handlers
 
-serverT :: ServerT ShoppingCart (Reader DB.IConnection Connection)
-serverT =  
-             tenantHandlers 
-        :<|> authHandlers
-        :<|> productHandlers 
-        :<|> photoHandlers
-
-foo = undefined
-
-server :: Server ShoppingCart
-server = enter foo serverT
-
-shoppingCart :: Proxy ShoppingCart
+shoppingCart ::Proxy ShoppingCartAPI
 shoppingCart = Proxy
 
-application :: Application
-application = serve shoppingCart server
-
+application :: Config -> Application
+application cfg = serve shoppingCart (cartServer cfg)
 
 main :: IO ()
 main = do
-  putStrLn "starting ServantHDBC"
-  conn <- connectPostgreSQL "host=localhost dbname=cart user=cart password=cart"
-  select <- DB.prepare conn "select * from tenants"
-  DB.execute select []
-  results <- DB.fetchAllRows select
-  putStrLn $ show results
-  putStrLn "connected"
-  run 8000 application
+    putStrLn "start"
+    now <- getCurrentTime
+    conn <- connectPostgreSQL "host=localhost dbname=cart user=cart password=cart"
+    let t = Tenant 0 now now "asdf" "foo" "bar" "a@example.com" "phone" TenantInactive Nothing (show now)
+    tid <- createTenant conn t
+    tenant <- getTenant conn $ fromJust tid
+
+    let u = User 0 now now (_tid $ fromJust tenant) ("user" ++ show now) "pass" "first" "last" "new"
+    uid <- createUser conn u
+    user <- getUser conn $ fromJust uid
+    putStrLn $ show user
+    deactivateUser conn $ fromJust user
+    user <- getUser conn $ fromJust uid
+    putStrLn $ show user
+    activateUser conn $ fromJust user
+    user <- getUser conn $ fromJust uid
+    putStrLn $ show user
+
+    
+    activateTenant conn (fromJust tenant) (fromJust user)
+    putStrLn $ show tenant
+    tenant <- getTenant conn $ fromJust tid
+    putStrLn $ show tenant
+
+    let r = Role 0 (fromJust tid) "reader" [ReadFoo, ReadBar] now now
+    rid <- createRole conn r
+    role <- getRole conn $ fromJust rid
+    putStrLn $ show role
+
+    addRole conn (fromJust user) (fromJust role)
+    permissions <- getPermissions conn (fromJust user)
+    putStrLn $ show $ permissions
+    removeRole conn (fromJust user) (fromJust role)
+    permissions <- getPermissions conn (fromJust user)
+    putStrLn $ show $ permissions
+{-
+    let cfg = Config conn Development
+    let app = application $ Config conn Development
+    run 8000 app
+--  select <- DB.prepare conn "select * from tenants"
+--  DB.execute select []
+--  results <- DB.fetchAllRows select
+--  putStrLn $ show results
+--  putStrLn "connected"
+--    putStrLn "starting ServantHDBC"
+--    run 8000 application
+--    -}
