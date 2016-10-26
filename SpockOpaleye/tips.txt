@@ -1,0 +1,52 @@
+Opaleye - How to use a user defined data type while doing manipulation operations?
+
+To insert the user defined type 'a' converting it to one of
+postgresql's data type 'b' (PGText, PGInt4 etc), you need to make
+the data type 'Constant a (Column b)', an instance of typeclass 
+Data.Profunctor.Product.Default.Default
+
+Example: 
+
+here is a userdefined data type
+
+  data TenantStatus = TenantStatusActive | TenantStatusInActive | TenantStatusNew
+
+We want this to be inserted as text, so that would be PGText type in 
+opaleye's types. To do this, we have to make the type,
+Constant TenantStatusNew (Column PGText) an instance of 
+Data.Profunctor.Product.Default.Default, as follows.
+
+Btw, you also need the FlexibleInstances and MultiParamTypeClasses
+language extensions to make this work. so,
+
+    {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+
+    import Opaleye (Constant(Constant), PGText, Column, pgString)
+    import qualified Data.Profunctor.Product.Default as D
+
+    instance D.Default Constant TenantStatus (Column PGText) where
+      def = Constant def'
+        where 
+        def' :: TenantStatus -> (Column PGText)
+        def' TenantStatusInActive = pgString "inactive"
+        def' TenantStatusActive = pgString "active"
+        def' TenantStatusNew = pgString "new"
+
+Now you can insert a new row of Tenant as follows.
+
+    create_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
+    create_tenant conn Tenant {
+      tenant_id=id,
+      tenant_name = nm,
+      tenant_firstname = fn,
+      tenant_lastname = ln,
+      tenant_email = email,
+      tenant_phone = phone,
+      tenant_status = status,
+      tenant_ownerid = owner_id,
+      tenant_backofficedomain = bo_domain 
+    } = runInsertMany conn tenantTable $ (return (constant id, pgString nm, pgString fn,pgString ln, pgString email, pgString phone, constant status, Nothing,  pgString bo_domain))
+
+Look how we were able to use the status value directly in the function.
+
+  
