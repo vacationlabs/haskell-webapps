@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleInstances, MultiParamTypeClasses,
+  OverloadedStrings #-}
 
 module DataTypes
   (Tenant(..)
@@ -7,7 +8,7 @@ module DataTypes
 
 import Data.Text
 import qualified Data.Profunctor.Product.Default as D
-import Opaleye (Constant(Constant), PGText, Column, pgString)
+import Opaleye (Constant(Constant), PGText, Column, pgStrictText)
 
 data TenantStatus
   = TenantStatusActive 
@@ -16,18 +17,18 @@ data TenantStatus
 
 data Tenant =
   Tenant {tenant_id :: Int
-         ,tenant_name :: String
-         ,tenant_firstname :: String
-         ,tenant_lastname :: String
-         ,tenant_email :: String
-         ,tenant_phone :: String
+         ,tenant_name :: Text
+         ,tenant_firstname :: Text
+         ,tenant_lastname :: Text
+         ,tenant_email :: Text
+         ,tenant_phone :: Text
          ,tenant_status :: TenantStatus
          ,tenant_ownerid :: Maybe Int
-         ,tenant_backofficedomain :: String}
+         ,tenant_backofficedomain :: Text}
 
 instance D.Default Constant TenantStatus (Column PGText) where
   def = Constant def'
     where def' :: TenantStatus -> (Column PGText)
-          def' TenantStatusInActive = pgString "inactive"
-          def' TenantStatusActive = pgString "active"
-          def' TenantStatusNew = pgString "new"
+          def' TenantStatusInActive = pgStrictText "inactive"
+          def' TenantStatusActive = pgStrictText "active"
+          def' TenantStatusNew = pgStrictText "new"
