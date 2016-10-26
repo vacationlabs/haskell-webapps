@@ -1,0 +1,45 @@
+name:                ServantHDBC
+version:             0.1.0.0
+synopsis:            Simple project template from stack
+description:         Please see README.md
+homepage:            https://github.com/githubuser/ServantHDBC#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Author name here
+maintainer:          example@example.com
+copyright:           2016 Author name here
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable ServantHDBC
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  build-depends:       base == 4.8.2.0, 
+                       bytestring == 0.10.6.0,
+                       convertible == 1.1.1.0,
+                       aeson == 0.11.2.1,
+                       either == 4.4.1.1,
+                       HDBC == 2.4.0.1,
+                       HDBC-postgresql >= 2.2,
+                       http-api-data == 0.2.4,
+                       mtl == 2.2.1,
+                       servant-server == 0.7.1,
+                       split == 0.2.3.1,
+                       text == 1.2.2.1,
+                       time == 1.5.0.1,
+                       transformers == 0.4.2.0,
+                       utf8-string == 1.0.1.1,
+                       wai == 3.2.1.1,
+                       warp == 3.2.8
+  other-modules:       Config,
+                       DomainApi,
+                       RestApi,
+                       RestApi.Authentication,
+                       RestApi.Photo,
+                       RestApi.Product,
+                       RestApi.Tenant,
+                       Types,
+                       Util
+                       
