@@ -4,6 +4,10 @@
 {-# LANGUAGE GADTs   #-}
 {-# LANGUAGE DataKinds   #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE StandaloneDeriving   #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 module DBTypes where
 
 import Data.Aeson
@@ -15,6 +19,7 @@ import GHC.Generics
 import Control.Lens
 import Types
 import Models
+import Data.Default
 
 type TenantID = Key DBTenant
 type Tenant = DBTenant
@@ -28,9 +33,11 @@ data UserCreationError = UserExists Text
                         deriving (Eq, Show)
 
 data Role = Role { roleName :: Text
-                 , roleTenant :: TenantID
                  , roleCapabilities :: [Capability]
                  }
+
+instance Default Role where
+    def = Role "Default Role" []
 
 data Capability = ViewUserDetails
                 | EditUserDetails
@@ -66,6 +73,12 @@ type family Omittable (state :: FieldStatus) a where
     Omittable Absent a = ()
     Omittable Unknown a = Maybe a
 
+class HasTenantID s where
+    tenantID :: Lens' s TenantID
+
+instance HasTenantID DBUser where
+    tenantID = dBUserTenantID
+
 data UserBase (pass :: FieldStatus) (st :: FieldStatus) (rl :: FieldStatus) (id :: FieldStatus) =
     UserB { _userFirstName :: Text
           , _userLastName :: Text
@@ -91,6 +104,8 @@ instance HasUsername (UserBase pass st rl id) where
     username = userUsername
 instance HasPassword (UserBase Present st rl id) where
     password = userPassword
+instance HasTenantID (UserBase pas st rl id) where
+    tenantID = userTenantID
 
 deriving instance (Show (Omittable pass Text),
                    Show (Omittable st UserStatus),

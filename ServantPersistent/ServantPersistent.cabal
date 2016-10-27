@@ -49,6 +49,7 @@ library
                      , unordered-containers
                      , containers
                      , transformers
+                     , data-default
   default-language:    Haskell2010
 
 executable ServantPersistent-exe
