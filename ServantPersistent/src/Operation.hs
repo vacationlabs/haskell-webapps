@@ -20,10 +20,15 @@ import Control.Monad.State
 import Control.Monad.Except
 import Control.Applicative
 import Control.Monad.Writer.Strict
+import qualified Database.Persist as DB
+import Control.Lens
+import Types
 import DBTypes
+import Models
 
 data Permission = EditUser UserID
                 | EditTenant TenantID
+                | ViewUser UserID
                     deriving (Eq,Ord,Show)
 
 data PermissionError = Requires (Set Permission)
@@ -38,24 +43,23 @@ deriving instance (MonadError e m) => MonadError e (OperationT m)
 requirePermission :: Monad m => Permission -> OperationT m ()
 requirePermission = Op . tell . singleton
 
-runOperation :: Monad m => OperationT m a -> User -> ExceptT PermissionError m a
-runOperation op User{userRole=SiteAdmin} =
-    lift . fmap fst . runWriterT $ unsafeRunOp op
-runOperation op u@(User{userRole=TenantAdmin tid}) = do
+runOperation :: OperationT App a -> User -> ExceptT PermissionError App a
+runOperation op u@(User{userRole=role}) = do
     (a,s) <- lift $ runWriterT $ unsafeRunOp op
-    let s' = filter (\case (EditUser id) -> id /= userUserID u
-                           EditTenant id -> id /= tid
-                           )
-                    s
+    let go s (EditUserDetails) = 
+            fromList <$> 
+              filterM (\case (EditUser uid) -> hasTenant uid (userTenantId u)
+                             _ -> return False)
+                             (toList s)
+        go s _ = return s
+    s' <- lift $ foldM go s (roleCapabilities role)
     if null s'
        then return a
        else throwError $ Requires s'
-runOperation op u@User{userRole=NormalUser} = do
-    (a,s) <- lift $ runWriterT $ unsafeRunOp op
-    let s' = filter (\case (EditUser id) -> id /= userUserID u
-                           EditTenant id -> False
-                           )
-                    s
-    if null s'
-       then return a
-       else throwError $ Requires s'
+
+hasTenant :: UserID -> TenantID -> App Bool
+hasTenant uid tid = runDb $ do
+    tid' <- fmap _dBUserTenantID <$> DB.get uid
+    case tid' of
+         Nothing -> return False
+         Just tid' -> return (tid == tid')

@@ -20,14 +20,19 @@ data UserCreationError = UserExists Text
                        | TenantDoesn'tExist Text
                         deriving (Eq, Show)
 
-data Role = SiteAdmin
-          | TenantAdmin TenantID
-          | NormalUser
+data Role = Role { roleName :: Text
+                 , roleTenant :: TenantID
+                 , roleCapabilities :: [Capability]
+                 }
+
+data Capability = ViewUserDetails
+                | EditUserDetails
+                | EditUserRoles
 
 data TenantIdent =
-    TI { _name :: Text
-       , _backofficeDomain :: Text
-       } deriving (Generic)
+    TenantI { _name :: Text
+            , _backofficeDomain :: Text
+            } deriving (Generic)
 instance FromJSON TenantIdent where
     parseJSON = genericParseJSON (defaultOptions { fieldLabelModifier = Prelude.drop 1})
 instance ToJSON TenantIdent where
@@ -48,7 +53,7 @@ data UserInput =
           , _phone :: Text
           , _username :: Text
           , _password :: Text
-          , _tenantName :: Text
+          , _tenantBackofficeDomain :: Text
           }
 
 data User =
@@ -60,4 +65,4 @@ data User =
          , userTenantId :: TenantID
          , userRole :: Role
          , userUserID :: UserID
-    }
+         }

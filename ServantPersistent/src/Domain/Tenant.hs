@@ -29,9 +29,9 @@ dbCreateTenant ti = runDb $ do
 dbGetTenant :: TenantID -> App (Maybe Tenant)
 dbGetTenant = runDb . get
 
-dbGetTenantByName :: Text -> App (Maybe TenantID)
-dbGetTenantByName t = runDb $ do
-    ti <- getBy (UniqueTenant t)
+dbGetTenantByBackofficeDomain :: Text -> App (Maybe TenantID)
+dbGetTenantByBackofficeDomain t = runDb $ do
+    ti <- getBy (UniqueBackofficeDomain t)
     return (entityKey <$> ti)
 
 

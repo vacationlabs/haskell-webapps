@@ -42,10 +42,10 @@ instance FromJSON TenantUpdater where
     parseJSON (Object v) =
       mconcat <$> f
         where f = sequence
-                    [ parseUpdater v "name" (\x-> tu $ set name x)
-                    , parseUpdater v "backoffice_domain" (\x-> tu $ set backofficeDomain x)
+                    [ parseUpdater v "name" (\x-> U $ set name x)
+                    , parseUpdater v "backoffice_domain" (\x-> U $ set backofficeDomain x)
                     ]
-    parseJSON _ = fail "Need an Object"
+    parseJSON _ = fail "Need an object"
 
 type UserUpdater = Updater '[HasHumanName, HasContactDetails]
 
@@ -56,9 +56,9 @@ instance FromJSON UserUpdater where
     parseJSON (Object v) =
         mconcat <$> f
             where f = sequence
-                        [ parseUpdater v "first_name" (\x -> uu $ set firstName x)
-                        , parseUpdater v "last_name" (\x -> uu $ set lastName x)
-                        , parseUpdater v "email" (\x -> uu $ set email x)
-                        , parseUpdater v "phone" (\x -> uu $ set phone x)
+                        [ parseUpdater v "first_name" (\x -> U $ set firstName x)
+                        , parseUpdater v "last_name" (\x -> U $ set lastName x)
+                        , parseUpdater v "email" (\x -> U $ set email x)
+                        , parseUpdater v "phone" (\x -> U $ set phone x)
                         ]
-    parseJSON _ = fail "Need an Object"
+    parseJSON _ = fail "Need an object"

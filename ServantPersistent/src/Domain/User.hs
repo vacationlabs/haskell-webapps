@@ -17,9 +17,9 @@ import Operation
 createUser :: UserInput -> App (Either UserCreationError UserID)
 createUser u = runExceptT $ do
     time <- liftIO getCurrentTime
-    id <- ExceptT $ maybe (Left $ TenantDoesn'tExist (_tenantName u))
+    id <- ExceptT $ maybe (Left $ TenantDoesn'tExist (_tenantBackofficeDomain u))
                           Right
-                      <$> dbGetTenantByName (_tenantName u)
+                      <$> dbGetTenantByBackofficeDomain (_tenantBackofficeDomain u)
     let dbu = DBUser { _dBUserFirstName = _firstName u
                      , _dBUserLastName = _lastName u
                      , _dBUserTenantID = id

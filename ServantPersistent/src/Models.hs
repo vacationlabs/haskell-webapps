@@ -29,8 +29,7 @@ DBTenant json
     status TenantStatus
     createdAt UTCTime
     updatedAt UTCTime
-    UniqueTenant name
-    UinqueBackofficeDomain backofficeDomain
+    UniqueBackofficeDomain backofficeDomain
 
 DBUser
     firstName Text
