@@ -11,36 +11,48 @@ import Models
 import Types
 import Updater
 import DBTypes
-import Domain.Tenant
 import Operation
 
-createUser :: UserInput -> App (Either UserCreationError UserID)
-createUser u = runExceptT $ do
+dbCreateUser :: UserInput -> App (Either UserCreationError UserID)
+dbCreateUser u = runExceptT $ do
     time <- liftIO getCurrentTime
-    id <- ExceptT $ maybe (Left $ TenantDoesn'tExist (_tenantBackofficeDomain u))
-                          Right
-                      <$> dbGetTenantByBackofficeDomain (_tenantBackofficeDomain u)
-    let dbu = DBUser { _dBUserFirstName = _firstName u
-                     , _dBUserLastName = _lastName u
-                     , _dBUserTenantID = id
-                     , _dBUserUsername = _username u
-                     , _dBUserPassword = _password u
-                     , _dBUserEmail = _email u
-                     , _dBUserPhone = _phone u
-                     , _dBUserStatus = InactiveU
+    let dbu = DBUser { _dBUserFirstName = view firstName u
+                     , _dBUserLastName  = view lastName u
+                     , _dBUserTenantID  = view userTenantID u
+                     , _dBUserUsername  = view username u
+                     , _dBUserPassword  = view password u
+                     , _dBUserEmail     = view email u
+                     , _dBUserPhone     = view phone u
+                     , _dBUserStatus    = InactiveU
                      , _dBUserCreatedAt = time
                      , _dBUserUpdatedAt = time
                      }
     result <- runDb $ insertUnique dbu
     case result of
          Just a -> return a
-         Nothing -> throwError $ UserExists (_username u)
+         Nothing -> throwError $ UserExists (view username u)
 
-updateUser :: UserID -> UserUpdater -> OperationT App (Either DBError ())
-updateUser id uu = requirePermission (EditUser id) >> (runDb $ do
+dbUpdateUser :: UserID -> UserUpdater -> OperationT App (Either DBError ())
+dbUpdateUser id uu = requirePermission (EditUser id) >> (runDb $ do
     time <- liftIO $ getCurrentTime
     oldUser' <- get id
     case oldUser' of
          Nothing -> return $ Left $ UserNotFound id
          Just oldUser -> Right <$> replace id (set updatedAt time $ runUpdate uu oldUser))
 
+dbGetUser :: UserID -> OperationT App (Either DBError User)
+dbGetUser uid = runExceptT $ do
+    time <- liftIO getCurrentTime
+    dbu <- ExceptT $ maybe (Left $ UserNotFound uid)
+                           Right
+                       <$> (runDb $ get uid)
+    let u = UserB { _userFirstName = view firstName dbu
+                  , _userLastName  = view lastName dbu
+                  , _userTenantID  = view dBUserTenantID dbu
+                  , _userUsername  = view username dbu
+                  , _userPassword  = ()
+                  , _userEmail     = view email dbu
+                  , _userPhone     = view phone dbu
+                  , _userStatus    = InactiveU
+                  }
+    return u

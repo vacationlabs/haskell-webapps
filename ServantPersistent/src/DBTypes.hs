@@ -1,9 +1,16 @@
 {-# LANGUAGE DeriveGeneric   #-}
+{-# LANGUAGE DeriveAnyClass   #-}
+{-# LANGUAGE TypeFamilies   #-}
+{-# LANGUAGE GADTs   #-}
+{-# LANGUAGE DataKinds   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 module DBTypes where
 
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Text
+import Data.Serialize
+import Data.Time.Clock
 import GHC.Generics
 import Control.Lens
 import Types
@@ -28,6 +35,12 @@ data Role = Role { roleName :: Text
 data Capability = ViewUserDetails
                 | EditUserDetails
                 | EditUserRoles
+                | EditTenantDetails
+
+data Activation =
+    Activation { activationTenantID :: TenantID
+               , activationTime :: UTCTime
+               } deriving (Generic)
 
 data TenantIdent =
     TenantI { _name :: Text
@@ -46,23 +59,44 @@ instance HasBackofficeDomain TenantIdent where
 
 type TenantInput = TenantIdent
 
-data UserInput =
-    UserI { _firstName :: Text
-          , _lastName :: Text
-          , _email :: Text
-          , _phone :: Text
-          , _username :: Text
-          , _password :: Text
-          , _tenantBackofficeDomain :: Text
-          }
+data FieldStatus = Present | Absent | Unknown
 
-data User =
-    User { userFirstName :: Text
-         , userLastName :: Text
-         , userEmail :: Text
-         , userPhone :: Text
-         , userUsername :: Text
-         , userTenantId :: TenantID
-         , userRole :: Role
-         , userUserID :: UserID
-         }
+type family Omittable (state :: FieldStatus) a where
+    Omittable Present a = a
+    Omittable Absent a = ()
+    Omittable Unknown a = Maybe a
+
+data UserBase (pass :: FieldStatus) (st :: FieldStatus) (rl :: FieldStatus) (id :: FieldStatus) =
+    UserB { _userFirstName :: Text
+          , _userLastName :: Text
+          , _userEmail :: Text
+          , _userPhone :: Text
+          , _userUsername :: Text
+          , _userTenantID :: TenantID
+          , _userPassword :: Omittable pass Text
+          , _userStatus :: Omittable st UserStatus
+          , _userRole :: Omittable rl Role
+          , _userUserID :: Omittable id UserID
+          } deriving (Generic)
+
+makeLenses ''UserBase
+
+instance HasHumanName (UserBase pass st rl id) where
+    firstName = userFirstName
+    lastName = userLastName
+instance HasContactDetails (UserBase pass st rl id) where
+    email = userEmail
+    phone = userPhone
+instance HasUsername (UserBase pass st rl id) where
+    username = userUsername
+instance HasPassword (UserBase Present st rl id) where
+    password = userPassword
+
+deriving instance (Show (Omittable pass Text),
+                   Show (Omittable st UserStatus),
+                   Show (Omittable rl Role),
+                   Show (Omittable id UserID))
+                   => Show (UserBase pass st rl id)
+
+type UserInput = UserBase Present Absent Absent Absent
+type User = UserBase Absent Present Present Present

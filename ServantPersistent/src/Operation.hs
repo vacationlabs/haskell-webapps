@@ -44,11 +44,16 @@ requirePermission :: Monad m => Permission -> OperationT m ()
 requirePermission = Op . tell . singleton
 
 runOperation :: OperationT App a -> User -> ExceptT PermissionError App a
-runOperation op u@(User{userRole=role}) = do
+runOperation op u@(UserB{_userRole=role}) = do
     (a,s) <- lift $ runWriterT $ unsafeRunOp op
     let go s (EditUserDetails) = 
             fromList <$> 
-              filterM (\case (EditUser uid) -> hasTenant uid (userTenantId u)
+              filterM (\case (EditUser uid) -> hasTenant uid (_userTenantID u)
+                             _ -> return False)
+                             (toList s)
+        go s (EditTenantDetails) = 
+            fromList <$> 
+              filterM (\case (EditTenant tid) -> return $ tid == (_userTenantID u)
                              _ -> return False)
                              (toList s)
         go s _ = return s
