@@ -3,7 +3,7 @@ module OpaleyeDef
    tenantTable
   ) where
 
-import           Opaleye (Column, Table(Table),
+import           Opaleye (Column, Table(Table), Nullable,
                  required, optional, (.==), (.<),
                  arrangeDeleteSql, arrangeInsertManySql,
                  arrangeUpdateSql, arrangeInsertManyReturningSql,
@@ -23,7 +23,7 @@ tenantTable :: Table
                    Column P.PGText,
                    Column P.PGText,
                    Column P.PGText,
-                   Maybe (Column PGInt4),
+                   Maybe (Column (Nullable PGInt4)),
                    Column P.PGText
                    )
                   (
@@ -34,7 +34,7 @@ tenantTable :: Table
                    Column P.PGText,
                    Column P.PGText,
                    Column P.PGText,
-                   (Column PGInt4),
+                   Column (Nullable PGInt4),
                    Column P.PGText
                    )
 tenantTable = Table "tenants" (p9 ( 

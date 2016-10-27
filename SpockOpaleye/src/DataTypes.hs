@@ -8,12 +8,15 @@ module DataTypes
 
 import Data.Text
 import qualified Data.Profunctor.Product.Default as D
-import Opaleye (Constant(Constant), PGText, Column, pgStrictText)
+import Database.PostgreSQL.Simple.FromField
+import Opaleye (Constant(Constant), PGText,
+    Column, pgStrictText, QueryRunnerColumnDefault(queryRunnerColumnDefault),
+    fieldQueryRunnerColumn)
 
 data TenantStatus
   = TenantStatusActive 
   | TenantStatusInActive 
-  | TenantStatusNew 
+  | TenantStatusNew deriving (Show)
 
 data Tenant =
   Tenant {tenant_id :: Int
@@ -24,7 +27,7 @@ data Tenant =
          ,tenant_phone :: Text
          ,tenant_status :: TenantStatus
          ,tenant_ownerid :: Maybe Int
-         ,tenant_backofficedomain :: Text}
+         ,tenant_backofficedomain :: Text} deriving (Show)
 
 instance D.Default Constant TenantStatus (Column PGText) where
   def = Constant def'
@@ -32,3 +35,15 @@ instance D.Default Constant TenantStatus (Column PGText) where
           def' TenantStatusInActive = pgStrictText "inactive"
           def' TenantStatusActive = pgStrictText "active"
           def' TenantStatusNew = pgStrictText "new"
+
+instance FromField (TenantStatus) where
+  fromField f mdata =
+    return gender
+    where
+      gender = case mdata of
+        Just "active" -> TenantStatusActive
+        Just "inactive" -> TenantStatusInActive
+        Just "new" -> TenantStatusNew
+
+instance QueryRunnerColumnDefault PGText TenantStatus where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
