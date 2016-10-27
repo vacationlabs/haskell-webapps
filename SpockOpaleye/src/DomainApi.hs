@@ -1,16 +1,21 @@
-{-# LANGUAGE FlexibleInstances, FlexibleContexts,
+{-# LANGUAGE Arrows, FlexibleInstances, FlexibleContexts,
   MultiParamTypeClasses, OverloadedStrings #-}
 
 module DomainApi
   (create_tenant
+  ,tenant_query
   ,read_tenants)
   where
 
+
+import           Control.Arrow (returnA, (<<<))
 import Database.PostgreSQL.Simple (Connection)
 import DataTypes
 import OpaleyeDef
 import Opaleye
-       (Column, Query, PGInt4, runInsertMany, queryTable, constant,
+       (Column, restrict, (.==), (.<=), (.&&), (.<),
+       (.===), (.++), Nullable,
+        Query, PGInt4, runInsertMany, queryTable, constant,
         pgStrictText, runQuery)
 import qualified Opaleye.PGTypes as P
 import GHC.Int
@@ -34,19 +39,40 @@ read_tenants
   :: Connection
   -> IO (Maybe [Tenant])
 read_tenants conn = do
-  r <- runQuery conn $ queryTable tenantTable
+  r <- runQuery conn $ tenant_query
   return $ case r of
     [] -> Nothing
     rows -> Just $ fmap make_tenant rows
-  where
-    make_tenant :: (Int,Text,Text,Text,Text,Text,TenantStatus,Maybe Int,Text) -> Tenant
-    make_tenant (id, name, first_name, last_name, email, phone, status, owner_id, bo_domain) = Tenant { 
-      tenant_id = id,
-      tenant_name = name,
-      tenant_firstname = first_name,
-      tenant_lastname = last_name,
-      tenant_email = email,
-      tenant_phone = phone,
-      tenant_status = status,
-      tenant_ownerid = owner_id,
-      tenant_backofficedomain = bo_domain }
+
+read_tenant_by_id
+  :: Connection
+  -> Int
+  -> IO (Maybe Tenant)
+read_tenant_by_id conn id = do
+  r <- runQuery conn $ (tenant_query_by_id $ constant id)
+  return $ case r of
+    [] -> Nothing
+    rows -> Just $ Prelude.head $ fmap make_tenant rows
+
+make_tenant :: (Int,Text,Text,Text,Text,Text,TenantStatus,Maybe Int,Text) -> Tenant
+make_tenant (id, name, first_name, last_name, email, phone, status, owner_id, bo_domain) = Tenant { 
+  tenant_id = id,
+  tenant_name = name,
+  tenant_firstname = first_name,
+  tenant_lastname = last_name,
+  tenant_email = email,
+  tenant_phone = phone,
+  tenant_status = status,
+  tenant_ownerid = owner_id,
+  tenant_backofficedomain = bo_domain }
+
+tenant_query :: Opaleye.Query
+ (Column PGInt4, Column P.PGText, Column P.PGText, Column P.PGText,
+  Column P.PGText, Column P.PGText, Column P.PGText,
+  Column (Nullable PGInt4), Column P.PGText)
+tenant_query = queryTable tenantTable
+
+tenant_query_by_id t_id = proc () -> do
+  row@ (id, _, _, _, _, _, _, _, _ ) <- tenant_query -< ()
+  restrict -< id .== (t_id)
+  returnA -< row
