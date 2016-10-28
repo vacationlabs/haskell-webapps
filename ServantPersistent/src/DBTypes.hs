@@ -77,6 +77,9 @@ type family Omittable (state :: FieldStatus) a where
 class HasTenantID s where
     tenantID :: Lens' s TenantID
 
+class HasUserID s where
+    userID :: Lens' s UserID
+
 instance HasTenantID DBUser where
     tenantID = dBUserTenantID
 
@@ -107,6 +110,8 @@ instance HasPassword (UserBase Present st rl id) where
     password = userPassword
 instance HasTenantID (UserBase pas st rl id) where
     tenantID = userTenantID
+instance HasUserID (UserBase pas st rl Present) where
+    userID = userUserID
 
 deriving instance (Show (Omittable pass Text),
                    Show (Omittable st UserStatus),

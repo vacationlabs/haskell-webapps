@@ -19,6 +19,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Except
 import Control.Applicative
+import Control.Monad.Identity
 import Control.Monad.Writer.Strict
 import qualified Database.Persist as DB
 import Control.Lens
@@ -52,29 +53,36 @@ runOperation :: DBMonad m => OperationT m a -> User -> ExceptT PermissionError m
 runOperation op u@(UserB{_userRole=role}) = do
     (a,s) <- lift $ runWriterT $ unsafeRunOp op
     let go s (EditUserDetails) = 
-              filterMSet (\case (EditUser uid) -> hasTenant uid (u ^. tenantID)
-                                _ -> return False)
-                         s
-        go s (ViewUserDetails) = 
-              filterMSet (\case (ViewUser uid) -> hasTenant uid (u ^. tenantID)
-                                _ -> return False)
-                         s
-        go s (EditTenantDetails) = 
-              filterMSet (\case (EditTenant tid) -> return $ tid == (u ^. tenantID)
-                                _ -> return False)
-                         s
+              satisfyPermissions
+                (\case (EditUser uid) -> hasTenant uid (u ^. tenantID)
+                       _ -> return False)
+                s
+        go s (ViewUserDetails) =
+              satisfyPermissions
+                (\case (ViewUser uid) -> hasTenant uid (u ^. tenantID)
+                       _ -> return False)
+                s
+        go s (EditTenantDetails) =
+              satisfyPermissions
+                (\case (EditTenant tid) -> return $ tid == (u ^. tenantID)
+                       _ -> return False)
+                s
         go s _ = return s
-    s' <- lift $ foldM go s (roleCapabilities role)
-    if null s'
+    let s' = satisfyPermissions (\case (EditUser uid) -> return $ (u ^. userID) == uid
+                                       (ViewUser uid) -> return $ (u ^. userID) == uid
+                                       _ -> return False)
+                                s
+    s'' <- foldM go (runIdentity s') (roleCapabilities role)
+    if null s''
        then return a
-       else throwError $ Requires s'
+       else throwError $ Requires s''
 
-filterMSet :: (Applicative f, Ord a) => (a -> f Bool) -> Set a -> f (Set a)
-filterMSet f s = fromList <$> filterM f (toList s)
+satisfyPermissions :: (Applicative f, Ord a) => (a -> f Bool) -> Set a -> f (Set a)
+satisfyPermissions f s = fromList <$> filterM (fmap not . f) (toList s)
 
 hasTenant :: DBMonad m => UserID -> TenantID -> m Bool
 hasTenant uid tid = runDb $ do
-    tid' <- fmap _dBUserTenantID <$> DB.get uid
-    case tid' of
+    mtid <- fmap _dBUserTenantID <$> DB.get uid
+    case mtid of
          Nothing -> return False
          Just tid' -> return (tid == tid')
