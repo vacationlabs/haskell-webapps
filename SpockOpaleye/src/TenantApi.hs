@@ -1,10 +1,12 @@
 {-# LANGUAGE Arrows, FlexibleInstances, FlexibleContexts,
   MultiParamTypeClasses, OverloadedStrings #-}
 
-module DomainApi
+module TenantApi
   (create_tenant
-  ,tenant_query
-  ,read_tenants)
+  ,read_tenants
+  ,read_tenant_by_id
+  ,make_tenant
+  )
   where
 
 
@@ -32,7 +34,7 @@ create_tenant conn Tenant{tenant_id = id,tenant_name = name,tenant_firstname = f
           ,pgStrictText email
           ,pgStrictText phone
           ,constant status
-          ,Nothing
+          ,constant $ Just owner_id
           ,pgStrictText bo_domain))
 
 read_tenants

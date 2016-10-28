@@ -3,6 +3,8 @@
 
 module DataTypes
   (Tenant(..)
+  ,User(..)
+  ,UserStatus(..)
   ,TenantStatus(..))
   where
 
@@ -51,3 +53,36 @@ instance FromField (TenantStatus) where
 
 instance QueryRunnerColumnDefault PGText TenantStatus where
     queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+data UserStatus = UserStatusActive | UserStatusInActive | UserStatusBlocked
+
+data User = User {
+  user_id :: Int,
+  user_tenantid :: Int,
+  user_username :: Text,
+  user_password :: Text,
+  user_firstname :: Maybe Text,
+  user_lastname :: Maybe Text,
+  user_status :: UserStatus
+}
+
+instance D.Default Constant UserStatus (Column PGText) where
+    def = Constant def'
+      where
+        def' :: UserStatus -> (Column PGText)
+        def' UserStatusInActive = pgStrictText "inactive"
+        def' UserStatusActive = pgStrictText "active"
+        def' UserStatusBlocked = pgStrictText "blocked"
+
+instance FromField (UserStatus) where
+    fromField f mdata = return gender
+      where
+        gender = 
+            case mdata of
+                Just "active" -> UserStatusActive
+                Just "inactive" -> UserStatusInActive
+                Just "blocked" -> UserStatusBlocked
+
+instance QueryRunnerColumnDefault PGText UserStatus where
+    queryRunnerColumnDefault = fieldQueryRunnerColumn
+  
