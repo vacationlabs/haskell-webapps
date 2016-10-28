@@ -1,0 +1,12 @@
+resolver: lts-7.5
+
+packages:
+- '.'
+- location: ../mockAPI
+  extra-dep: false
+
+extra-deps: []
+
+flags: {}
+
+extra-package-dbs: []
