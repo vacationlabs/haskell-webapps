@@ -24,7 +24,7 @@ htmlHead = do
   el "title" (text "ui-mockup")
   styleSheet "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
   styleSheet "http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
-  styleSheet "http://localhost:8081/assets/css/Login-Form-Clean.css"
+  styleSheet "/assets/css/Login-Form-Clean.css"
   where
     styleSheet addr = elAttr "link" ("rel"  =: "stylesheet" <> "href" =: addr) (return ())
 
@@ -44,13 +44,13 @@ body = do
           icon
           mail <- _textInput_value <$> mailInputElement
           pass <- _textInput_value <$> passInputElement
-          userResult <- return $ liftA2 (User) mail pass
+          let userResult = liftA2 (User) mail pass
           send <- buttonElement send responseEvent
           forgot
           -- The actual API call
           apiResponse <- invokeAPI (Right <$> userResult) send
           let responseEvent = const () <$> apiResponse
-          -- A visual feedback on authentication
+      -- A visual feedback on authentication
       r <- holdDyn "" $ fmap parseR apiResponse
       el "h2" (dynText r)
 
