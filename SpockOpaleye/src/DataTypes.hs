@@ -20,7 +20,7 @@ data TenantStatus
     = TenantStatusActive 
     | TenantStatusInActive 
     | TenantStatusNew 
-    deriving ((((Show))))
+    deriving (((((Show)))))
 
 data Tenant = Tenant
     { tenant_id :: Int
@@ -32,7 +32,7 @@ data Tenant = Tenant
     , tenant_status :: TenantStatus
     , tenant_ownerid :: Maybe Int
     , tenant_backofficedomain :: Text
-    } deriving ((((Show))))
+    } deriving (((((Show)))))
 
 instance D.Default Constant TenantStatus (Column PGText) where
     def = Constant def'
@@ -54,17 +54,20 @@ instance FromField (TenantStatus) where
 instance QueryRunnerColumnDefault PGText TenantStatus where
     queryRunnerColumnDefault = fieldQueryRunnerColumn
 
-data UserStatus = UserStatusActive | UserStatusInActive | UserStatusBlocked
+data UserStatus
+    = UserStatusActive 
+    | UserStatusInActive 
+    | UserStatusBlocked 
 
-data User = User {
-  user_id :: Int,
-  user_tenantid :: Int,
-  user_username :: Text,
-  user_password :: Text,
-  user_firstname :: Maybe Text,
-  user_lastname :: Maybe Text,
-  user_status :: UserStatus
-}
+data User = User
+    { user_id :: Int
+    , user_tenantid :: Int
+    , user_username :: Text
+    , user_password :: Text
+    , user_firstname :: Maybe Text
+    , user_lastname :: Maybe Text
+    , user_status :: UserStatus
+    } 
 
 instance D.Default Constant UserStatus (Column PGText) where
     def = Constant def'
@@ -85,4 +88,3 @@ instance FromField (UserStatus) where
 
 instance QueryRunnerColumnDefault PGText UserStatus where
     queryRunnerColumnDefault = fieldQueryRunnerColumn
-  
