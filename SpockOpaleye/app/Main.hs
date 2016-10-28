@@ -23,7 +23,7 @@ main = do
             , user_lastname = Nothing
             , user_status = UserStatusInActive
             }
-    in create_user conn user
+    create_user conn user
     --tenants <- read_tenants conn
     --putStrLn $ show tenants
     return

@@ -20,7 +20,7 @@ data TenantStatus
     = TenantStatusActive 
     | TenantStatusInActive 
     | TenantStatusNew 
-    deriving (((((Show)))))
+    deriving ((((((Show))))))
 
 data Tenant = Tenant
     { tenant_id :: Int
@@ -32,7 +32,7 @@ data Tenant = Tenant
     , tenant_status :: TenantStatus
     , tenant_ownerid :: Maybe Int
     , tenant_backofficedomain :: Text
-    } deriving (((((Show)))))
+    } deriving ((((((Show))))))
 
 instance D.Default Constant TenantStatus (Column PGText) where
     def = Constant def'
