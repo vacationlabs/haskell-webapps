@@ -19,4 +19,9 @@ executable mockClient
                      , email-validate
                      , mockAPI
                      , servant
-  default-language:    Haskell2010
+  default-language:  Haskell2010
+  if impl(ghcjs)
+    ghc-options:    -dedupe
+    cpp-options:    -DGHCJS_BROWSER
+  else
+    ghc-options: -Wall
