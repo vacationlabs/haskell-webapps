@@ -27,7 +27,10 @@ type TenantOutput = DBTenant
 type UserID = Key DBUser
 
 data DBError = TenantNotFound TenantID
-             | UserNotFound UserID deriving (Eq, Show)
+             | UserNotFound UserID 
+             | ViolatesTenantUniqueness (Unique Tenant)
+                deriving (Eq, Show)
+
 data UserCreationError = UserExists Text
                        | TenantDoesn'tExist Text
                         deriving (Eq, Show)

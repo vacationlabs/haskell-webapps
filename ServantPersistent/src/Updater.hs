@@ -1,10 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes #-}
@@ -22,7 +21,8 @@ import GHC.Types
 import Types
 
 
-type family AllC (cs :: [k -> Constraint]) (a :: k) :: Constraint where
+type family AllC (cs :: [Type -> Constraint]) (a :: Type) 
+            = (c :: Constraint) | c -> cs where
     AllC '[] a = ()
     AllC (c ': cs) a = (c a, AllC cs a)
 

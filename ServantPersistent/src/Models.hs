@@ -29,6 +29,7 @@ DBTenant json
     status TenantStatus
     createdAt UTCTime
     updatedAt UTCTime
+     deriving Eq Show
     UniqueBackofficeDomain backofficeDomain
 
 DBUser
@@ -46,6 +47,9 @@ DBUser
     UniqueEmail email
 |]
 
+deriving instance Eq (Unique DBTenant)
+
+deriving instance Show (Unique DBTenant)
 
 instance HasTimestamp DBTenant where
     createdAt = dBTenantCreatedAt
@@ -70,7 +74,7 @@ instance HasUsername DBUser where
 instance HasPassword DBUser where
     password = dBUserPassword
 
-runDb :: (DBMonad m, MonadIO m) => SqlPersistT IO b -> m b
+runDb :: DBMonad m => SqlPersistT IO b -> m b
 runDb query = do
     pool <- getDBPool
     liftIO $ runSqlPool query pool

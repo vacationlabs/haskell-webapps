@@ -4,7 +4,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveAnyClass  #-}
 {-# LANGUAGE DeriveFunctor  #-}
-{-# LANGUAGE DeriveFunctor  #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 module Types

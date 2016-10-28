@@ -1,6 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -13,7 +10,6 @@ module Operation
     ) where
 import Prelude hiding (null, filter)
 import Data.Set
-import Data.Text (Text)
 import Control.Monad.Trans
 import Control.Monad.Reader
 import Control.Monad.State
@@ -52,33 +48,30 @@ requirePermission = (>>) . (Op . tell . singleton)
 runOperation :: DBMonad m => OperationT m a -> User -> ExceptT PermissionError m a
 runOperation op u@(UserB{_userRole=role}) = do
     (a,s) <- lift $ runWriterT $ unsafeRunOp op
-    let go s (EditUserDetails) = 
-              satisfyPermissions
+    let go s (EditUserDetails) =
+              satisfyPermissions s
                 (\case (EditUser uid) -> hasTenant uid (u ^. tenantID)
                        _ -> return False)
-                s
         go s (ViewUserDetails) =
-              satisfyPermissions
+              satisfyPermissions s
                 (\case (ViewUser uid) -> hasTenant uid (u ^. tenantID)
                        _ -> return False)
-                s
         go s (EditTenantDetails) =
-              satisfyPermissions
+              satisfyPermissions s
                 (\case (EditTenant tid) -> return $ tid == (u ^. tenantID)
                        _ -> return False)
-                s
         go s _ = return s
-    let s' = satisfyPermissions (\case (EditUser uid) -> return $ (u ^. userID) == uid
-                                       (ViewUser uid) -> return $ (u ^. userID) == uid
-                                       _ -> return False)
-                                s
+    let s' = satisfyPermissions s
+                (\case (EditUser uid) -> return $ (u ^. userID) == uid
+                       (ViewUser uid) -> return $ (u ^. userID) == uid
+                       _ -> return False)
     s'' <- foldM go (runIdentity s') (roleCapabilities role)
     if null s''
        then return a
        else throwError $ Requires s''
 
-satisfyPermissions :: (Applicative f, Ord a) => (a -> f Bool) -> Set a -> f (Set a)
-satisfyPermissions f s = fromList <$> filterM (fmap not . f) (toList s)
+satisfyPermissions :: (Applicative f, Ord a) => Set a -> (a -> f Bool) -> f (Set a)
+satisfyPermissions s f = fromList <$> filterM (fmap not . f) (toList s)
 
 hasTenant :: DBMonad m => UserID -> TenantID -> m Bool
 hasTenant uid tid = runDb $ do

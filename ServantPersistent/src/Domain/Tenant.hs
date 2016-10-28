@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 module Domain.Tenant
     where
 
@@ -38,7 +37,9 @@ dbUpdateTenant upd tid = requirePermission (EditTenant tid) $ runDb $ do
     case oldTenant' of
          Nothing -> return $ Left $ TenantNotFound tid
          Just oldTenant ->
-           Right <$> (replace tid =<< applyUpdate upd oldTenant)
+           maybe (return ())
+                 (Left . ViolatesTenantUniqueness)
+             <$> (replaceUnique tid =<< applyUpdate upd oldTenant)
 
 encode = undefined
 
@@ -49,8 +50,8 @@ activateTenant owner actkey = runDb $ runExceptT $ do
     let (Activation tid _) = decode actkey
     time <- liftIO $ getCurrentTime
     lift $ updateGet
-        tid
-        [ DBTenantOwnerId   =. Just owner
-        , DBTenantStatus    =. ActiveT
-        , DBTenantUpdatedAt =. time
-        ]
+            tid
+            [ DBTenantOwnerId   =. Just owner
+            , DBTenantStatus    =. ActiveT
+            , DBTenantUpdatedAt =. time
+            ]
