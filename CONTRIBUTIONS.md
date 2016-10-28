@@ -16,11 +16,16 @@ The central idea is to NOT deviate from the goals stated at the beginning of a d
 
 ## Formalizing your development sprints
 
-* Open a an issue on the [Github issue tracker](https://github.com/vacationlabs/haskell-webapps/issues) for your sprint. Tag it with the `sprint` label.
+* Open a PR against your branch **before** you start working on the sprint. Tag it with the `sprint` label
 * Use the issue description to formally state what you would like to achieve at the end of the sprint. Being detailed helps. Writing down your thoughts will help you structure them.
 * Put a timeline to the sprint -- try to keep sprints short enough so that they fit within a week.
-* Raise a PR to close the issue.
-* Repeat.
+* Keep committing to your branch - the PR will keep getting updated automatically.
+* Comment on the PR when you feel it's ready to be merged (or you'd like someone to quickly review it).
+* Get it merged. 
+* Close the PR with a comment that answers the following:
+  * What got done in this sprint
+  * What got pushed to the next sprint
+  * Any interesting learnings/roadblocks/issues/thoughts/comments
 
 ## Communication & daily standups
 
