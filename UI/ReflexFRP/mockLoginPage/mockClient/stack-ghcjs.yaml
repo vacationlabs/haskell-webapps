@@ -1,0 +1,34 @@
+resolver: lts-7.2
+compiler: ghcjs-0.2.1.9007002_ghc-8.0.1
+compiler-check: match-exact
+
+setup-info:
+  ghcjs:
+    source:
+      ghcjs-0.2.1.9007002_ghc-8.0.1:
+          url: http://ghcjs.tolysz.org/ghc-8.0-2016-10-01-lts-7.2-9007002.tar.gz
+          sha1: a41ae415328e2b257d40724d13d1386390c26322
+
+# extra-package-dbs: []
+
+packages:
+- location: '.'
+- location: ../mockAPI
+  extra-dep: true
+- location:
+    git: https://github.com/reflex-frp/reflex.git
+    commit: a63aba90bdea5ae5b3e1506d468613bdfedcdfa3
+  extra-dep: true
+- location:
+    git: https://github.com/Arguggi/reflex-dom.git
+    commit: 767c9b7625c61208b552f64b95719edac18a6e29
+  extra-dep: true
+- location:
+    git: https://github.com/imalsogreg/servant-reflex
+    commit: cf0bce400cd194301e7b02e01cbc4139afd47d95
+  extra-dep: true
+
+extra-deps:
+- ghcjs-dom-0.2.4.0
+- ref-tf-0.4.0.1
+- zenc-0.1.1

@@ -1,0 +1,30 @@
+resolver: lts-7.2
+
+packages:
+- location: '.'
+- location: ../mockAPI
+  extra-dep: true
+- location:
+    git: https://github.com/meditans/reflex
+    commit: bac2e0e56e9ba3e8265dbff853a059978ef01efb
+  extra-dep: true
+- location:
+    git: https://github.com/Arguggi/reflex-dom.git
+    commit: 767c9b7625c61208b552f64b95719edac18a6e29
+  extra-dep: true
+- location:
+    git: https://github.com/imalsogreg/servant-reflex
+    commit: cf0bce400cd194301e7b02e01cbc4139afd47d95
+  extra-dep: true
+
+extra-deps:
+- MemoTrie-0.6.7
+- ghcjs-dom-0.2.4.0
+- newtype-generics-0.4
+- ref-tf-0.4.0.1
+- webkitgtk3-javascriptcore-0.13.2.0
+- zenc-0.1.1
+
+flags: {}
+
+extra-package-dbs: []
