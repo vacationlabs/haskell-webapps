@@ -6,7 +6,8 @@ import Control.Lens
 import Data.Time
 import Database.Persist
 import Control.Monad.IO.Class
-import Data.Text (Text)
+import Control.Monad.Trans
+import Control.Monad.Except
 import Data.ByteString (ByteString)
 import Models
 import Types
@@ -14,7 +15,7 @@ import Updater
 import DBTypes
 import Operation
 
-dbCreateTenant :: TenantInput -> App (Maybe TenantID)
+dbCreateTenant :: DBMonad m => TenantInput -> m (Maybe TenantID)
 dbCreateTenant ti = runDb $ do
     time <- liftIO $ getCurrentTime
     let dbt = DBTenant { _dBTenantName = ti ^. name
@@ -27,27 +28,29 @@ dbCreateTenant ti = runDb $ do
     insertUnique dbt
 
 
-dbGetTenant :: TenantID -> App (Maybe Tenant)
+dbGetTenant :: DBMonad m => TenantID -> m (Maybe Tenant)
 dbGetTenant = runDb . get
 
-dbUpdateTenant :: TenantUpdater -> TenantID -> OperationT App (Either DBError ())
-dbUpdateTenant tu id = requirePermission (EditTenant id) >> (runDb $ do
-    time <- liftIO $ getCurrentTime
-    oldTenant' <- get id
+dbUpdateTenant :: DBMonad m =>
+                  TenantUpdater -> TenantID -> OperationT m (Either DBError ())
+dbUpdateTenant upd tid = requirePermission (EditTenant tid) $ runDb $ do
+    oldTenant' <- get tid
     case oldTenant' of
-         Nothing -> return $ Left $ TenantNotFound id
-         Just oldTenant -> Right <$> replace id (set updatedAt time $ runUpdate tu oldTenant))
-
+         Nothing -> return $ Left $ TenantNotFound tid
+         Just oldTenant ->
+           Right <$> (replace tid =<< applyUpdate upd oldTenant)
 
 encode = undefined
 
 decode = undefined
 
-activateTenant :: UserID -> ByteString -> App ()
-activateTenant uid actkey = runDb $ do
+activateTenant :: DBMonad m => UserID -> ByteString -> m (Either ActivationError Tenant)
+activateTenant owner actkey = runDb $ runExceptT $ do
     let (Activation tid _) = decode actkey
     time <- liftIO $ getCurrentTime
-    update tid [ DBTenantOwnerId =. Just uid
-               , DBTenantStatus =. ActiveT
-               , DBTenantUpdatedAt =. time
-               ]
+    lift $ updateGet
+        tid
+        [ DBTenantOwnerId   =. Just owner
+        , DBTenantStatus    =. ActiveT
+        , DBTenantUpdatedAt =. time
+        ]

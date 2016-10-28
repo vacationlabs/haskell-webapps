@@ -1,13 +1,13 @@
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE DeriveAnyClass   #-}
-{-# LANGUAGE TypeFamilies   #-}
-{-# LANGUAGE GADTs   #-}
-{-# LANGUAGE DataKinds   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE StandaloneDeriving   #-}
-{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE GADTs              #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE OverloadedStrings  #-}
 module DBTypes where
 
 import Data.Aeson
@@ -31,6 +31,7 @@ data DBError = TenantNotFound TenantID
 data UserCreationError = UserExists Text
                        | TenantDoesn'tExist Text
                         deriving (Eq, Show)
+data ActivationError = ActivationError
 
 data Role = Role { roleName :: Text
                  , roleCapabilities :: [Capability]

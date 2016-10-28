@@ -36,33 +36,43 @@ data PermissionError = Requires (Set Permission)
 newtype OperationT m a = Op { unsafeRunOp :: WriterT (Set Permission) m a }
     deriving (Functor, Applicative, Monad, Alternative, MonadPlus, Foldable, MonadFix, MonadTrans, MonadIO)
 
+instance (DBMonad m) => DBMonad (OperationT m) where
+    getDBPool = lift getDBPool
+
+
+
 deriving instance (MonadReader r m) => MonadReader r (OperationT m)
 deriving instance (MonadState s m) => MonadState s (OperationT m)
 deriving instance (MonadError e m) => MonadError e (OperationT m)
 
-requirePermission :: Monad m => Permission -> OperationT m ()
-requirePermission = Op . tell . singleton
+requirePermission :: Monad m => Permission -> OperationT m a -> OperationT m a
+requirePermission = (>>) . (Op . tell . singleton)
 
-runOperation :: OperationT App a -> User -> ExceptT PermissionError App a
+runOperation :: DBMonad m => OperationT m a -> User -> ExceptT PermissionError m a
 runOperation op u@(UserB{_userRole=role}) = do
     (a,s) <- lift $ runWriterT $ unsafeRunOp op
     let go s (EditUserDetails) = 
-            fromList <$> 
-              filterM (\case (EditUser uid) -> hasTenant uid (_userTenantID u)
-                             _ -> return False)
-                             (toList s)
+              filterMSet (\case (EditUser uid) -> hasTenant uid (u ^. tenantID)
+                                _ -> return False)
+                         s
+        go s (ViewUserDetails) = 
+              filterMSet (\case (ViewUser uid) -> hasTenant uid (u ^. tenantID)
+                                _ -> return False)
+                         s
         go s (EditTenantDetails) = 
-            fromList <$> 
-              filterM (\case (EditTenant tid) -> return $ tid == (_userTenantID u)
-                             _ -> return False)
-                             (toList s)
+              filterMSet (\case (EditTenant tid) -> return $ tid == (u ^. tenantID)
+                                _ -> return False)
+                         s
         go s _ = return s
     s' <- lift $ foldM go s (roleCapabilities role)
     if null s'
        then return a
        else throwError $ Requires s'
 
-hasTenant :: UserID -> TenantID -> App Bool
+filterMSet :: (Applicative f, Ord a) => (a -> f Bool) -> Set a -> f (Set a)
+filterMSet f s = fromList <$> filterM f (toList s)
+
+hasTenant :: DBMonad m => UserID -> TenantID -> m Bool
 hasTenant uid tid = runDb $ do
     tid' <- fmap _dBUserTenantID <$> DB.get uid
     case tid' of

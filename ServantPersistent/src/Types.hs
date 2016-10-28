@@ -35,6 +35,15 @@ data Config = Config
 
 type App = (ReaderT Config (ExceptT ServantErr IO))
 
+class (Monad m, MonadIO m) => DBMonad m where
+    getDBPool :: m ConnectionPool
+
+instance DBMonad App where
+    getDBPool = asks dbPool
+
+instance (DBMonad m) => DBMonad (ExceptT e m) where
+    getDBPool = lift getDBPool
+
 data LoginForm = Login { loginUsername :: String
                        , loginPassword :: String
                        } deriving (Show, Generic, Serialize, FromJSON, ToJSON)

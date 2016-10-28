@@ -70,7 +70,7 @@ instance HasUsername DBUser where
 instance HasPassword DBUser where
     password = dBUserPassword
 
-runDb :: (MonadReader Config m, MonadIO m) => SqlPersistT IO b -> m b
+runDb :: (DBMonad m, MonadIO m) => SqlPersistT IO b -> m b
 runDb query = do
-    pool <- asks dbPool
+    pool <- getDBPool
     liftIO $ runSqlPool query pool

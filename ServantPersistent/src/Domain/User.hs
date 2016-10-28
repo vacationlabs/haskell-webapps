@@ -7,6 +7,7 @@ import Data.Time
 import Database.Persist
 import Control.Monad.IO.Class
 import Control.Monad.Except
+import Data.ByteString
 import Data.Default
 import Models
 import Types
@@ -14,7 +15,7 @@ import Updater
 import DBTypes
 import Operation
 
-dbCreateUser :: UserInput -> App (Either UserCreationError UserID)
+dbCreateUser :: DBMonad m => UserInput -> m (Either UserCreationError UserID)
 dbCreateUser u = runExceptT $ do
     time <- liftIO getCurrentTime
     let dbu = DBUser { _dBUserFirstName = view firstName u
@@ -33,16 +34,16 @@ dbCreateUser u = runExceptT $ do
          Just a -> return a
          Nothing -> throwError $ UserExists (view username u)
 
-dbUpdateUser :: UserID -> UserUpdater -> OperationT App (Either DBError ())
-dbUpdateUser id uu = requirePermission (EditUser id) >> (runDb $ do
-    time <- liftIO $ getCurrentTime
-    oldUser' <- get id
+dbUpdateUser :: DBMonad m => UserID -> UserUpdater -> OperationT m (Either DBError ())
+dbUpdateUser uid upd = requirePermission (EditUser uid) $ runDb $ do
+    oldUser' <- get uid
     case oldUser' of
-         Nothing -> return $ Left $ UserNotFound id
-         Just oldUser -> Right <$> replace id (set updatedAt time $ runUpdate uu oldUser))
+         Nothing -> return $ Left $ UserNotFound uid
+         Just oldUser ->
+           Right <$> (replace uid =<< applyUpdate upd oldUser)
 
-dbGetUser :: UserID -> OperationT App (Either DBError User)
-dbGetUser uid = runExceptT $ do
+dbGetUser :: DBMonad m => UserID -> OperationT m (Either DBError User)
+dbGetUser uid = requirePermission (ViewUser uid) $ runExceptT $ do
     dbu <- ExceptT $ maybe (Left $ UserNotFound uid)
                            Right
                        <$> (runDb $ get uid)
@@ -58,3 +59,6 @@ dbGetUser uid = runExceptT $ do
                   , _userUserID    = uid
                   }
     return u
+
+dbActivateUser :: ByteString -> m ()
+dbActivateUser = undefined
