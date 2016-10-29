@@ -5,7 +5,11 @@ module Main where
 import Database.PostgreSQL.Simple
 import TenantApi
 import UserApi
+import RoleApi
 import DataTypes
+
+import Data.List.NonEmpty
+import Data.Maybe
 
 main = do
     conn <- 
@@ -13,18 +17,15 @@ main = do
             defaultConnectInfo
             { connectDatabase = "haskell-webapps"
             }
-    let user = 
-            User
-            { user_id = 2
-            , user_tenantid = 1
-            , user_username = "sdasdadsD"
-            , user_password = ""
-            , user_firstname = Just "firstname"
-            , user_lastname = Nothing
-            , user_status = UserStatusInActive
+    let role = 
+            Role
+            {
+              role_id= 5,
+              role_tenantid = 1,
+              role_name= "name",
+              role_permission= fromJust $ nonEmpty $ fmap Permission ["read", "write", "update"]
             }
-    create_user conn user
+    create_role conn role
     --tenants <- read_tenants conn
     --putStrLn $ show tenants
-    return
-        ()
+    return ()

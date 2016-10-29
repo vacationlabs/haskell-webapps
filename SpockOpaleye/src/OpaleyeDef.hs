@@ -5,19 +5,20 @@ module OpaleyeDef
   (
     tenantTable
    ,userTable
+   ,roleTable
   ) where
 
 import Database.PostgreSQL.Simple.FromField
 import qualified Data.Profunctor.Product.Default as D
 import           Opaleye (Column, Table(Table), Nullable,
-                 PGText, Constant(..), constant, pgStrictText,
+                 PGText, PGArray, Constant(..), constant, pgStrictText,
                  required, optional, (.==), (.<),
                  arrangeDeleteSql, arrangeInsertManySql,
                  arrangeUpdateSql, arrangeInsertManyReturningSql,
                  fieldQueryRunnerColumn,
                  QueryRunnerColumnDefault(queryRunnerColumnDefault),
                  PGInt4, PGFloat8)
-import           Data.Profunctor.Product (p6, p7, p8, p9)
+import           Data.Profunctor.Product (p4, p6, p7, p8, p9)
 
 import DataTypes
 
@@ -82,6 +83,27 @@ userTable = Table "users" (p7 (
   optional "first_name",
   optional "last_name",
   required "status"))
+
+
+roleTable :: Table
+  (
+   Column PGInt4,
+   Column PGInt4,
+   Column PGText,
+   Column (PGArray PGText)
+  )
+  (
+   Column PGInt4,
+   Column PGInt4,
+   Column PGText,
+   Column (PGArray PGText)
+  )
+roleTable = Table "roles" (p4 (
+  required "id",
+  required "tenant_id",
+  required "name",
+  required "permissions"
+  ))
 
 instance D.Default Constant TenantStatus (Column PGText) where
   def = Constant def'
