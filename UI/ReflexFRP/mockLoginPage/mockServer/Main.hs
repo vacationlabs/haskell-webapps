@@ -9,6 +9,7 @@ import Data.Text (Text)
 import Control.Concurrent (threadDelay)
 import Control.Monad.IO.Class
 import qualified Data.Map as M
+import Network.Wai.Middleware.Gzip
 
 server :: Server MockApi
 server = authenticate :<|> serveAssets :<|> serveJS
@@ -30,4 +31,7 @@ authenticate u
     userPresent = userMail u `elem` M.keys users
 
 main :: IO ()
-main = run 8081 (serve (Proxy @MockApi) server)
+main = run 8081 (gzip gzipSettings $ serve (Proxy @MockApi) server)
+-- main = run 8081 (serve (Proxy @MockApi) server)
+  where
+    gzipSettings = def { gzipFiles = GzipCompress }
