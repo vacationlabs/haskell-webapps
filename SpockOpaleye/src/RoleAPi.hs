@@ -9,16 +9,11 @@ module RoleApi
   )
   where
 
-import Control.Arrow (returnA, (<<<))
+import Control.Arrow 
 import Database.PostgreSQL.Simple (Connection)
 import DataTypes
 import OpaleyeDef
 import Opaleye
-       (Column, restrict, (.==), (.<=), (.&&), (.<),
-       (.===), (.++), Nullable,
-        Query, PGInt4, runInsertMany, runDelete, runInsertManyReturning, queryTable, constant,
-        pgStrictText, runQuery)
-import Opaleye.PGTypes
 import GHC.Int
 import Data.Text
 import Data.List.NonEmpty
@@ -50,6 +45,7 @@ makeRole (id, tenant_id, name, (h:t)) = Role {
   role_name = name,
   role_permission = h:|t
 }
+makeRole (id, tenant_id, name, []) = error "cannot create role without a permission"
 
 role_query :: Query (Column PGInt4, Column PGInt4, Column PGText, Column (PGArray PGText))
 role_query = queryTable roleTable

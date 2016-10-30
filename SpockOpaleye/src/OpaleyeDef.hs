@@ -12,15 +12,8 @@ module OpaleyeDef
 import Data.Text.Encoding
 import Database.PostgreSQL.Simple.FromField
 import qualified Data.Profunctor.Product.Default as D
-import           Opaleye (Column, Table(Table), Nullable,
-                 PGText, PGArray, pgArray, Constant(..), constant, pgStrictText,
-                 required, optional, (.==), (.<),
-                 arrangeDeleteSql, arrangeInsertManySql,
-                 arrangeUpdateSql, arrangeInsertManyReturningSql,
-                 fieldQueryRunnerColumn,
-                 QueryRunnerColumnDefault(queryRunnerColumnDefault),
-                 PGInt4, PGFloat8)
-import           Data.Profunctor.Product (p2, p4, p6, p7, p8, p9)
+import           Opaleye 
+import           Data.Profunctor.Product
 import Data.List.NonEmpty
 import Data.Text
 
@@ -136,6 +129,7 @@ instance FromField (TenantStatus) where
           Just "active" -> TenantStatusActive
           Just "inactive" -> TenantStatusInActive
           Just "new" -> TenantStatusNew
+          _ -> error "Bad value read for user status"
 
 instance QueryRunnerColumnDefault PGText TenantStatus where
     queryRunnerColumnDefault = fieldQueryRunnerColumn
@@ -156,6 +150,7 @@ instance FromField (UserStatus) where
           Just "active" -> UserStatusActive
           Just "inactive" -> UserStatusInActive
           Just "blocked" -> UserStatusBlocked
+          _ -> error "Bad value read for user status"
 
 instance QueryRunnerColumnDefault PGText UserStatus where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
@@ -173,6 +168,7 @@ instance FromField Permission where
   fromField f mdata = return $ makePermission mdata
     where
       makePermission (Just x) = Permission $ decodeUtf8 x
+      makePermission Nothing = error "No data read from db"
 
 instance QueryRunnerColumnDefault PGText Permission where
   queryRunnerColumnDefault = fieldQueryRunnerColumn

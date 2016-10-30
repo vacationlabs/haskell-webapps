@@ -15,7 +15,12 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
+  exposed-modules:     Lib,
+                       TenantApi,
+                       UserApi,
+                       RoleApi,
+                       OpaleyeDef,
+                       DataTypes
   build-depends:       base >= 4.7 && < 5
                       ,product-profunctors
                       ,opaleye
@@ -26,8 +31,9 @@ library
 executable SpockOpaleye-exe
   hs-source-dirs:      app
   main-is:             Main.hs
-  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -fwarn-tabs -fwarn-unused-imports -fwarn-missing-signatures -fwarn-incomplete-patterns
   build-depends:       base
+                     , postgresql-simple
                      , SpockOpaleye
   default-language:    Haskell2010
 

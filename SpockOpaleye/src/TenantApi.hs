@@ -11,16 +11,11 @@ module TenantApi
   where
 
 
-import           Control.Arrow (returnA, (<<<))
+import           Control.Arrow 
 import Database.PostgreSQL.Simple (Connection)
 import DataTypes
 import OpaleyeDef
 import Opaleye
-       (Column, PGText, restrict, (.==), (.<=), (.&&), (.<),
-       (.===), (.++), Nullable,
-        Query, PGInt4, runInsertMany, runDelete, runInsertManyReturning, queryTable, constant,
-        pgStrictText, runQuery)
-import qualified Opaleye.PGTypes
 import GHC.Int
 import Data.Text
 import UserApi
@@ -47,6 +42,7 @@ remove_tenant conn Tenant {tenant_id = Just tid } = do
   mapM_ (remove_user conn) users_for_tenant
   mapM_ (remove_role conn) roles_for_tenant
   runDelete conn tenantTable (\(id, _, _, _, _, _, _, _, _) -> id .== (constant tid)) 
+remove_tenant conn Tenant {tenant_id = Nothing } = return 0
 
 read_tenants
   :: Connection

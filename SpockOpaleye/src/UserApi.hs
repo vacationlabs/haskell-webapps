@@ -14,16 +14,11 @@ module UserApi
   )
   where
 
-import Control.Arrow (returnA, (<<<))
+import Control.Arrow 
 import Database.PostgreSQL.Simple (Connection)
 import DataTypes
 import OpaleyeDef
 import Opaleye
-       (Column, restrict, (.==), (.<=), (.&&), (.<),
-       (.===), (.++), Nullable,
-        Query, PGInt4, runInsertMany, runUpdate, runDelete, runInsertManyReturning, queryTable, constant,
-        pgStrictText, runQuery)
-import Opaleye.PGTypes
 import GHC.Int
 import Data.Text
 
@@ -44,9 +39,11 @@ update_user :: Connection -> User -> User -> IO GHC.Int.Int64
 update_user conn User { user_id = Just tid }
   User {user_id = id, user_tenantid=tenant_id}  
     = runUpdate conn userTable (\(_, _, a, b, c, d, e) -> (Nothing, constant tenant_id, a, b, Just c, Just d, e)) (\(id, _, _, _, _, _, _) -> (id .== constant tid))
+update_user conn User { user_id = Nothing} _ = return 0
 
 remove_user :: Connection -> User -> IO GHC.Int.Int64
 remove_user conn User {user_id=Just tid} = runDelete conn userTable (\(id, _, _, _, _, _, _) -> id .== (constant tid))
+remove_user conn User {user_id=Nothing} = return 0
 
 read_users
   :: Connection

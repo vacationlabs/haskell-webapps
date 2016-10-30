@@ -9,17 +9,12 @@ module DataTypes
 
 import Data.Text
 import Data.List.NonEmpty
-import qualified Data.Profunctor.Product.Default as D
-import Database.PostgreSQL.Simple.FromField
-import Opaleye
-       (Constant(Constant), PGText, Column, pgStrictText,
-        QueryRunnerColumnDefault(queryRunnerColumnDefault))
 
 data TenantStatus
     = TenantStatusActive 
     | TenantStatusInActive 
     | TenantStatusNew 
-    deriving (((((((((Show)))))))))
+    deriving (Show)
 
 data Tenant = Tenant
     { tenant_id :: Maybe Int
@@ -31,7 +26,7 @@ data Tenant = Tenant
     , tenant_status :: TenantStatus
     , tenant_ownerid :: Maybe Int
     , tenant_backofficedomain :: Text
-    } deriving (((((((((Show)))))))))
+    } deriving (Show)
 
 data UserStatus
     = UserStatusActive 

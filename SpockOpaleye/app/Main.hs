@@ -3,11 +3,12 @@
 module Main where
 
 import Database.PostgreSQL.Simple
-import TenantApi
+import TenantApi()
 import UserApi
-import RoleApi
+import RoleApi()
 import DataTypes
 
+main :: IO ()
 main = do
     conn <- 
         connect
@@ -26,3 +27,4 @@ main = do
             }
     ids <- create_user conn user
     putStrLn $ show ids
+    return ()
