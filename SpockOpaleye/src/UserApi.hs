@@ -10,7 +10,8 @@ module UserApi
    remove_role_from_user,
    update_user,
    remove_user,
-   read_users_for_tenant
+   read_users_for_tenant,
+   activate_user
   )
   where
 
@@ -40,6 +41,12 @@ update_user conn User { user_id = Just tid }
   User {user_id = id, user_tenantid=tenant_id}  
     = runUpdate conn userTable (\(_, _, a, b, c, d, e) -> (Nothing, constant tenant_id, a, b, Just c, Just d, e)) (\(id, _, _, _, _, _, _) -> (id .== constant tid))
 update_user conn User { user_id = Nothing} _ = return 0
+
+activate_user :: Connection -> User -> IO GHC.Int.Int64
+activate_user conn user = set_user_status conn user UserStatusActive
+
+set_user_status :: Connection -> User -> UserStatus -> IO GHC.Int.Int64
+set_user_status conn user@User { user_id = id, user_tenantid = tid, user_username = username, user_password = password, user_firstname = firstname, user_lastname = lastname, user_status = status} new_status = update_user conn user User { user_id = id, user_tenantid = tid, user_username = username, user_password = password, user_firstname = firstname, user_lastname = lastname, user_status = new_status }
 
 remove_user :: Connection -> User -> IO GHC.Int.Int64
 remove_user conn User {user_id=Just tid} = runDelete conn userTable (\(id, _, _, _, _, _, _) -> id .== (constant tid))

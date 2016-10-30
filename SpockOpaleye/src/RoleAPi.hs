@@ -23,11 +23,11 @@ create_role
 create_role conn Role {role_tenantid=tenant_id, role_name=name, role_permission=rp} = 
   runInsertManyReturning conn roleTable
   (return (
-           Nothing
-          ,constant tenant_id
-          ,pgStrictText name
-          ,constant rp
-          )) (\(id, _, _, _) -> id)
+     Nothing
+    ,constant tenant_id
+    ,pgStrictText name
+    ,constant rp
+  )) (\(id, _, _, _) -> id)
 
 remove_role :: Connection -> Role -> IO GHC.Int.Int64
 remove_role conn Role {role_id = t_id} = runDelete conn roleTable
@@ -55,4 +55,3 @@ role_query_for_tenant t_tenantid = proc () -> do
   row@ (_, tenant_id, _, _) <- role_query -< ()
   restrict -< tenant_id .== (constant t_tenantid)
   returnA -< row
-  
