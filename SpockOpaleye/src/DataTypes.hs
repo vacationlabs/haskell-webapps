@@ -19,10 +19,10 @@ data TenantStatus
     = TenantStatusActive 
     | TenantStatusInActive 
     | TenantStatusNew 
-    deriving ((((((((Show))))))))
+    deriving (((((((((Show)))))))))
 
 data Tenant = Tenant
-    { tenant_id :: Int
+    { tenant_id :: Maybe Int
     , tenant_name :: Text
     , tenant_firstname :: Text
     , tenant_lastname :: Text
@@ -31,7 +31,7 @@ data Tenant = Tenant
     , tenant_status :: TenantStatus
     , tenant_ownerid :: Maybe Int
     , tenant_backofficedomain :: Text
-    } deriving ((((((((Show))))))))
+    } deriving (((((((((Show)))))))))
 
 data UserStatus
     = UserStatusActive 
@@ -39,7 +39,7 @@ data UserStatus
     | UserStatusBlocked 
 
 data User = User
-    { user_id :: Int
+    { user_id :: Maybe Int
     , user_tenantid :: Int
     , user_username :: Text
     , user_password :: Text

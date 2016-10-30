@@ -6,25 +6,29 @@ module OpaleyeDef
     tenantTable
    ,userTable
    ,roleTable
+   ,userRolePivotTable
   ) where
 
+import Data.Text.Encoding
 import Database.PostgreSQL.Simple.FromField
 import qualified Data.Profunctor.Product.Default as D
 import           Opaleye (Column, Table(Table), Nullable,
-                 PGText, PGArray, Constant(..), constant, pgStrictText,
+                 PGText, PGArray, pgArray, Constant(..), constant, pgStrictText,
                  required, optional, (.==), (.<),
                  arrangeDeleteSql, arrangeInsertManySql,
                  arrangeUpdateSql, arrangeInsertManyReturningSql,
                  fieldQueryRunnerColumn,
                  QueryRunnerColumnDefault(queryRunnerColumnDefault),
                  PGInt4, PGFloat8)
-import           Data.Profunctor.Product (p4, p6, p7, p8, p9)
+import           Data.Profunctor.Product (p2, p4, p6, p7, p8, p9)
+import Data.List.NonEmpty
+import Data.Text
 
 import DataTypes
 
 tenantTable :: Table
   (
-   Column PGInt4,
+   Maybe (Column PGInt4),
    Column PGText,
    Column PGText,
    Column PGText,
@@ -46,7 +50,7 @@ tenantTable :: Table
    Column PGText
    )
 tenantTable = Table "tenants" (p9 ( 
-  required "id",
+  optional "id",
   required "name",
   required "first_name",
   required "last_name",
@@ -58,7 +62,7 @@ tenantTable = Table "tenants" (p9 (
 
 userTable :: Table
   (
-   Column PGInt4,
+   Maybe (Column PGInt4),
    Column PGInt4,
    Column PGText,
    Column PGText,
@@ -76,7 +80,7 @@ userTable :: Table
    Column PGText
   )
 userTable = Table "users" (p7 (
-  required "id",
+  optional "id",
   required "tenant_id",
   required "username",
   required "password",
@@ -87,7 +91,7 @@ userTable = Table "users" (p7 (
 
 roleTable :: Table
   (
-   Column PGInt4,
+   Maybe(Column PGInt4),
    Column PGInt4,
    Column PGText,
    Column (PGArray PGText)
@@ -99,11 +103,22 @@ roleTable :: Table
    Column (PGArray PGText)
   )
 roleTable = Table "roles" (p4 (
-  required "id",
+  optional "id",
   required "tenant_id",
   required "name",
   required "permissions"
   ))
+
+userRolePivotTable :: Table
+  (
+   Column PGInt4,
+   Column PGInt4)
+  (
+   Column PGInt4,
+   Column PGInt4)
+userRolePivotTable = Table "users_roles" (p2 (
+      required "user_id",
+      required "role_id"))
 
 instance D.Default Constant TenantStatus (Column PGText) where
   def = Constant def'
@@ -143,4 +158,21 @@ instance FromField (UserStatus) where
           Just "blocked" -> UserStatusBlocked
 
 instance QueryRunnerColumnDefault PGText UserStatus where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+instance D.Default Constant (NonEmpty Permission) (Column (PGArray PGText)) where
+  def = Constant def'
+    where
+    def' :: (NonEmpty Permission) -> (Column (PGArray PGText))
+    def' (ph :| pl) = pgArray pgStrictText $ to_text <$> (ph:pl)
+      where
+      to_text :: Permission -> Text
+      to_text (Permission name) = name
+
+instance FromField Permission where
+  fromField f mdata = return $ makePermission mdata
+    where
+      makePermission (Just x) = Permission $ decodeUtf8 x
+
+instance QueryRunnerColumnDefault PGText Permission where
   queryRunnerColumnDefault = fieldQueryRunnerColumn

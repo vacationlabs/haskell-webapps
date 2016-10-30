@@ -1,4 +1,7 @@
-Opaleye - How to use a user defined data type while doing manipulation operations?
+2. Opaleye - Gotcha with nullable fields.
+
+
+1. Opaleye - How to use a user defined data type while doing manipulation operations?
 
 To insert the user defined type 'a' converting it to one of
 postgresql's data type 'b' (PGText, PGInt4 etc), you need to make
@@ -48,5 +51,3 @@ Now you can insert a new row of Tenant as follows.
     } = runInsertMany conn tenantTable $ (return (constant id, pgString nm, pgString fn,pgString ln, pgString email, pgString phone, constant status, Nothing,  pgString bo_domain))
 
 Look how we were able to use the status value directly in the function.
-
-  

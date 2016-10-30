@@ -8,24 +8,21 @@ import UserApi
 import RoleApi
 import DataTypes
 
-import Data.List.NonEmpty
-import Data.Maybe
-
 main = do
     conn <- 
         connect
             defaultConnectInfo
             { connectDatabase = "haskell-webapps"
             }
-    let role = 
-            Role
-            {
-              role_id= 5,
-              role_tenantid = 1,
-              role_name= "name",
-              role_permission= fromJust $ nonEmpty $ fmap Permission ["read", "write", "update"]
+    let user = 
+            User
+            { user_id = Just 5
+            , user_tenantid = 1
+            , user_username = "asdsdasdadsD"
+            , user_password = ""
+            , user_firstname = Just "firstname"
+            , user_lastname = Nothing
+            , user_status = UserStatusInActive
             }
-    create_role conn role
-    --tenants <- read_tenants conn
-    --putStrLn $ show tenants
-    return ()
+    ids <- create_user conn user
+    putStrLn $ show ids
