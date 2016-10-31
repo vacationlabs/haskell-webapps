@@ -22,3 +22,7 @@ The build of the server should be just a =stack build=. To build the client:
 - =stack build gtk2hs-buildtools alex happy=
 - be sure to have the required system libraries (like webkitgtk)
 - =stack build= or =stack build --stack-yaml=stack-ghcjs.yaml=
+
+You can also use the =deploy.hs= in the client folder, which compiles the
+client, minimizes the generated js, and copies it in the location expected by
+the server.
