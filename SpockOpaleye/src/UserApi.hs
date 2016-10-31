@@ -5,7 +5,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module UserApi
-  ( create_user
+  (
+   create_user
   , read_users
   , read_user_by_id
   , read_users_for_tenant
@@ -25,7 +26,7 @@ import Opaleye
 import OpaleyeDef
 
 create_user :: Connection -> User -> IO [Int]
-create_user conn User {user_id = id
+create_user conn User {user_id = _
                       ,user_tenantid = tenant_id
                       ,user_username = username
                       ,user_firstname = first_name
@@ -36,7 +37,7 @@ create_user conn User {user_id = id
     userTable
     (return
        ( Nothing
-       , constant tenant_id
+       , pgInt4 tenant_id
        , pgStrictText username
        , pgStrictText username
        , toNullable . pgStrictText <$> first_name
@@ -44,8 +45,8 @@ create_user conn User {user_id = id
        , constant status))
     (\(id_, _, _, _, _, _, _) -> id_)
 
-update_user :: Connection -> Int -> User -> IO GHC.Int.Int64
-update_user conn tid (User {user_id = id
+update_user :: Connection -> UserId -> User -> IO GHC.Int.Int64
+update_user conn (UserId tid) (User {user_id = _
                            ,user_tenantid = tenant_id
                            ,user_username = username
                            ,user_password = password
@@ -129,7 +130,7 @@ remove_role_from_user conn t_user_id t_role_id =
     (\(user_id, role_id) ->
         (user_id .== constant t_user_id) .&& (role_id .== constant t_role_id))
 
-make_user :: (Int, Int, Text, Text, Maybe Text, Maybe Text, UserStatus) -> User
+make_user :: (UserId, Int, Text, Text, Maybe Text, Maybe Text, UserStatus) -> User
 make_user (id, tenant_id, name, password, first_name, last_name, status) =
   User
   { user_id = id

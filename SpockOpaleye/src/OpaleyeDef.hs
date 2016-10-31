@@ -127,3 +127,40 @@ instance FromField Permission where
 
 instance QueryRunnerColumnDefault PGText Permission where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+instance D.Default Constant (UserId) (Column PGInt4) where
+  def = Constant def'
+    where
+      def' :: UserId -> (Column PGInt4)
+      def' (UserId id) = pgInt4 id
+
+instance FromField UserId where
+  fromField = fromField
+
+instance QueryRunnerColumnDefault PGInt4 UserId where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+--
+instance D.Default Constant (RoleId) (Column PGInt4) where
+  def = Constant def'
+    where
+      def' :: RoleId -> (Column PGInt4)
+      def' (RoleId id) = pgInt4 id
+
+instance FromField RoleId where
+  fromField = fromField
+
+instance QueryRunnerColumnDefault PGInt4 RoleId where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
+--
+instance D.Default Constant (TenantId) (Column PGInt4) where
+  def = Constant def'
+    where
+      def' :: TenantId -> (Column PGInt4)
+      def' (TenantId id) = pgInt4 id
+
+instance FromField TenantId where
+  fromField = fromField
+
+instance QueryRunnerColumnDefault PGInt4 TenantId where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn

@@ -23,7 +23,6 @@ import GHC.Int
 import Opaleye
 import OpaleyeDef
 import RoleApi
-import UserApi
 
 create_tenant :: Connection -> Tenant -> IO [Int]
 create_tenant conn Tenant {tenant_id = id
@@ -76,9 +75,9 @@ update_tenant conn t_tenantid update_func =
 
 remove_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
 remove_tenant conn Tenant {tenant_id = tid} = do
-  users_for_tenant <- read_users_for_tenant conn tid
+  --users_for_tenant <- read_users_for_tenant conn tid
   roles_for_tenant <- read_roles_for_tenant conn tid
-  mapM_ (remove_user conn) users_for_tenant
+  --mapM_ (remove_user conn) users_for_tenant
   mapM_ (remove_role conn) roles_for_tenant
   runDelete
     conn
@@ -101,7 +100,7 @@ read_tenant_by_id conn id = do
       [] -> Nothing
       rows -> Just $ Prelude.head $ fmap make_tenant rows
 
-make_tenant :: (Int, Text, Text, Text, Text, Text, TenantStatus, Maybe Int, Text)
+make_tenant :: (TenantId, Text, Text, Text, Text, Text, TenantStatus, Maybe Int, Text)
             -> Tenant
 make_tenant (id, name, first_name, last_name, email, phone, status, owner_id, bo_domain) =
   Tenant

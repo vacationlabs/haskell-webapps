@@ -33,12 +33,12 @@ remove_role :: Connection -> Role -> IO GHC.Int.Int64
 remove_role conn Role {role_id = t_id} =
   runDelete conn roleTable (\(id, _, _, _) -> id .== constant t_id)
 
-read_roles_for_tenant :: Connection -> Int -> IO [Role]
-read_roles_for_tenant conn t_id = do
+read_roles_for_tenant :: Connection -> TenantId -> IO [Role]
+read_roles_for_tenant conn (TenantId t_id) = do
   rows <- runQuery conn $ role_query_for_tenant t_id
   return $ makeRole <$> rows
 
-makeRole :: (Int, Int, Text, [Permission]) -> Role
+makeRole :: (RoleId, Int, Text, [Permission]) -> Role
 makeRole (id, tenant_id, name, (h:t)) =
   Role
   { role_id = id
