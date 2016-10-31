@@ -25,30 +25,39 @@ import OpaleyeDef
 import RoleApi
 import UserApi
 
-create_tenant :: Connection -> Tenant -> IO [Int]
-create_tenant conn Tenant {tenant_id = id
-                          ,tenant_name = name
-                          ,tenant_firstname = first_name
-                          ,tenant_lastname = last_name
-                          ,tenant_email = email
-                          ,tenant_phone = phone
-                          ,tenant_status = status
-                          ,tenant_ownerid = owner_id
-                          ,tenant_backofficedomain = bo_domain} =
-  runInsertManyReturning
-    conn
-    tenantTable
-    (return
-       ( Nothing
-       , pgStrictText name
-       , pgStrictText first_name
-       , pgStrictText last_name
-       , pgStrictText email
-       , pgStrictText phone
-       , constant status
-       , toNullable . constant <$> owner_id
-       , pgStrictText bo_domain))
-    (\(id, _, _, _, _, _, _, _, _) -> id)
+create_tenant :: Connection -> Tenant -> IO (Maybe Tenant)
+create_tenant conn tenant@Tenant {tenant_id = id
+                                 ,tenant_name = name
+                                 ,tenant_firstname = first_name
+                                 ,tenant_lastname = last_name
+                                 ,tenant_email = email
+                                 ,tenant_phone = phone
+                                 ,tenant_status = status
+                                 ,tenant_ownerid = owner_id
+                                 ,tenant_backofficedomain = bo_domain} = do
+  ids <-
+    runInsertManyReturning
+      conn
+      tenantTable
+      (return
+         ( Nothing
+         , pgStrictText name
+         , pgStrictText first_name
+         , pgStrictText last_name
+         , pgStrictText email
+         , pgStrictText phone
+         , constant status
+         , toNullable . constant <$> owner_id
+         , pgStrictText bo_domain))
+      (\(id, _, _, _, _, _, _, _, _) -> id)
+  return $
+    case ids of
+      [] -> Nothing
+      (x:xs) ->
+        Just $
+        tenant
+        { tenant_id = x
+        }
 
 activate_tenant :: Connection -> TenantId -> IO GHC.Int.Int64
 activate_tenant conn tenant_id = set_tenant_status conn tenant_id TenantStatusActive
@@ -85,13 +94,10 @@ remove_tenant conn Tenant {tenant_id = tid} = do
     tenantTable
     (\(id, _, _, _, _, _, _, _, _) -> id .== (constant tid))
 
-read_tenants :: Connection -> IO (Maybe [Tenant])
+read_tenants :: Connection -> IO [Tenant]
 read_tenants conn = do
   r <- runQuery conn $ tenant_query
-  return $
-    case r of
-      [] -> Nothing
-      rows -> Just $ fmap make_tenant rows
+  return $ fmap make_tenant r
 
 read_tenant_by_id :: Connection -> TenantId -> IO (Maybe Tenant)
 read_tenant_by_id conn id = do

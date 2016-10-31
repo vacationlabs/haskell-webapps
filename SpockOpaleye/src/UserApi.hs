@@ -24,25 +24,35 @@ import GHC.Int
 import Opaleye
 import OpaleyeDef
 
-create_user :: Connection -> User -> IO [Int]
-create_user conn User {user_id = _
-                      ,user_tenantid = tenant_id
-                      ,user_username = username
-                      ,user_firstname = first_name
-                      ,user_lastname = last_name
-                      ,user_status = status} =
-  runInsertManyReturning
-    conn
-    userTable
-    (return
-       ( Nothing
-       , constant tenant_id
-       , pgStrictText username
-       , pgStrictText username
-       , toNullable . pgStrictText <$> first_name
-       , toNullable . pgStrictText <$> last_name
-       , constant status))
-    (\(id_, _, _, _, _, _, _) -> id_)
+create_user :: Connection -> User -> IO (Maybe User)
+create_user conn user@User {user_id = _
+                           ,user_tenantid = tenant_id
+                           ,user_username = username
+                           ,user_password = password
+                           ,user_firstname = first_name
+                           ,user_lastname = last_name
+                           ,user_status = status} = do
+  ids <-
+    runInsertManyReturning
+      conn
+      userTable
+      (return
+         ( Nothing
+         , constant tenant_id
+         , pgStrictText username
+         , pgStrictText password
+         , toNullable . pgStrictText <$> first_name
+         , toNullable . pgStrictText <$> last_name
+         , constant status))
+      (\(id_, _, _, _, _, _, _) -> id_)
+  return $
+    case ids of
+      [] -> Nothing
+      (x:xs) ->
+        Just $
+        user
+        { user_id = x
+        }
 
 update_user :: Connection -> UserId -> User -> IO GHC.Int.Int64
 update_user conn (UserId tid) (User {user_id = _
