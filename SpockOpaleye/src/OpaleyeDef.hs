@@ -134,7 +134,6 @@ instance FromField Permission where
       toPermission "Delete" = Delete
       toPermission _ = error "Unrecognized permission"
 
-
 instance QueryRunnerColumnDefault PGText Permission where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
 

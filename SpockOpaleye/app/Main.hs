@@ -54,8 +54,7 @@ main = do
       { role_id = RoleId 0
       , role_tenantid = tenant_id tenant
       , role_name = "Role 1"
-      , role_permission =
-        fromJust $ nonEmpty $ [Read, Update]
+      , role_permission = fromJust $ nonEmpty $ [Read, Update]
       }
   add_role_to_user conn (user_id user) (role_id role)
   remove_role_from_user conn (user_id user) (role_id role)
