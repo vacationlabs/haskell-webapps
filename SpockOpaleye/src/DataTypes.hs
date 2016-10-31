@@ -45,8 +45,7 @@ data User = User
   , user_status :: UserStatus
   } deriving (Show)
 
-newtype Permission =
-  Permission Text
+data Permission = Read|Create|Update|Delete
   deriving (Show)
 
 newtype RoleId =

@@ -117,13 +117,23 @@ instance D.Default Constant (NonEmpty Permission) (Column (PGArray PGText)) wher
       def' (ph :| pl) = pgArray pgStrictText $ to_text <$> (ph : pl)
         where
           to_text :: Permission -> Text
-          to_text (Permission name) = name
+          to_text Read = "Read"
+          to_text Create = "Create"
+          to_text Update = "Update"
+          to_text Delete = "Delete"
 
 instance FromField Permission where
   fromField f mdata = return $ makePermission mdata
     where
-      makePermission (Just x) = Permission $ decodeUtf8 x
+      makePermission (Just x) = toPermission $ decodeUtf8 x
       makePermission Nothing = error "No data read from db"
+      toPermission :: Text -> Permission
+      toPermission "Read" = Read
+      toPermission "Create" = Create
+      toPermission "Update" = Update
+      toPermission "Delete" = Delete
+      toPermission _ = error "Unrecognized permission"
+
 
 instance QueryRunnerColumnDefault PGText Permission where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
