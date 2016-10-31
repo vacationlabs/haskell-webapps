@@ -36,7 +36,7 @@ create_user conn User {user_id = _
     userTable
     (return
        ( Nothing
-       , pgInt4 tenant_id
+       , constant tenant_id
        , pgStrictText username
        , pgStrictText username
        , toNullable . pgStrictText <$> first_name
@@ -101,12 +101,12 @@ read_users conn = do
   r <- runQuery conn $ user_query
   return $ make_user <$> r
 
-read_users_for_tenant :: Connection -> Int -> IO [User]
+read_users_for_tenant :: Connection -> TenantId -> IO [User]
 read_users_for_tenant conn tenant_id = do
   r <- runQuery conn $ user_query_by_tenantid tenant_id
   return $ make_user <$> r
 
-read_user_by_id :: Connection -> Int -> IO (Maybe User)
+read_user_by_id :: Connection -> UserId -> IO (Maybe User)
 read_user_by_id conn id = do
   r <- runQuery conn $ user_query_by_id id
   return $
@@ -114,14 +114,14 @@ read_user_by_id conn id = do
       [] -> Nothing
       rows -> Just $ Prelude.head $ make_user <$> rows
 
-add_role_to_user :: Connection -> Int -> Int -> IO GHC.Int.Int64
+add_role_to_user :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
 add_role_to_user conn user_id role_id =
   runInsertMany
     conn
     userRolePivotTable
     (return (constant user_id, constant role_id))
 
-remove_role_from_user :: Connection -> Int -> Int -> IO GHC.Int.Int64
+remove_role_from_user :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
 remove_role_from_user conn t_user_id t_role_id =
   runDelete
     conn
@@ -129,7 +129,8 @@ remove_role_from_user conn t_user_id t_role_id =
     (\(user_id, role_id) ->
         (user_id .== constant t_user_id) .&& (role_id .== constant t_role_id))
 
-make_user :: (UserId, Int, Text, Text, Maybe Text, Maybe Text, UserStatus) -> User
+make_user :: (UserId, TenantId, Text, Text, Maybe Text, Maybe Text, UserStatus)
+          -> User
 make_user (id, tenant_id, name, password, first_name, last_name, status) =
   User
   { user_id = id
@@ -144,16 +145,16 @@ make_user (id, tenant_id, name, password, first_name, last_name, status) =
 user_query :: Query UserTableR
 user_query = queryTable userTable
 
-user_query_by_id :: Int -> Query UserTableR
+user_query_by_id :: UserId -> Query UserTableR
 user_query_by_id t_id =
   proc () ->
   do row@(id, _, _, _, _, _, _) <- user_query -< ()
      restrict -< id .== (constant t_id)
      returnA -< row
 
-user_query_by_tenantid :: Int -> Query UserTableR
+user_query_by_tenantid :: TenantId -> Query UserTableR
 user_query_by_tenantid t_tenantid =
   proc () ->
   do row@(_, tenant_id, _, _, _, _, _) <- user_query -< ()
-     restrict -< tenant_id .== (pgInt4 t_tenantid)
+     restrict -< tenant_id .== (constant t_tenantid)
      returnA -< row

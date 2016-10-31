@@ -21,7 +21,7 @@ data Tenant = Tenant
   , tenant_email :: Text
   , tenant_phone :: Text
   , tenant_status :: TenantStatus
-  , tenant_ownerid :: Maybe Int
+  , tenant_ownerid :: Maybe UserId
   , tenant_backofficedomain :: Text
   } deriving (Show)
 
@@ -37,7 +37,7 @@ newtype UserId =
 
 data User = User
   { user_id :: UserId
-  , user_tenantid :: Int
+  , user_tenantid :: TenantId
   , user_username :: Text
   , user_password :: Text
   , user_firstname :: Maybe Text
@@ -55,7 +55,7 @@ newtype RoleId =
 
 data Role = Role
   { role_id :: RoleId
-  , role_tenantid :: Int
+  , role_tenantid :: TenantId
   , role_name :: Text
   , role_permission :: NonEmpty Permission
   } deriving (Show)

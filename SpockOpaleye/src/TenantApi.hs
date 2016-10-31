@@ -23,6 +23,7 @@ import GHC.Int
 import Opaleye
 import OpaleyeDef
 import RoleApi
+import UserApi
 
 create_tenant :: Connection -> Tenant -> IO [Int]
 create_tenant conn Tenant {tenant_id = id
@@ -45,17 +46,17 @@ create_tenant conn Tenant {tenant_id = id
        , pgStrictText email
        , pgStrictText phone
        , constant status
-       , toNullable . pgInt4 <$> owner_id
+       , toNullable . constant <$> owner_id
        , pgStrictText bo_domain))
     (\(id, _, _, _, _, _, _, _, _) -> id)
 
-activate_tenant :: Connection -> Int -> IO GHC.Int.Int64
+activate_tenant :: Connection -> TenantId -> IO GHC.Int.Int64
 activate_tenant conn tenant_id = set_tenant_status conn tenant_id TenantStatusActive
 
-deactivate_tenant :: Connection -> Int -> IO GHC.Int.Int64
+deactivate_tenant :: Connection -> TenantId -> IO GHC.Int.Int64
 deactivate_tenant conn tenant_id = set_tenant_status conn tenant_id TenantStatusInActive
 
-set_tenant_status :: Connection -> Int -> TenantStatus -> IO GHC.Int.Int64
+set_tenant_status :: Connection -> TenantId -> TenantStatus -> IO GHC.Int.Int64
 set_tenant_status conn tenant_id status = update_tenant conn tenant_id update_func
   where
     update_func :: TenantTableR -> TenantTableW
@@ -63,7 +64,7 @@ set_tenant_status conn tenant_id status = update_tenant conn tenant_id update_fu
       (Just id, name, fn, ln, em, ph, constant status, Just oid, bod)
 
 update_tenant :: Connection
-              -> Int
+              -> TenantId
               -> (TenantTableR -> TenantTableW)
               -> IO GHC.Int.Int64
 update_tenant conn t_tenantid update_func =
@@ -92,7 +93,7 @@ read_tenants conn = do
       [] -> Nothing
       rows -> Just $ fmap make_tenant rows
 
-read_tenant_by_id :: Connection -> Int -> IO (Maybe Tenant)
+read_tenant_by_id :: Connection -> TenantId -> IO (Maybe Tenant)
 read_tenant_by_id conn id = do
   r <- runQuery conn $ (tenant_query_by_id id)
   return $
@@ -100,7 +101,7 @@ read_tenant_by_id conn id = do
       [] -> Nothing
       rows -> Just $ Prelude.head $ fmap make_tenant rows
 
-make_tenant :: (TenantId, Text, Text, Text, Text, Text, TenantStatus, Maybe Int, Text)
+make_tenant :: (TenantId, Text, Text, Text, Text, Text, TenantStatus, Maybe UserId, Text)
             -> Tenant
 make_tenant (id, name, first_name, last_name, email, phone, status, owner_id, bo_domain) =
   Tenant
@@ -118,9 +119,9 @@ make_tenant (id, name, first_name, last_name, email, phone, status, owner_id, bo
 tenant_query :: Opaleye.Query TenantTableR
 tenant_query = queryTable tenantTable
 
-tenant_query_by_id :: Int -> Opaleye.Query TenantTableR
+tenant_query_by_id :: TenantId -> Opaleye.Query TenantTableR
 tenant_query_by_id t_id =
   proc () ->
   do row@(id, _, _, _, _, _, _, _, _) <- tenant_query -< ()
-     restrict -< id .== (pgInt4 t_id)
+     restrict -< id .== (constant t_id)
      returnA -< row

@@ -34,11 +34,11 @@ remove_role conn Role {role_id = t_id} =
   runDelete conn roleTable (\(id, _, _, _) -> id .== constant t_id)
 
 read_roles_for_tenant :: Connection -> TenantId -> IO [Role]
-read_roles_for_tenant conn (TenantId t_id) = do
+read_roles_for_tenant conn t_id = do
   rows <- runQuery conn $ role_query_for_tenant t_id
   return $ makeRole <$> rows
 
-makeRole :: (RoleId, Int, Text, [Permission]) -> Role
+makeRole :: (RoleId, TenantId, Text, [Permission]) -> Role
 makeRole (id, tenant_id, name, (h:t)) =
   Role
   { role_id = id
@@ -52,7 +52,7 @@ makeRole (id, tenant_id, name, []) =
 role_query :: Query RoleTableR
 role_query = queryTable roleTable
 
-role_query_for_tenant :: Int -> Query RoleTableR
+role_query_for_tenant :: TenantId -> Query RoleTableR
 role_query_for_tenant t_tenantid =
   proc () ->
   do row@(_, tenant_id, _, _) <- role_query -< ()

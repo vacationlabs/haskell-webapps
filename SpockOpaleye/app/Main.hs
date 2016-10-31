@@ -5,6 +5,7 @@ module Main where
 import Database.PostgreSQL.Simple
 import UserApi
 import DataTypes
+import TenantApi
 
 main :: IO ()
 main = do
@@ -16,7 +17,7 @@ main = do
   let user =
         User
         { user_id = UserId 2
-        , user_tenantid = 1
+        , user_tenantid = TenantId 1
         , user_username = "asasd"
         , user_password = ""
         , user_firstname = Just "firstname_updated"
@@ -24,4 +25,9 @@ main = do
         , user_status = UserStatusInActive
         }
   update_user conn (UserId 2) user
+  return ()
+
+clear_database :: Connection -> IO ()
+clear_database conn = do
+  tenants <- read_tenants conn
   return ()
