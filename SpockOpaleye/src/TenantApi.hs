@@ -78,8 +78,8 @@ remove_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
 remove_tenant conn Tenant {tenant_id = tid} = do
   users_for_tenant <- read_users_for_tenant conn tid
   roles_for_tenant <- read_roles_for_tenant conn tid
-  mapM_ (remove_user conn) users_for_tenant
   mapM_ (remove_role conn) roles_for_tenant
+  mapM_ (remove_user conn) users_for_tenant
   runDelete
     conn
     tenantTable

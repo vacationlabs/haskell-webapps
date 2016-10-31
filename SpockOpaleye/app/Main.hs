@@ -14,20 +14,11 @@ main = do
       defaultConnectInfo
       { connectDatabase = "haskell-webapps"
       }
-  let user =
-        User
-        { user_id = UserId 2
-        , user_tenantid = TenantId 1
-        , user_username = "asasd"
-        , user_password = ""
-        , user_firstname = Just "firstname_updated"
-        , user_lastname = Nothing
-        , user_status = UserStatusInActive
-        }
-  update_user conn (UserId 2) user
+  clear_database conn
   return ()
 
 clear_database :: Connection -> IO ()
 clear_database conn = do
-  tenants <- read_tenants conn
+  Just tenants <- read_tenants conn
+  mapM_ (remove_tenant conn) tenants
   return ()

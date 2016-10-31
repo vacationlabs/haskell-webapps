@@ -30,7 +30,8 @@ create_role conn Role {role_tenantid = tenant_id
     (\(id, _, _, _) -> id)
 
 remove_role :: Connection -> Role -> IO GHC.Int.Int64
-remove_role conn Role {role_id = t_id} =
+remove_role conn Role {role_id = t_id} = do
+  runDelete conn userRolePivotTable (\(_, role_id) -> role_id .== constant t_id)
   runDelete conn roleTable (\(id, _, _, _) -> id .== constant t_id)
 
 read_roles_for_tenant :: Connection -> TenantId -> IO [Role]

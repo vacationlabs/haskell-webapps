@@ -135,7 +135,9 @@ instance D.Default Constant (UserId) (Column PGInt4) where
       def' (UserId id) = pgInt4 id
 
 instance FromField UserId where
-  fromField = fromField
+  fromField field mdata = do
+    x <- fromField field mdata
+    return $ UserId x
 
 instance QueryRunnerColumnDefault PGInt4 UserId where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
@@ -148,7 +150,9 @@ instance D.Default Constant (RoleId) (Column PGInt4) where
       def' (RoleId id) = pgInt4 id
 
 instance FromField RoleId where
-  fromField = fromField
+  fromField field mdata = do
+    x <- fromField field mdata
+    return $ RoleId x
 
 instance QueryRunnerColumnDefault PGInt4 RoleId where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
@@ -161,7 +165,9 @@ instance D.Default Constant (TenantId) (Column PGInt4) where
       def' (TenantId id) = pgInt4 id
 
 instance FromField TenantId where
-  fromField = fromField
+  fromField field mdata = do
+    x <- fromField field mdata
+    return $ TenantId x
 
 instance QueryRunnerColumnDefault PGInt4 TenantId where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
