@@ -40,9 +40,9 @@ The central idea is to NOT deviate from the goals stated at the beginning of a d
 
 | DB library | Who's working on it |
 | --- | --- |
-| Persistent | [sudhirvkumar](https://github.com/sudhirvkumar) |
-| Opaleye | being worked upon by [wz1000](https://github.com/sudhirvkumar) |
-| HDBC | being worked upon by [jfoutz](https://github.com/sudhirvkumar) |
+| Persistent | [wz1000](https://github.com/sudhirvkumar) |
+| Opaleye | [sras](https://github.com/sras) |
+| HDBC | [jfoutz](https://github.com/jfoutz) |
 | Haskell Relational Record | no one, yet |
 | HASQL | no one, yet |
 
@@ -52,7 +52,7 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 
 | Web library | Who's working on it |
 | --- | --- |
-| Servant | [sudhirvkumar](https://github.com/sudhirvkumar), [wz1000](https://github.com/sudhirvkumar), [jfoutz](https://github.com/sudhirvkumar) |
+| Servant | [wz1000](https://github.com/sudhirvkumar), [jfoutz](https://github.com/sudhirvkumar) |
 | Yesod | no one, yet |
 | Snap | no one, yet |
 | Happstack | no one, yet |
@@ -68,7 +68,7 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 # Higher order design goals
 
 ## General principles
-* Make nonsensical states non-representible in the domain model. eg. product can have only two type -- physical and digital. Status can have only few values. Basically a lot of ADT usage.
+* Make nonsensical states non-representible in the domain model. eg. product can have only two types -- physical and digital. Status can have only few values. Basically a lot of ADT usage.
 * Lift more invariants to the type-level.
 * Investigate how testing is (or could be) done in the various domains, re-interpreting the type of test commonly used in web development (Unit, Controller, Integration tests) if necessary, to write them in idiomatic ways.
 * Create documentation for successful workflows/techniques.
@@ -117,9 +117,5 @@ Been writing code since I was 12 years old. Wrote the same paint program in GwBa
 TODO
 
 ## Zubin Duggal
-
-TODO
-
-## Sudhir Kumar
 
 TODO
