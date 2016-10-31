@@ -1,0 +1,5 @@
+* Limitations of jsx
+** Self closing tags
+   https://github.com/dackerman/reflex-jsx/issues/3
+** Extracting dynamic values from jsx quasiquoters
+   https://github.com/dackerman/reflex-jsx/issues/2
