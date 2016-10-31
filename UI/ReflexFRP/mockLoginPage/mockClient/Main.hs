@@ -1,6 +1,6 @@
 {-# LANGUAGE ExplicitForAll, NoImplicitPrelude, NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings, RecursiveDo, ScopedTypeVariables          #-}
-{-# LANGUAGE TypeApplications, RecursiveDo                                             #-}
+{-# LANGUAGE TypeApplications                                             #-}
 
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
@@ -15,21 +15,8 @@ import Servant.Reflex
 
 import MockAPI
 
-main = mainWidgetWithHead htmlHead body
-
-htmlHead :: forall t m. DomBuilder t m => m ()
-htmlHead = do
-  elAttr "meta" ("charset" =: "utf-8") (pure ())
-  elAttr "meta" ("name" =: "viewport" <> "content" =: "width=device-width, initial-scale=1.0") (pure ())
-  el "title" (text "ui-mockup")
-  styleSheet "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-  styleSheet "http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css"
-  styleSheet "/assets/css/Login-Form-Clean.css"
-  where
-    styleSheet addr = elAttr "link" ("rel"  =: "stylesheet" <> "href" =: addr) (return ())
-
-api :: Proxy MockApi
-api = Proxy
+main :: IO ()
+main = mainWidget body
 
 body :: forall t m. MonadWidget t m => m ()
 body = do
@@ -76,13 +63,13 @@ passInputElement = textInput $
 buttonElement :: DomBuilder t m => Event t () -> Event t () -> m (Event t ())
 buttonElement disable enable = divClass "form-group" (styledButton conf "Log in")
   where
-    conf = def & elementConfig_initialAttributes .~ initialAttributes
+    conf = def & elementConfig_initialAttributes .~ initialAttr
                & elementConfig_modifyAttributes  .~ mergeWith (\_ b -> b)
                    [ const disableAttr <$> disable
                    , const enableAttr <$> enable ]
-    initialAttributes = "class" =: "btn btn-primary btn-block" <> "type" =: "button"
-    disableAttr = fmap Just initialAttributes <> "disabled" =: Just "true"
-    enableAttr  = fmap Just initialAttributes <> "disabled" =: Nothing
+    initialAttr = "class" =: "btn btn-primary btn-block" <> "type" =: "button"
+    disableAttr = fmap Just initialAttr  <> "disabled" =: Just "true"
+    enableAttr  = fmap Just initialAttr  <> "disabled" =: Nothing
 
 forgot :: DomBuilder t m => m ()
 forgot = elAttr "a"
@@ -99,6 +86,6 @@ styledButton conf t = do
 --------------------------------------------------------------------------------
 -- Parse the response from the API
 parseR :: ReqResult Text -> Text
-parseR (ResponseSuccess a b) = a
-parseR (ResponseFailure a b) = "ResponseFailure: " <> a
+parseR (ResponseSuccess a _) = a
+parseR (ResponseFailure a _) = "ResponseFailure: " <> a
 parseR (RequestFailure s) = "RequestFailure: " <> s
