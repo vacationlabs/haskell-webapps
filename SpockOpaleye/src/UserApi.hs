@@ -6,11 +6,11 @@ module UserApi
    create_user,
    read_users,
    read_user_by_id,
+   read_users_for_tenant,
    add_role_to_user,
    remove_role_from_user,
    update_user,
    remove_user,
-   read_users_for_tenant,
    activate_user
   )
   where
@@ -25,9 +25,14 @@ import Data.Text
 
 create_user
   :: Connection -> User -> IO [Int]
-create_user conn User{user_id = id, user_tenantid = tenant_id, user_username = username, user_firstname = first_name, user_lastname = last_name, user_status = status} = 
-  runInsertManyReturning conn userTable
-  (return (constant <$> id
+create_user conn User{
+  user_id = id, user_tenantid = tenant_id,
+  user_username = username,
+  user_firstname = first_name,
+  user_lastname = last_name,
+  user_status = status
+  } = runInsertManyReturning conn userTable
+        (return (constant <$> id
           ,constant tenant_id
           ,pgStrictText username
           ,pgStrictText username
@@ -36,17 +41,37 @@ create_user conn User{user_id = id, user_tenantid = tenant_id, user_username = u
           ,constant status
           )) (\(id_, _, _, _, _, _, _) -> id_)
 
-update_user :: Connection -> User -> User -> IO GHC.Int.Int64
-update_user conn User { user_id = Just tid }
-  User {user_id = id, user_tenantid=tenant_id}  
-    = runUpdate conn userTable (\(_, _, a, b, c, d, e) -> (Nothing, constant tenant_id, a, b, Just c, Just d, e)) (\(id, _, _, _, _, _, _) -> (id .== constant tid))
-update_user conn User { user_id = Nothing} _ = return 0
+update_user :: Connection -> Int -> User -> IO GHC.Int.Int64
+update_user conn tid (User {user_id = id,
+  user_tenantid=tenant_id,
+  user_username = username,
+  user_password = password,
+  user_firstname = firstname,
+  user_lastname = lastname,
+  user_status = status
+  }) = runUpdate conn userTable (\(id, _, _, _, _, _, _) -> (Just id, constant tenant_id, pgStrictText username, pgStrictText password, constant $ Just firstname, constant $ Just lastname, constant status)) (\(id, _, _, _, _, _, _) -> (id .== constant tid))
 
 activate_user :: Connection -> User -> IO GHC.Int.Int64
-activate_user conn user = set_user_status conn user UserStatusActive
+activate_user conn user  = set_user_status conn user UserStatusActive
 
 set_user_status :: Connection -> User -> UserStatus -> IO GHC.Int.Int64
-set_user_status conn user@User { user_id = id, user_tenantid = tid, user_username = username, user_password = password, user_firstname = firstname, user_lastname = lastname, user_status = status} new_status = update_user conn user User { user_id = id, user_tenantid = tid, user_username = username, user_password = password, user_firstname = firstname, user_lastname = lastname, user_status = new_status }
+set_user_status conn user@User { user_id = Just id,
+  user_tenantid = tid,
+  user_username = username,
+  user_password = password,
+  user_firstname = firstname,
+  user_lastname = lastname,
+  user_status = status
+  } new_status = update_user conn id  User {
+      user_id = Just id,
+      user_tenantid = tid,
+      user_username = username,
+      user_password = password,
+      user_firstname = firstname,
+      user_lastname = lastname,
+      user_status = new_status
+    }
+set_user_status conn user@User { user_id = Nothing} _ = error "User without ID cannot be updated"
 
 remove_user :: Connection -> User -> IO GHC.Int.Int64
 remove_user conn User {user_id=Just tid} = runDelete conn userTable (\(id, _, _, _, _, _, _) -> id .== (constant tid))

@@ -17,14 +17,13 @@ main = do
             }
     let user = 
             User
-            { user_id = Just 5
+            { user_id = Just 2
             , user_tenantid = 1
-            , user_username = "asdsdasdadsD"
+            , user_username = "asasd"
             , user_password = ""
-            , user_firstname = Just "firstname"
+            , user_firstname = Just "firstname_updated"
             , user_lastname = Nothing
             , user_status = UserStatusInActive
             }
-    ids <- create_user conn user
-    putStrLn $ show ids
+    update_user conn 2 user
     return ()
