@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators   #-}
 {-# LANGUAGE DeriveGeneric   #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -21,6 +20,7 @@ import Data.Time.Clock
 import Control.Lens hiding ((.=))
 import Database.Persist.Sql
 import Database.Persist.TH
+import Data.Monoid
 
 data Environment = Test | Devel | Production deriving (Eq, Show)
 
@@ -61,6 +61,10 @@ data TenantStatus = NewT | InactiveT | ActiveT
                         deriving (Eq, Read, Show, Generic, Serialize, FromJSON , ToJSON)
 derivePersistField "TenantStatus"
 
+data ProductType = Phys | Dig
+                        deriving (Eq, Read, Show, Generic, Serialize, FromJSON , ToJSON)
+derivePersistField "ProductType"
+
 class HasTimestamp s where
     createdAt :: Lens' s UTCTime
     updatedAt :: Lens' s UTCTime
@@ -84,3 +88,18 @@ class HasUsername a where
 class HasPassword a where
     password :: Lens' a Text
 
+newtype AppJSON = JSON { getJSON :: Value }
+
+instance ToJSON AppJSON where
+    toJSON (JSON jsn) = jsn
+
+instance PersistField AppJSON where
+    toPersistValue = (\case Success a -> a ) . fromJSON . getJSON
+    fromPersistValue = Right . JSON . toJSON
+
+instance PersistFieldSql AppJSON where
+    sqlType _ = SqlBlob
+
+instance Monoid AppJSON where
+    mempty = JSON $ object []
+    mappend (JSON (Object a)) (JSON (Object b)) = JSON $ Object $ a <> b

@@ -1,25 +1,23 @@
 {-# LANGUAGE DeriveGeneric      #-}
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE TypeFamilies       #-}
-{-# LANGUAGE GADTs              #-}
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE TemplateHaskell    #-}
-{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE OverloadedStrings  #-}
 module DBTypes where
 
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Text
-import Data.Serialize
+
 import Data.Time.Clock
 import GHC.Generics
 import Control.Lens
 import Types
 import Models
 import Data.Default
+
 
 type TenantID = Key DBTenant
 type Tenant = DBTenant
@@ -124,3 +122,4 @@ deriving instance (Show (Omittable pass Text),
 
 type UserInput = UserBase Present Absent Absent Absent
 type User = UserBase Absent Present Present Present
+

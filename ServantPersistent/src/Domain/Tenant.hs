@@ -1,22 +1,20 @@
 module Domain.Tenant
     where
 
-import Control.Lens
-import Data.Time
-import Database.Persist
-import Control.Monad.IO.Class
-import Control.Monad.Trans
-import Control.Monad.Except
-import Data.ByteString (ByteString)
-import Models
-import Types
-import Updater
-import DBTypes
-import Operation
+import           Control.Lens
+import           Control.Monad.Except
+import           Data.ByteString        (ByteString)
+import           Data.Time
+import           Database.Persist
+import           DBTypes
+import           Models
+import           Operation
+import           Types
+import           Updater
 
 dbCreateTenant :: DBMonad m => TenantInput -> m (Maybe TenantID)
 dbCreateTenant ti = runDb $ do
-    time <- liftIO $ getCurrentTime
+    time <- liftIO getCurrentTime
     let dbt = DBTenant { _dBTenantName = ti ^. name
                        , _dBTenantBackofficeDomain = ti ^. backofficeDomain
                        , _dBTenantOwnerId = Nothing
@@ -41,8 +39,10 @@ dbUpdateTenant upd tid = requirePermission (EditTenant tid) $ runDb $ do
                  (Left . ViolatesTenantUniqueness)
              <$> (replaceUnique tid =<< applyUpdate upd oldTenant)
 
+encode :: a
 encode = undefined
 
+decode :: a
 decode = undefined
 
 activateTenant :: DBMonad m => UserID -> ByteString -> m (Either ActivationError Tenant)

@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TypeOperators   #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
 module API
     where
 

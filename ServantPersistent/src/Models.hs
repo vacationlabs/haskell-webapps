@@ -1,25 +1,23 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TypeOperators   #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilyDependencies #-}
-{-# LANGUAGE TypeInType #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE QuasiQuotes                #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeInType                 #-}
 module Models
     where
 
-import Database.Persist.Sql
-import Database.Persist.TH
-import Data.Time.Clock
-import Data.Text
-import Control.Monad.IO.Class
-import Control.Monad.Reader
-import Types
+import           Control.Monad.IO.Class
+import           Data.Text
+import           Data.Time.Clock
+import           Database.Persist.Sql
+import           Database.Persist.TH
+
+import           Types
 
 share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
 DBTenant json
@@ -45,6 +43,45 @@ DBUser
     updatedAt UTCTime
     UniqueUsername username
     UniqueEmail email
+
+DBTenantActivation
+    tenantID DBTenantId
+    key Text
+    createdAt UTCTime
+    UniqueTenantKey key
+    UniqueTenantActivation tenantID
+
+DBUserActivation
+    userID DBUserId
+    key Text
+    createdAt UTCTime
+    UniqueUserKey key
+    UniqueUserActivation userID
+
+DBProduct
+    name Text
+    description Text
+    currency Text
+    advertisedPrice Rational
+    comparisionPrice Rational
+    costPrice Rational Maybe
+    productType ProductType
+    properties AppJSON
+    urlSlug Text
+    tenantID DBTenantId
+    createdAt UTCTime
+    updatedAt UTCTime
+    UniqueSlug urlSlug
+
+DBVariant
+    name Text
+    productID DBProductId
+    sku Text
+    price Rational
+    weightInGrams Int
+    weightDisplayUnit Text
+    createdAt UTCTime
+    updatedAt UTCTime
 |]
 
 deriving instance Eq (Unique DBTenant)

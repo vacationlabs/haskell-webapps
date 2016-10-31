@@ -1,24 +1,24 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeOperators   #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
 module Server
     where
 
-import Servant
-import Data.ByteString
-import Control.Monad.Except
-import Control.Monad.Reader
-import Servant.Server.Experimental.Auth.Cookie
-import Auth
-import Types
-import API
-import Environ
-import Domain.Tenant
-import DBTypes
+import           API
+import           Auth
+import           Control.Monad.Except
+import           Control.Monad.Reader
+import           Data.ByteString
+import           DBTypes
+import           Domain.Tenant
+import           Environ
+import           Servant
+import           Servant.Server.Experimental.Auth.Cookie
+import           Types
 
 
 type TestAPI = API
@@ -31,14 +31,14 @@ newTenant ti = do
     result <- dbCreateTenant ti
     case result of
          Nothing -> throwError $ err400 { errBody = "Tenant already exists" }
-         Just id -> return $ addHeader (show id) id
+         Just tid -> return $ addHeader (show tid) tid
 
 getTenant :: TenantID -> App TenantOutput
 getTenant tid = do
     result <- dbGetTenant tid
     case result of
          Nothing -> throwError $ err404 { errBody = "Tenant doesn't exist" }
-         Just t -> return t
+         Just t  -> return t
 
 newSession :: LoginForm -> App (Headers '[Header "set-cookie" ByteString] ())
 newSession login = do
@@ -54,7 +54,7 @@ testSessionHandler :: ServerT TestAPI App
 testSessionHandler = (newTenant :<|> getTenant) :<|> newSession :<|> productHandler
 
 productHandler :: ServerT (ProtectEndpoints ProductAPI) App
-productHandler = (\id -> either handleError (liftIO . print))
+productHandler = (\_ -> either handleError (liftIO . print))
             :<|> (either handleError $ const $ return [()])
   where handleError NotPresent = throwError $ err403 { errBody = "Please log in" }
         handleError _ = throwError $ err403 { errBody = "Session invalid" }
