@@ -7,6 +7,7 @@ import UserApi
 import DataTypes
 import TenantApi
 import RoleApi
+import CryptoDef
 
 import Data.Maybe
 import Data.List.NonEmpty
@@ -34,6 +35,7 @@ main = do
       , tenant_backofficedomain = "bo domain"
       }
   putStrLn $ show tenant
+  Just password <- bcryptPassword "password"
   Just user <-
     create_user
       conn
@@ -41,7 +43,7 @@ main = do
       { user_id = UserId 0
       , user_tenantid = tenant_id tenant
       , user_username = "username"
-      , user_password = BcryptPassword "password"
+      , user_password = password
       , user_firstname = Just "firstname"
       , user_lastname = Just "lastname"
       , user_status = UserStatusInActive

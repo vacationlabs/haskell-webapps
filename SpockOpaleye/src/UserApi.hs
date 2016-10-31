@@ -24,6 +24,8 @@ import GHC.Int
 import Opaleye
 import OpaleyeDef
 
+import CryptoDef
+
 create_user :: Connection -> User -> IO (Maybe User)
 create_user conn user@User {user_id = _
                            ,user_tenantid = tenant_id

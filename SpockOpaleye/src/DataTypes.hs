@@ -2,14 +2,10 @@ module DataTypes where
 
 import Data.List.NonEmpty
 import Data.Text
-import Data.ByteString
+import CryptoDef
 
 newtype TenantId =
   TenantId Int
-  deriving (Show)
-
-newtype BcryptPassword =
-  BcryptPassword ByteString
   deriving (Show)
 
 data TenantStatus
