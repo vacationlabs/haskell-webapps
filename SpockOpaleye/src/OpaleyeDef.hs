@@ -33,9 +33,9 @@ tenantTable =
        , optional "owner_id"
        , required "backoffice_domain"))
 
-type UserTableW = (Maybe (Column PGInt4), Column PGInt4, Column PGText, Column PGText, Maybe (Column (Nullable PGText)), Maybe (Column (Nullable PGText)), Column PGText)
+type UserTableW = (Maybe (Column PGInt4), Column PGInt4, Column PGText, Column PGBytea, Maybe (Column (Nullable PGText)), Maybe (Column (Nullable PGText)), Column PGText)
 
-type UserTableR = (Column PGInt4, Column PGInt4, Column PGText, Column PGText, (Column (Nullable PGText)), (Column (Nullable PGText)), Column PGText)
+type UserTableR = (Column PGInt4, Column PGInt4, Column PGText, Column PGBytea, (Column (Nullable PGText)), (Column (Nullable PGText)), Column PGText)
 
 userTable :: Table UserTableW UserTableR
 userTable =
@@ -179,4 +179,19 @@ instance FromField TenantId where
     return $ TenantId x
 
 instance QueryRunnerColumnDefault PGInt4 TenantId where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+--
+instance D.Default Constant (BcryptPassword) (Column PGBytea) where
+  def = Constant def'
+    where
+      def' :: BcryptPassword -> (Column PGBytea)
+      def' (BcryptPassword hash) = pgStrictByteString $ hash
+
+instance FromField BcryptPassword where
+  fromField field mdata = do
+    x <- fromField field mdata
+    return $ BcryptPassword x
+
+instance QueryRunnerColumnDefault PGBytea BcryptPassword where
   queryRunnerColumnDefault = fieldQueryRunnerColumn

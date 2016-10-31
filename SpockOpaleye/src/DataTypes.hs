@@ -2,9 +2,14 @@ module DataTypes where
 
 import Data.List.NonEmpty
 import Data.Text
+import Data.ByteString
 
 newtype TenantId =
   TenantId Int
+  deriving (Show)
+
+newtype BcryptPassword =
+  BcryptPassword ByteString
   deriving (Show)
 
 data TenantStatus
@@ -39,7 +44,7 @@ data User = User
   { user_id :: UserId
   , user_tenantid :: TenantId
   , user_username :: Text
-  , user_password :: Text
+  , user_password :: BcryptPassword
   , user_firstname :: Maybe Text
   , user_lastname :: Maybe Text
   , user_status :: UserStatus

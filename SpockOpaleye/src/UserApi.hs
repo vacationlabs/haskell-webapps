@@ -40,7 +40,7 @@ create_user conn user@User {user_id = _
          ( Nothing
          , constant tenant_id
          , pgStrictText username
-         , pgStrictText password
+         , constant password
          , toNullable . pgStrictText <$> first_name
          , toNullable . pgStrictText <$> last_name
          , constant status))
@@ -69,7 +69,7 @@ update_user conn (UserId tid) (User {user_id = _
         ( Just id
         , constant tenant_id
         , pgStrictText username
-        , pgStrictText password
+        , constant password
         , toNullable . pgStrictText <$> firstname
         , toNullable . pgStrictText <$> lastname
         , constant status))
@@ -139,8 +139,9 @@ remove_role_from_user conn t_user_id t_role_id =
     (\(user_id, role_id) ->
         (user_id .== constant t_user_id) .&& (role_id .== constant t_role_id))
 
-make_user :: (UserId, TenantId, Text, Text, Maybe Text, Maybe Text, UserStatus)
-          -> User
+make_user
+  :: (UserId, TenantId, Text, BcryptPassword, Maybe Text, Maybe Text, UserStatus)
+  -> User
 make_user (id, tenant_id, name, password, first_name, last_name, status) =
   User
   { user_id = id
