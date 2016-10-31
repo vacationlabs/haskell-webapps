@@ -3,7 +3,9 @@ module DataTypes where
 import Data.List.NonEmpty
 import Data.Text
 
-newtype TenantId = TenantId Int deriving (Show)
+newtype TenantId =
+  TenantId Int
+  deriving (Show)
 
 data TenantStatus
   = TenantStatusActive
@@ -26,9 +28,12 @@ data Tenant = Tenant
 data UserStatus
   = UserStatusActive
   | UserStatusInActive
-  | UserStatusBlocked deriving (Show)
+  | UserStatusBlocked
+  deriving (Show)
 
-newtype UserId = UserId Int deriving (Show)
+newtype UserId =
+  UserId Int
+  deriving (Show)
 
 data User = User
   { user_id :: UserId
@@ -41,9 +46,12 @@ data User = User
   } deriving (Show)
 
 newtype Permission =
-  Permission Text deriving (Show)
+  Permission Text
+  deriving (Show)
 
-newtype RoleId = RoleId Int deriving (Show)
+newtype RoleId =
+  RoleId Int
+  deriving (Show)
 
 data Role = Role
   { role_id :: RoleId

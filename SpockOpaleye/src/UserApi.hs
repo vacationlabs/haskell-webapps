@@ -5,8 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module UserApi
-  (
-   create_user
+  ( create_user
   , read_users
   , read_user_by_id
   , read_users_for_tenant
@@ -47,12 +46,12 @@ create_user conn User {user_id = _
 
 update_user :: Connection -> UserId -> User -> IO GHC.Int.Int64
 update_user conn (UserId tid) (User {user_id = _
-                           ,user_tenantid = tenant_id
-                           ,user_username = username
-                           ,user_password = password
-                           ,user_firstname = firstname
-                           ,user_lastname = lastname
-                           ,user_status = status}) =
+                                    ,user_tenantid = tenant_id
+                                    ,user_username = username
+                                    ,user_password = password
+                                    ,user_firstname = firstname
+                                    ,user_lastname = lastname
+                                    ,user_status = status}) =
   runUpdate
     conn
     userTable

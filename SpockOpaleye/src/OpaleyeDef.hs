@@ -152,6 +152,7 @@ instance FromField RoleId where
 
 instance QueryRunnerColumnDefault PGInt4 RoleId where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
+
 --
 instance D.Default Constant (TenantId) (Column PGInt4) where
   def = Constant def'
