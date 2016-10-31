@@ -17,7 +17,7 @@ data TenantStatus
   deriving (Show)
 
 data Tenant = Tenant
-  { tenant_id :: Maybe Int
+  { tenant_id :: Int
   , tenant_name :: Text
   , tenant_firstname :: Text
   , tenant_lastname :: Text
@@ -34,7 +34,7 @@ data UserStatus
   | UserStatusBlocked
 
 data User = User
-  { user_id :: Maybe Int
+  { user_id :: Int
   , user_tenantid :: Int
   , user_username :: Text
   , user_password :: Text

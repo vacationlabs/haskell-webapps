@@ -35,12 +35,12 @@ create_user conn User {user_id = id
     conn
     userTable
     (return
-       ( constant <$> id
+       ( Nothing
        , constant tenant_id
        , pgStrictText username
        , pgStrictText username
-       , constant $ Just first_name
-       , constant $ Just last_name
+       , toNullable . pgStrictText <$> first_name
+       , toNullable . pgStrictText <$> last_name
        , constant status))
     (\(id_, _, _, _, _, _, _) -> id_)
 
@@ -60,8 +60,8 @@ update_user conn tid (User {user_id = id
         , constant tenant_id
         , pgStrictText username
         , pgStrictText password
-        , constant $ Just firstname
-        , constant $ Just lastname
+        , toNullable . pgStrictText <$> firstname
+        , toNullable . pgStrictText <$> lastname
         , constant status))
     (\(id, _, _, _, _, _, _) -> (id .== constant tid))
 
@@ -72,7 +72,7 @@ deactivate_user :: Connection -> User -> IO GHC.Int.Int64
 deactivate_user conn user = set_user_status conn user UserStatusInActive
 
 set_user_status :: Connection -> User -> UserStatus -> IO GHC.Int.Int64
-set_user_status conn user@User {user_id = Just id
+set_user_status conn user@User {user_id = id
                                ,user_tenantid = tid
                                ,user_username = username
                                ,user_password = password
@@ -83,7 +83,7 @@ set_user_status conn user@User {user_id = Just id
     conn
     id
     User
-    { user_id = Just id
+    { user_id = id
     , user_tenantid = tid
     , user_username = username
     , user_password = password
@@ -91,13 +91,10 @@ set_user_status conn user@User {user_id = Just id
     , user_lastname = lastname
     , user_status = new_status
     }
-set_user_status conn user@User {user_id = Nothing} _ =
-  error "User without ID cannot be updated"
 
 remove_user :: Connection -> User -> IO GHC.Int.Int64
-remove_user conn User {user_id = Just tid} =
+remove_user conn User {user_id = tid} =
   runDelete conn userTable (\(id, _, _, _, _, _, _) -> id .== (constant tid))
-remove_user conn User {user_id = Nothing} = return 0
 
 read_users :: Connection -> IO [User]
 read_users conn = do
@@ -135,7 +132,7 @@ remove_role_from_user conn t_user_id t_role_id =
 make_user :: (Int, Int, Text, Text, Maybe Text, Maybe Text, UserStatus) -> User
 make_user (id, tenant_id, name, password, first_name, last_name, status) =
   User
-  { user_id = Just id
+  { user_id = id
   , user_tenantid = tenant_id
   , user_username = name
   , user_password = password
@@ -144,24 +141,19 @@ make_user (id, tenant_id, name, password, first_name, last_name, status) =
   , user_status = status
   }
 
-user_query
-  :: Query UserTableR
+user_query :: Query UserTableR
 user_query = queryTable userTable
 
-user_query_by_id
-  :: Int
-  -> Query UserTableR
+user_query_by_id :: Int -> Query UserTableR
 user_query_by_id t_id =
   proc () ->
   do row@(id, _, _, _, _, _, _) <- user_query -< ()
      restrict -< id .== (constant t_id)
      returnA -< row
 
-user_query_by_tenantid
-  :: Int
-  -> Query UserTableR
+user_query_by_tenantid :: Int -> Query UserTableR
 user_query_by_tenantid t_tenantid =
   proc () ->
   do row@(_, tenant_id, _, _, _, _, _) <- user_query -< ()
-     restrict -< tenant_id .== (constant t_tenantid)
+     restrict -< tenant_id .== (pgInt4 t_tenantid)
      returnA -< row

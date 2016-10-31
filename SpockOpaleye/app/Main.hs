@@ -17,7 +17,7 @@ main = do
       }
   let user =
         User
-        { user_id = Just 2
+        { user_id = 2
         , user_tenantid = 1
         , user_username = "asasd"
         , user_password = ""
