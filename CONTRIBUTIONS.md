@@ -17,7 +17,7 @@ The central idea is to NOT deviate from the goals stated at the beginning of a d
 ## Formalizing your development sprints
 
 * Open a PR against your branch **before** you start working on the sprint. Tag it with the `sprint` label
-* Use the issue description to formally state what you would like to achieve at the end of the sprint. Being detailed helps. Writing down your thoughts will help you structure them.
+* Use the PR description to formally state what you would like to achieve at the end of the sprint. Being detailed helps. Writing down your thoughts will help you structure them.
 * Put a timeline to the sprint -- try to keep sprints short enough so that they fit within a week.
 * Keep committing to your branch - the PR will keep getting updated automatically.
 * Comment on the PR when you feel it's ready to be merged (or you'd like someone to quickly review it).
