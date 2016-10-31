@@ -1,0 +1,28 @@
+* Login with server side validation
+
+This repo implements a ui form for server side user validation.
+
+From a technical stanpoint, the aim of this project is to see how various
+libraries fit together: =reflex= and =reflex-dom= for the frontend, a simple
+=servant= server on the backend, the bridge among the two worlds being made with
+=servant-reflex=.
+
+Note the structure of the project: three separate cabal projects are created,
+one for the frontend, one for the backend, and one for the API and the shared
+datatypes, which is included in the other two.
+
+Also, in the frontend I provided two stack.yaml files. The main one is intended
+to be used with =ghc=, it generates the haddocks, behaves well with the tooling
+(intero), and builds a standalone desktop app.
+
+The second one, =stack-ghcjs.yaml= compiles the project with =ghcjs=. To call
+the stack commands for ghcjs just add the option =--stack-yaml=stack-ghcjs.yaml=.
+
+The build of the server should be just a =stack build=. To build the client:
+- =stack build gtk2hs-buildtools alex happy=
+- be sure to have the required system libraries (like webkitgtk)
+- =stack build= or =stack build --stack-yaml=stack-ghcjs.yaml=
+
+You can also use the =deploy.hs= in the client folder, which compiles the
+client, minimizes the generated js, and copies it in the location expected by
+the server.
