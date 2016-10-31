@@ -11,6 +11,7 @@ executable mockClient
                      , reflex >= 0.5 && < 0.6
                      , reflex-dom >= 0.4 && < 0.5
                      , servant-reflex
+                     , reflex-jsx
                      , containers
                      , text
                      , safe
