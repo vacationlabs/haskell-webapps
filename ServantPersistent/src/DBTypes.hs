@@ -17,15 +17,26 @@ import Control.Lens
 import Types
 import Models
 import Data.Default
+import Database.Persist
 
 
 type TenantID = Key DBTenant
 type Tenant = DBTenant
 type TenantOutput = DBTenant
 type UserID = Key DBUser
+type ProductID = Key DBProduct
+
+data Product = Product { getProduct :: Entity DBProduct
+                       , getVariants :: [Entity DBVariant]}
+-- Dummy instance
+
+instance ToJSON Product where
+  toJSON = undefined
+data ProductInput = PIn {}
 
 data DBError = TenantNotFound TenantID
              | UserNotFound UserID 
+             | ProductNotFound ProductID
              | ViolatesTenantUniqueness (Unique Tenant)
                 deriving (Eq, Show)
 

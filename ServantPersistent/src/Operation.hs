@@ -5,6 +5,7 @@
 module Operation 
   ( OperationT
   , Permission(..)
+  , PermissionError(..)
   , requirePermission
   , runOperation
     ) where

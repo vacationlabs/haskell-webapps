@@ -23,6 +23,7 @@ library
                      , Models
                      , Domain.Tenant
                      , Domain.User
+                     , Domain.Product
                      , Updater
                      , DBTypes
                      , Operation

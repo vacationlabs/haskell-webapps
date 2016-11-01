@@ -78,8 +78,8 @@ DBVariant
     productID DBProductId
     sku Text
     price Rational
-    weightInGrams Int
-    weightDisplayUnit Text
+    weightInGrams Int Maybe
+    weightDisplayUnit Text Maybe
     createdAt UTCTime
     updatedAt UTCTime
 |]

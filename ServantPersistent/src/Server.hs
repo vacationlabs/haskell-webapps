@@ -15,10 +15,13 @@ import           Control.Monad.Reader
 import           Data.ByteString
 import           DBTypes
 import           Domain.Tenant
+import           Domain.Product
 import           Environ
 import           Servant
 import           Servant.Server.Experimental.Auth.Cookie
 import           Types
+import ProductQuery
+import Operation
 
 
 type TestAPI = API
@@ -54,10 +57,44 @@ testSessionHandler :: ServerT TestAPI App
 testSessionHandler = (newTenant :<|> getTenant) :<|> newSession :<|> productHandler
 
 productHandler :: ServerT (ProtectEndpoints ProductAPI) App
-productHandler = (\_ -> either handleError (liftIO . print))
-            :<|> (either handleError $ const $ return [()])
-  where handleError NotPresent = throwError $ err403 { errBody = "Please log in" }
-        handleError _ = throwError $ err403 { errBody = "Session invalid" }
+productHandler = productGetHandler
+            :<|> productListHandler
+
+productGetHandler :: ProductID -> Either CookieError Session -> App Product
+productGetHandler pid session = do
+  case session of
+       (Right user) -> do
+                    result <- handleDBError $
+                              handlePermissionError $
+                              runExceptT $
+                              runOperation (dbGetProduct pid) undefined
+                    return result
+       (Left _) -> throwError err403
+
+handlePermissionError :: App (Either PermissionError a) -> App a
+handlePermissionError x = do
+  a <- x
+  case a of
+    (Left _) -> throwError err403
+    (Right a) -> return a
+
+handleDBError :: App (Either DBError a) -> App a
+handleDBError x = do
+  a <- x
+  case a of
+    (Left _) -> throwError err404
+    (Right a) -> return a
+
+
+productListHandler :: [ProductFilter] -> [ProductView] -> Either CookieError Session -> App [Product]
+productListHandler pfs pvs session =
+  let pf = mconcat pfs
+      pv = mconcat pvs
+  in case session of
+       (Right user) -> do
+                    result <- handlePermissionError (runExceptT $ runOperation (dbGetProductList pf) undefined)
+                    return result
+       (Left _) -> throwError err403
 
 testServer :: Config -> Server TestAPI
 testServer config = enter (Nat $ flip runReaderT config) testSessionHandler
