@@ -3,25 +3,17 @@
 module Main where
 
 import Database.PostgreSQL.Simple
-import UserApi
 import DataTypes
-import JsonInstances
+import JsonInstances ()
 import TenantApi
-import RoleApi
-import CryptoDef
 import Validations
-
-import Data.Maybe
-import Data.List.NonEmpty
 
 import Web.Spock
 import Web.Spock.Config
 
 import Control.Monad.Trans
-import Data.Monoid
 import Data.IORef
 import qualified Data.Text as T
-import Data.Aeson hiding (json)
 
 data MySession =
   EmptySession
@@ -53,9 +45,10 @@ app = do
        maybe_newtenant <-
          case maybe_tenant_incoming of
            Just incoming_tenant -> do
-             result <- runQuery (\conn -> validateIncomingTenant conn incoming_tenant)
+             result <-
+               runQuery (\conn -> validateIncomingTenant conn incoming_tenant)
              liftIO $ putStrLn $ show $ result
-             case  result of
+             case result of
                Valid -> runQuery (\conn -> create_tenant conn incoming_tenant)
                _ -> return Nothing
            Nothing -> return Nothing

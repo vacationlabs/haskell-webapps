@@ -9,22 +9,21 @@ import Data.Maybe
 import TenantApi
 
 validateIncomingTenant :: Connection -> TenantIncoming -> IO ValidationResult
-validateIncomingTenant conn tenant@Tenant {
-  tenant_name = name,
-  tenant_firstname = fn,
-  tenant_lastname = ln,
-  tenant_email = em,
-  tenant_phone = phone,
-  tenant_ownerid = owner_id,
-  tenant_backofficedomain = bo_domain
-} = do
+validateIncomingTenant conn tenant@Tenant {tenant_name = name
+                                          ,tenant_firstname = fn
+                                          ,tenant_lastname = ln
+                                          ,tenant_email = em
+                                          ,tenant_phone = phone
+                                          ,tenant_backofficedomain = bo_domain} = do
   unique_bod <- check_for_unique_bo_domain
   putStrLn $ show tenant
   putStrLn $ show [unique_bod, validate_name, validate_contact]
-  return $ if and [unique_bod, validate_name, validate_contact]
-    then Valid
-    else Invalid
+  return $
+    if and [unique_bod, validate_name, validate_contact]
+      then Valid
+      else Invalid
   where
-    validate_contact = and $ (>=0).T.length <$> [fn, ln, em, phone]
-    validate_name = (T.length name) >= 3 
-    check_for_unique_bo_domain = isNothing <$> read_tenant_by_backofficedomain conn bo_domain
+    validate_contact = and $ (>= 0) . T.length <$> [fn, ln, em, phone]
+    validate_name = (T.length name) >= 3
+    check_for_unique_bo_domain =
+      isNothing <$> read_tenant_by_backofficedomain conn bo_domain

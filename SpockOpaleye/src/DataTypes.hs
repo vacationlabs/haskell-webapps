@@ -9,7 +9,8 @@ import GHC.Generics
 
 data ValidationResult
   = Valid
-  | Invalid deriving (Eq, Show)
+  | Invalid
+  deriving (Eq, Show)
 
 newtype TenantId =
   TenantId Int
