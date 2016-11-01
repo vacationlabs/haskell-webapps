@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module JsonInstances where
 
@@ -25,14 +27,11 @@ instance FromJSON TenantStatus where
       t_status "new" = TenantStatusNew
   parseJSON invalid = typeMismatch "TenantStatus" invalid
 
-instance FromJSON Tenant where
-  parseJSON (Object v) = Tenant <$>
-    v .: "id" <*>
-    v .: "name" <*>
-    v .: "firstname" <*>
-    v .: "lastname" <*>
+instance FromJSON TenantIncoming where
+  parseJSON (Object v) =
+    (Tenant ()) <$> v .: "name" <*> v .: "firstname" <*> v .: "lastname" <*>
     v .: "email" <*>
     v .: "phone" <*>
-    v .: "status" <*>
+    (pure ()) <*>
     v .: "userId" <*>
     v .: "backofficeDomain"

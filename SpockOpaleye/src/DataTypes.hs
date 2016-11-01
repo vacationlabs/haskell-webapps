@@ -14,17 +14,21 @@ data TenantStatus
   | TenantStatusNew
   deriving (Show)
 
-data Tenant = Tenant
-  { tenant_id :: TenantId
-  , tenant_name :: Text
-  , tenant_firstname :: Text
-  , tenant_lastname :: Text
-  , tenant_email :: Text
-  , tenant_phone :: Text
-  , tenant_status :: TenantStatus
-  , tenant_ownerid :: Maybe UserId
-  , tenant_backofficedomain :: Text
+data TenantPoly key name fname lname email phone status owner_id b_domain = Tenant
+  { tenant_id :: key
+  , tenant_name :: name
+  , tenant_firstname :: fname
+  , tenant_lastname :: lname
+  , tenant_email :: email
+  , tenant_phone :: phone
+  , tenant_status :: status
+  , tenant_ownerid :: owner_id
+  , tenant_backofficedomain :: b_domain
   } deriving (Show)
+
+type Tenant = TenantPoly TenantId Text Text Text Text Text TenantStatus (Maybe UserId) Text
+
+type TenantIncoming = TenantPoly () Text Text Text Text Text () (Maybe UserId) Text
 
 data UserStatus
   = UserStatusActive
