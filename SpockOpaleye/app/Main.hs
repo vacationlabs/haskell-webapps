@@ -38,9 +38,7 @@ app :: SpockM Connection MySession MyAppState ()
 app =  do
          post ("createTenant") $
              do 
-              (DummyAppState ref) <- getState
               maybe_tenant <- jsonBody
-              liftIO $ putStrLn $ show maybe_tenant
               result <- runQuery (\conn -> case maybe_tenant of 
                 Just tenant -> create_tenant conn tenant
                 _ -> return Nothing)
