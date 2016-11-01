@@ -4,6 +4,8 @@ import Data.List.NonEmpty
 import Data.Text
 import CryptoDef
 
+data ValidationResult = Valid | Invalid
+
 newtype TenantId =
   TenantId Int
   deriving (Show)

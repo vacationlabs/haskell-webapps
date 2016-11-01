@@ -9,6 +9,7 @@ import JsonInstances
 import TenantApi
 import RoleApi
 import CryptoDef
+import Validations
 
 import Data.Maybe
 import Data.List.NonEmpty
@@ -47,14 +48,14 @@ main = do
 
 app :: SpockM Connection MySession MyAppState ()
 app = do
-  post ("createTenant") $
-    do maybe_tenant_incoming <- jsonBody
-       result <-
-         runQuery
-           (\conn ->
-               case maybe_tenant_incoming of
-                 Just tenant -> create_tenant conn tenant
-                 _ -> return Nothing)
-       case result of
-         Just _ -> json $ T.pack "Tenant created sucessfully"
-         _ -> json $ T.pack "Tenant not created"
+  post ("createTenant") $ do 
+    maybe_tenant_incoming <- jsonBody
+    result <- case maybe_tenant_incoming of
+      Just incoming_tenant ->  do
+        case validateIncomingTenant incoming_tenant of
+          Valid -> runQuery (\conn -> create_tenant conn incoming_tenant)
+          _ -> return Nothing
+      Nothing -> return Nothing
+    case result of
+      Just _ -> json $ T.pack "Tenant created sucessfully"
+      _ -> json $ T.pack "Tenant not created"

@@ -21,6 +21,8 @@ library
                        RoleApi,
                        OpaleyeDef,
                        CryptoDef,
+                       JsonInstances,
+                       Validations,
                        DataTypes
   build-depends:       base >= 4.7 && < 5
                       ,product-profunctors
@@ -29,7 +31,9 @@ library
                       ,postgresql-simple
                       ,bcrypt
                       ,text
+                      ,mtl
                       ,Spock >=0.11
+                      ,aeson
   default-language:    Haskell2010
 
 executable SpockOpaleye-exe
@@ -40,6 +44,10 @@ executable SpockOpaleye-exe
                      , postgresql-simple
                      , SpockOpaleye
                      , Spock >=0.11
+                     , mtl
+                     , text
+                     , bcrypt
+                     , aeson
   default-language:    Haskell2010
 
 test-suite SpockOpaleye-test
