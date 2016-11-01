@@ -49,8 +49,6 @@ data LoginForm = Login { loginUsername :: String
                        , loginPassword :: String
                        } deriving (Show, Generic, Serialize, FromJSON, ToJSON)
 
-data Session = Session { sessionUser :: String
-                       } deriving (Show, Generic, Serialize, FromJSON , ToJSON)
 
 
 data UserStatus = BlockedU | InactiveU | ActiveU

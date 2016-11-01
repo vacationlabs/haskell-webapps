@@ -32,7 +32,7 @@ main = do
                         , dbPool = pool
                         }
     run 8080 $ serveWithContext (testAPI)
-                                ((cookieAuthHandler def serverKey) :. EmptyContext)
+                                ((cookieAuthHandler config) :. EmptyContext)
                                 (testServer config)
 
 connStr = "host=localhost dbname=perservant user=test password=test port=5432"

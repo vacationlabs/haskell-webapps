@@ -18,6 +18,8 @@ import Types
 import Models
 import Data.Default
 import Database.Persist
+import Database.Persist.Sql
+import Data.Serialize
 
 
 type TenantID = Key DBTenant
@@ -33,6 +35,13 @@ data Product = Product { getProduct :: Entity DBProduct
 instance ToJSON Product where
   toJSON = undefined
 data ProductInput = PIn {}
+
+instance Serialize UserID where
+  get = DBUserKey . SqlBackendKey <$> Data.Serialize.get
+  put x = put (unSqlBackendKey $ unDBUserKey x)
+
+data Session = Session { sessionUserID :: UserID
+                       } deriving (Show, Generic, Serialize, FromJSON , ToJSON)
 
 data DBError = TenantNotFound TenantID
              | UserNotFound UserID 

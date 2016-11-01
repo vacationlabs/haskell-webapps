@@ -48,7 +48,7 @@ newSession login = do
     Config{..} <- ask
     loginValid <- validateLogin login
     inDevel $ liftIO $ print login
-    let session = Session (loginUsername login)
+    let session = Session undefined
     if loginValid
        then addSession authSettings randomSource serverKey session ()
        else throwError $ err400 { errBody = "Invalid login." }
@@ -60,14 +60,14 @@ productHandler :: ServerT (ProtectEndpoints ProductAPI) App
 productHandler = productGetHandler
             :<|> productListHandler
 
-productGetHandler :: ProductID -> Either CookieError Session -> App Product
+productGetHandler :: ProductID -> Either CookieError User -> App Product
 productGetHandler pid session = do
   case session of
        (Right user) -> do
                     result <- handleDBError $
                               handlePermissionError $
                               runExceptT $
-                              runOperation (dbGetProduct pid) undefined
+                              runOperation (dbGetProduct pid) user
                     return result
        (Left _) -> throwError err403
 
@@ -86,13 +86,13 @@ handleDBError x = do
     (Right a) -> return a
 
 
-productListHandler :: [ProductFilter] -> [ProductView] -> Either CookieError Session -> App [Product]
+productListHandler :: [ProductFilter] -> [ProductView] -> Either CookieError User -> App [Product]
 productListHandler pfs pvs session =
   let pf = mconcat pfs
       pv = mconcat pvs
   in case session of
        (Right user) -> do
-                    result <- handlePermissionError (runExceptT $ runOperation (dbGetProductList pf) undefined)
+                    result <- handlePermissionError (runExceptT $ runOperation (dbGetProductList pf) user)
                     return result
        (Left _) -> throwError err403
 

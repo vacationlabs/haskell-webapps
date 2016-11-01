@@ -8,6 +8,7 @@ module Operation
   , PermissionError(..)
   , requirePermission
   , runOperation
+  , unsafeRunOperation
     ) where
 import Prelude hiding (null, filter)
 import Data.Set
@@ -80,3 +81,6 @@ hasTenant uid tid = runDb $ do
     case mtid of
          Nothing -> return False
          Just tid' -> return (tid == tid')
+
+unsafeRunOperation :: Functor m => OperationT m a -> m a
+unsafeRunOperation op = fst <$> (runWriterT $ unsafeRunOp op)
