@@ -35,3 +35,19 @@ instance FromJSON TenantIncoming where
     (pure ()) <*>
     v .: "userId" <*>
     v .: "backofficeDomain"
+
+instance ToJSON Tenant where
+  toJSON = genericToJSON defaultOptions
+  toEncoding = genericToEncoding defaultOptions
+
+instance ToJSON UserId where
+  toJSON = genericToJSON defaultOptions
+  toEncoding = genericToEncoding defaultOptions
+
+instance ToJSON TenantId where
+  toJSON = genericToJSON defaultOptions
+  toEncoding = genericToEncoding defaultOptions
+
+instance ToJSON TenantStatus where
+  toJSON = genericToJSON defaultOptions
+  toEncoding = genericToEncoding defaultOptions

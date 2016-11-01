@@ -48,14 +48,17 @@ main = do
 
 app :: SpockM Connection MySession MyAppState ()
 app = do
-  post ("createTenant") $ do 
-    maybe_tenant_incoming <- jsonBody
-    result <- case maybe_tenant_incoming of
-      Just incoming_tenant ->  do
-        case validateIncomingTenant incoming_tenant of
-          Valid -> runQuery (\conn -> create_tenant conn incoming_tenant)
-          _ -> return Nothing
-      Nothing -> return Nothing
-    case result of
-      Just _ -> json $ T.pack "Tenant created sucessfully"
-      _ -> json $ T.pack "Tenant not created"
+  post ("tenants/new") $
+    do maybe_tenant_incoming <- jsonBody
+       maybe_newtenant <-
+         case maybe_tenant_incoming of
+           Just incoming_tenant -> do
+             result <- runQuery (\conn -> validateIncomingTenant conn incoming_tenant)
+             liftIO $ putStrLn $ show $ result
+             case  result of
+               Valid -> runQuery (\conn -> create_tenant conn incoming_tenant)
+               _ -> return Nothing
+           Nothing -> return Nothing
+       case maybe_newtenant of
+         Just tenant -> json tenant
+         _ -> json $ T.pack "Tenant not created"

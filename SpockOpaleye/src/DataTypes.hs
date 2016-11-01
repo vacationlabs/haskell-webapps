@@ -1,20 +1,25 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module DataTypes where
 
 import Data.List.NonEmpty
 import Data.Text
 import CryptoDef
+import GHC.Generics
 
-data ValidationResult = Valid | Invalid
+data ValidationResult
+  = Valid
+  | Invalid deriving (Eq, Show)
 
 newtype TenantId =
   TenantId Int
-  deriving (Show)
+  deriving (Show, Generic)
 
 data TenantStatus
   = TenantStatusActive
   | TenantStatusInActive
   | TenantStatusNew
-  deriving (Show)
+  deriving (Show, Generic)
 
 data TenantPoly key name fname lname email phone status owner_id b_domain = Tenant
   { tenant_id :: key
@@ -26,7 +31,7 @@ data TenantPoly key name fname lname email phone status owner_id b_domain = Tena
   , tenant_status :: status
   , tenant_ownerid :: owner_id
   , tenant_backofficedomain :: b_domain
-  } deriving (Show)
+  } deriving (Show, Generic)
 
 type Tenant = TenantPoly TenantId Text Text Text Text Text TenantStatus (Maybe UserId) Text
 
@@ -40,7 +45,7 @@ data UserStatus
 
 newtype UserId =
   UserId Int
-  deriving (Show)
+  deriving (Show, Generic)
 
 data User = User
   { user_id :: UserId

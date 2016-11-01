@@ -8,6 +8,7 @@ module TenantApi
   ( create_tenant
   , read_tenants
   , read_tenant_by_id
+  , read_tenant_by_backofficedomain
   , make_tenant
   , remove_tenant
   , update_tenant
@@ -132,6 +133,14 @@ read_tenant_by_id conn id = do
       [] -> Nothing
       rows -> Just $ Prelude.head $ fmap make_tenant rows
 
+read_tenant_by_backofficedomain :: Connection -> Text -> IO (Maybe Tenant)
+read_tenant_by_backofficedomain conn domain = do
+  r <- runQuery conn $ (tenant_query_by_backoffocedomain domain)
+  return $
+    case r of
+      [] -> Nothing
+      rows -> Just $ Prelude.head $ fmap make_tenant rows
+
 make_tenant :: (TenantId, Text, Text, Text, Text, Text, TenantStatus, Maybe UserId, Text)
             -> Tenant
 make_tenant (id, name, first_name, last_name, email, phone, status, owner_id, bo_domain) =
@@ -155,4 +164,11 @@ tenant_query_by_id t_id =
   proc () ->
   do row@(id, _, _, _, _, _, _, _, _) <- tenant_query -< ()
      restrict -< id .== (constant t_id)
+     returnA -< row
+
+tenant_query_by_backoffocedomain :: Text -> Opaleye.Query TenantTableR
+tenant_query_by_backoffocedomain domain =
+  proc () ->
+  do row@(_, _, _, _, _, _, _, _, bo_domain) <- tenant_query -< ()
+     restrict -< bo_domain .== (pgStrictText domain)
      returnA -< row
