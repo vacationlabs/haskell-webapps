@@ -4,22 +4,26 @@ module JsonInstances where
 
 import DataTypes
 import Data.Aeson
+import Data.Aeson.Types
 import Control.Monad
 import Data.Text
 
 instance FromJSON UserId where
-  parseJSON j@(Object v) = UserId <$> (parseJSON j)
+  parseJSON j@(Number v) = UserId <$> (parseJSON j)
+  parseJSON invalid = typeMismatch "UserId" invalid
 
 instance FromJSON TenantId where
-  parseJSON j@(Object v) = TenantId <$> (parseJSON j)
+  parseJSON j@(Number v) = TenantId <$> (parseJSON j)
+  parseJSON invalid = typeMismatch "TenantId" invalid
 
 instance FromJSON TenantStatus where
-  parseJSON j@(Object v) = t_status <$> (parseJSON j)
+  parseJSON j@(String v) = t_status <$> (parseJSON j)
     where
       t_status :: Text -> TenantStatus
       t_status "active" = TenantStatusActive
       t_status "inactive" = TenantStatusInActive
       t_status "new" = TenantStatusNew
+  parseJSON invalid = typeMismatch "TenantStatus" invalid
 
 instance FromJSON Tenant where
   parseJSON (Object v) = Tenant <$>
