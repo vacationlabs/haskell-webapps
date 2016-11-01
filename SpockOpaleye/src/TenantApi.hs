@@ -59,32 +59,52 @@ create_tenant conn tenant@Tenant {tenant_id = id
         { tenant_id = x
         }
 
-activate_tenant :: Connection -> TenantId -> IO GHC.Int.Int64
-activate_tenant conn tenant_id = set_tenant_status conn tenant_id TenantStatusActive
+activate_tenant :: Connection -> Tenant -> IO Tenant
+activate_tenant conn tenant = set_tenant_status conn tenant TenantStatusActive
 
-deactivate_tenant :: Connection -> TenantId -> IO GHC.Int.Int64
-deactivate_tenant conn tenant_id = set_tenant_status conn tenant_id TenantStatusInActive
+deactivate_tenant :: Connection -> Tenant -> IO Tenant
+deactivate_tenant conn tenant = set_tenant_status conn tenant TenantStatusInActive
 
-set_tenant_status :: Connection -> TenantId -> TenantStatus -> IO GHC.Int.Int64
-set_tenant_status conn tenant_id status = update_tenant conn tenant_id update_func
-  where
-    update_func :: TenantTableR -> TenantTableW
-    update_func (id, name, fn, ln, em, ph, st, oid, bod) =
-      (Just id, name, fn, ln, em, ph, constant status, Just oid, bod)
-
-update_tenant :: Connection
-              -> TenantId
-              -> (TenantTableR -> TenantTableW)
-              -> IO GHC.Int.Int64
-update_tenant conn t_tenantid update_func =
-  runUpdate
+set_tenant_status :: Connection -> Tenant -> TenantStatus -> IO Tenant
+set_tenant_status conn tenant status =
+  update_tenant
     conn
-    tenantTable
-    update_func
-    (\(id, _, _, _, _, _, _, _, _) -> id .== (constant t_tenantid))
+    (tenant_id tenant)
+    tenant
+    { tenant_status = status
+    }
+
+update_tenant :: Connection -> TenantId -> Tenant -> IO Tenant
+update_tenant conn t_tenantid tenant@Tenant {tenant_id = id
+                                     ,tenant_name = name
+                                     ,tenant_firstname = first_name
+                                     ,tenant_lastname = last_name
+                                     ,tenant_email = email
+                                     ,tenant_phone = phone
+                                     ,tenant_status = status
+                                     ,tenant_ownerid = owner_id
+                                     ,tenant_backofficedomain = bo_domain} = do
+    runUpdate
+      conn
+      tenantTable
+      (\(id, _, _, _, _, _, _, _, _) ->
+          ( Just id
+          , pgStrictText name
+          , pgStrictText first_name
+          , pgStrictText last_name
+          , pgStrictText email
+          , pgStrictText phone
+          , constant status
+          , toNullable . constant <$> owner_id
+          , pgStrictText bo_domain))
+      (\(id, _, _, _, _, _, _, _, _) -> id .== (constant t_tenantid))
+    return tenant
 
 remove_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
-remove_tenant conn Tenant {tenant_id = tid} = do
+remove_tenant conn tenant@Tenant {tenant_id = tid} = do
+  deactivate_tenant conn tenant
+  update_tenant conn (tenant_id tenant) tenant {tenant_ownerid = Nothing}
+  
   users_for_tenant <- read_users_for_tenant conn tid
   roles_for_tenant <- read_roles_for_tenant conn tid
   mapM_ (remove_role conn) roles_for_tenant

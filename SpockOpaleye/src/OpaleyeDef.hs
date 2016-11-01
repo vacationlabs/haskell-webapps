@@ -77,9 +77,9 @@ instance D.Default Constant TenantStatus (Column PGText) where
       def' TenantStatusNew = pgStrictText "new"
 
 instance FromField (TenantStatus) where
-  fromField f mdata = return gender
+  fromField f mdata = return tStatus
     where
-      gender =
+      tStatus =
         case mdata of
           Just "active" -> TenantStatusActive
           Just "inactive" -> TenantStatusInActive

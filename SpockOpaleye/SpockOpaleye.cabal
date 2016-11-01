@@ -29,6 +29,7 @@ library
                       ,postgresql-simple
                       ,bcrypt
                       ,text
+                      ,Spock >=0.11
   default-language:    Haskell2010
 
 executable SpockOpaleye-exe
@@ -38,6 +39,7 @@ executable SpockOpaleye-exe
   build-depends:       base
                      , postgresql-simple
                      , SpockOpaleye
+                     , Spock >=0.11
   default-language:    Haskell2010
 
 test-suite SpockOpaleye-test
