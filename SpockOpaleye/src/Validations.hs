@@ -16,8 +16,6 @@ validateIncomingTenant conn tenant@Tenant {tenant_name = name
                                           ,tenant_phone = phone
                                           ,tenant_backofficedomain = bo_domain} = do
   unique_bod <- check_for_unique_bo_domain
-  putStrLn $ show tenant
-  putStrLn $ show [unique_bod, validate_name, validate_contact]
   return $
     if and [unique_bod, validate_name, validate_contact]
       then Valid
