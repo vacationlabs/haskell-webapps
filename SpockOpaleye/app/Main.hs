@@ -47,7 +47,6 @@ app = do
            Just incoming_tenant -> do
              result <-
                runQuery (\conn -> validateIncomingTenant conn incoming_tenant)
-             liftIO $ putStrLn $ show $ result
              case result of
                Valid -> runQuery (\conn -> create_tenant conn incoming_tenant)
                _ -> return Nothing
