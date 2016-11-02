@@ -1,37 +1,40 @@
-{-# LANGUAGE OverloadedStrings, TypeApplications #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DataKinds, OverloadedStrings, TypeApplications, TypeOperators #-}
+
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Main where
 
 import MockAPI
 import Servant
 import Network.Wai.Handler.Warp
-import Data.Text (Text)
-import Control.Concurrent (threadDelay)
-import Control.Monad.IO.Class
-import qualified Data.Map as M
 import Network.Wai.Middleware.Gzip
 
+import qualified Control.Category           as C
+import           Control.Concurrent         (threadDelay)
+import           Control.Lens
+import           Control.Lens.Wrapped
+import           Control.Monad.IO.Class
+import           Control.Monad.State.Strict
+import qualified Data.Map                   as M
+import           Data.Set                   (Set)
+import qualified Data.Set                   as Set
+import           Data.Text                  (Text)
+
 server :: Server MockApi
-server = authenticate :<|> serveAssets :<|> serveJS
+server = enter (generalizeNat C.. evalStateTSNat exRoles) removeUser
+    :<|> serveAssets
+    :<|> serveJS
   where
     serveAssets = serveDirectory "../mockClient/assets"
-    serveJS = serveDirectory "../mockClient/js/"
+    serveJS     = serveDirectory "../mockClient/js/"
 
-authenticate :: (Monad m, MonadIO m) => User -> m Text
-authenticate u
-  | correctInfo = liftIO (threadDelay 1000000) >> return "Authenticated"
-  | userPresent = liftIO (threadDelay 1000000) >> return "Wrong password"
-  | otherwise   = liftIO (threadDelay 1000000) >> return "Not Authenticated"
-  where
-    users = M.fromList [ ("user1@gmail.com", "pass1")
-                       , ("user2@gmail.com", "pass2")
-                       , ("user3@gmail.com", "pass3")
-                       ]
-    correctInfo = M.lookup (userMail u) users == Just (userPassword u)
-    userPresent = userMail u `elem` M.keys users
+removeUser :: (MonadState Roles m) => RoleName -> User -> m ()
+removeUser rolename user =
+  _Wrapped' . at rolename . _Just . roleAssociatedUsers . contains user .= False
 
 main :: IO ()
 main = run 8081 (gzip gzipSettings $ serve (Proxy @MockApi) server)
--- main = run 8081 (serve (Proxy @MockApi) server)
   where
     gzipSettings = def { gzipFiles = GzipCompress }
