@@ -10,7 +10,7 @@ import GHC.Generics
 -- A permission can be a permission in several ambiti
 
 data Permission = PP ProductPermission | OP OrderPermission | UP UserPermission
-                deriving (Show, Eq, Generic)
+                deriving (Show, Eq, Ord, Generic)
 
 data ProductPermission
   = ViewAllProductDetails
@@ -18,7 +18,7 @@ data ProductPermission
   | EdidProdPhotos
   | EditProdProperties
   | EditProdPrice
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 data OrderPermission
   = ViewAllOrderDetails
@@ -27,13 +27,13 @@ data OrderPermission
   | ApplyDiscounts
   | CancelOrder
   | ChangeOrderContactDetails
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 data UserPermission
   = ViewUserDetails
   | EditUserDetails
   | ChangeUserRole
-  deriving (Show, Eq, Generic)
+  deriving (Show, Eq, Ord, Generic)
 
 -- Generated JSON instances
 
