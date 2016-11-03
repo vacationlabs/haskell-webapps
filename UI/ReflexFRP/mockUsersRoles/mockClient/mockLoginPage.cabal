@@ -10,6 +10,7 @@ executable mockClient
   build-depends:       base >=4.9 && <4.10
                      , reflex >= 0.5 && < 0.6
                      , reflex-dom >= 0.4 && < 0.5
+                     , reflex-dom-contrib
                      , servant-reflex
                      , reflex-jsx
                      , containers
@@ -20,6 +21,7 @@ executable mockClient
                      , email-validate
                      , mockAPI
                      , servant
+                     , lens
   default-language:  Haskell2010
   if impl(ghcjs)
     ghc-options:    -dedupe

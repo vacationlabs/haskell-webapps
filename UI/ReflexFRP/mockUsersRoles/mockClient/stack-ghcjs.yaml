@@ -14,7 +14,6 @@ setup-info:
 packages:
 - location: '.'
 - location: ../mockAPI
-  extra-dep: true
 - location:
     git: https://github.com/reflex-frp/reflex.git
     commit: a63aba90bdea5ae5b3e1506d468613bdfedcdfa3
@@ -22,6 +21,10 @@ packages:
 - location:
     git: https://github.com/Arguggi/reflex-dom.git
     commit: 767c9b7625c61208b552f64b95719edac18a6e29
+  extra-dep: true
+- location:
+    git: https://github.com/reflex-frp/reflex-dom-contrib/
+    commit: abf986d13e2a690a4d117b4810ac0a50296333f4
   extra-dep: true
 - location:
     git: https://github.com/imalsogreg/servant-reflex
