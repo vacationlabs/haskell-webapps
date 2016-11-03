@@ -31,6 +31,7 @@ library
                       ,postgresql-simple
                       ,bcrypt
                       ,text
+                      ,lens
                       ,mtl
                       ,Spock >=0.11
                       ,aeson
@@ -45,6 +46,7 @@ executable SpockOpaleye-exe
                      , SpockOpaleye
                      , Spock >=0.11
                      , mtl
+                     , lens
                      , text
                      , bcrypt
                      , aeson

@@ -1,23 +1,28 @@
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE OverloadedStrings #-}
 
-module CryptoDef (BcryptPassword, bcryptPassword) where
+module CryptoDef
+  ( BcryptPassword
+  , bcryptPassword
+  ) where
 
-import           Crypto.BCrypt
-import           Data.ByteString
-import qualified Data.Profunctor.Product.Default      as D
-import           Data.Text
-import           Data.Text.Encoding
-import           Database.PostgreSQL.Simple.FromField
-import           Opaleye
+import Crypto.BCrypt
+import Data.ByteString
+import qualified Data.Profunctor.Product.Default as D
+import Data.Text
+import Data.Text.Encoding
+import Database.PostgreSQL.Simple.FromField
+import Opaleye
 
-newtype BcryptPassword = BcryptPassword ByteString
+newtype BcryptPassword =
+  BcryptPassword ByteString
   deriving (Show)
 
 bcryptPassword :: Text -> IO (Maybe BcryptPassword)
 bcryptPassword password = do
-  hash <- hashPasswordUsingPolicy slowerBcryptHashingPolicy (encodeUtf8 password)
+  hash <-
+    hashPasswordUsingPolicy slowerBcryptHashingPolicy (encodeUtf8 password)
   return $ BcryptPassword <$> hash
 
 instance D.Default Constant (BcryptPassword) (Column PGBytea) where

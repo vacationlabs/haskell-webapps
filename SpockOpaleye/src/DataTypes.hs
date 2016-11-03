@@ -2,75 +2,76 @@
 
 module DataTypes where
 
-import           CryptoDef
-import           Data.List.NonEmpty
-import           Data.Text
-import           GHC.Generics
+import CryptoDef
+import Data.List.NonEmpty
+import Data.Text
+import GHC.Generics
 
-data ValidationResult = Valid
-                      | Invalid
+data ValidationResult
+  = Valid
+  | Invalid
   deriving (Eq, Show)
 
-newtype TenantId = TenantId Int
+newtype TenantId =
+  TenantId Int
   deriving (Show, Generic)
 
-data TenantStatus = TenantStatusActive
-                  | TenantStatusInActive
-                  | TenantStatusNew
+data TenantStatus
+  = TenantStatusActive
+  | TenantStatusInActive
+  | TenantStatusNew
   deriving (Show, Generic)
 
-data TenantPoly key name fname lname email phone status owner_id b_domain =
-       Tenant
-         { tenant_id               :: key
-         , tenant_name             :: name
-         , tenant_firstname        :: fname
-         , tenant_lastname         :: lname
-         , tenant_email            :: email
-         , tenant_phone            :: phone
-         , tenant_status           :: status
-         , tenant_ownerid          :: owner_id
-         , tenant_backofficedomain :: b_domain
-         }
-  deriving (Show, Generic)
+data TenantPoly key name fname lname email phone status owner_id b_domain = Tenant
+  { tenant_id :: key
+  , tenant_name :: name
+  , tenant_firstname :: fname
+  , tenant_lastname :: lname
+  , tenant_email :: email
+  , tenant_phone :: phone
+  , tenant_status :: status
+  , tenant_ownerid :: owner_id
+  , tenant_backofficedomain :: b_domain
+  } deriving (Show, Generic)
 
 type Tenant = TenantPoly TenantId Text Text Text Text Text TenantStatus (Maybe UserId) Text
 
 type TenantIncoming = TenantPoly () Text Text Text Text Text () (Maybe UserId) Text
 
-data UserStatus = UserStatusActive
-                | UserStatusInActive
-                | UserStatusBlocked
+data UserStatus
+  = UserStatusActive
+  | UserStatusInActive
+  | UserStatusBlocked
   deriving (Show)
 
-newtype UserId = UserId Int
+newtype UserId =
+  UserId Int
   deriving (Show, Generic)
 
-data User =
-       User
-         { user_id        :: UserId
-         , user_tenantid  :: TenantId
-         , user_username  :: Text
-         , user_password  :: BcryptPassword
-         , user_firstname :: Maybe Text
-         , user_lastname  :: Maybe Text
-         , user_status    :: UserStatus
-         }
+data User = User
+  { user_id :: UserId
+  , user_tenantid :: TenantId
+  , user_username :: Text
+  , user_password :: BcryptPassword
+  , user_firstname :: Maybe Text
+  , user_lastname :: Maybe Text
+  , user_status :: UserStatus
+  } deriving (Show)
+
+data Permission
+  = Read
+  | Create
+  | Update
+  | Delete
   deriving (Show)
 
-data Permission = Read
-                | Create
-                | Update
-                | Delete
+newtype RoleId =
+  RoleId Int
   deriving (Show)
 
-newtype RoleId = RoleId Int
-  deriving (Show)
-
-data Role =
-       Role
-         { role_id         :: RoleId
-         , role_tenantid   :: TenantId
-         , role_name       :: Text
-         , role_permission :: NonEmpty Permission
-         }
-  deriving (Show)
+data Role = Role
+  { role_id :: RoleId
+  , role_tenantid :: TenantId
+  , role_name :: Text
+  , role_permission :: NonEmpty Permission
+  } deriving (Show)
