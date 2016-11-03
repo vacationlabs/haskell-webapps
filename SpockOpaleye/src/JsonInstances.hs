@@ -1,14 +1,14 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module JsonInstances where
 
-import DataTypes
-import Data.Aeson
-import Data.Aeson.Types
-import Control.Monad
-import Data.Text
+import           Control.Monad
+import           Data.Aeson
+import           Data.Aeson.Types
+import           Data.Text
+import           DataTypes
 
 instance FromJSON UserId where
   parseJSON j@(Number v) = UserId <$> (parseJSON j)
@@ -29,18 +29,18 @@ instance FromJSON TenantStatus where
 
 instance FromJSON TenantIncoming where
   parseJSON (Object v) =
-    (Tenant ()) <$> v .: "name" <*> v .: "firstname" <*> v .: "lastname" <*>
-    v .: "email" <*>
-    v .: "phone" <*>
-    (pure ()) <*>
-    v .: "userId" <*>
-    v .: "backofficeDomain"
+    (Tenant ()) <$> v .: "name"
+                <*> v .: "firstname"
+                <*> v .: "lastname"
+                <*> v .: "email"
+                <*> v .: "phone"
+                <*> (pure ())
+                <*> v .: "userId"
+                <*> v .: "backofficeDomain"
 
 instance ToJSON TenantStatus where
-  toJSON = genericToJSON defaultOptions  
-  toEncoding = genericToEncoding defaultOptions {
-      constructorTagModifier = tg_modify
-    }
+  toJSON = genericToJSON defaultOptions
+  toEncoding = genericToEncoding defaultOptions { constructorTagModifier = tg_modify }
     where
       tg_modify :: String -> String
       tg_modify "TenantStatusActive" = "active"
@@ -48,13 +48,10 @@ instance ToJSON TenantStatus where
       tg_modify "TenantStatusNew" = "new"
 
 instance ToJSON Tenant where
-  toJSON = genericToJSON defaultOptions  
-  toEncoding = genericToEncoding defaultOptions {
-      fieldLabelModifier = remove_prefix
-    }
+  toJSON = genericToJSON defaultOptions
+  toEncoding = genericToEncoding defaultOptions { fieldLabelModifier = remove_prefix }
     where
       remove_prefix = Prelude.drop 7
-  
 
 instance ToJSON UserId where
   toJSON = genericToJSON defaultOptions
