@@ -1,7 +1,8 @@
 {-# LANGUAGE ExplicitForAll, NoImplicitPrelude, NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings, RecursiveDo, ScopedTypeVariables          #-}
-{-# LANGUAGE TypeApplications                                             #-}
+{-# LANGUAGE TypeApplications, RankNTypes                                             #-}
 
+{-# LANGUAGE PartialTypeSignatures #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Main where
@@ -18,11 +19,14 @@ import MockAPI
 main :: IO ()
 main = mainWidget body
 
+url :: BaseUrl
+url = BaseFullUrl Http "localhost" 8081 ""
+
 body :: forall t m. MonadWidget t m => m ()
 body = do
   -- Instructions to use the server at localhost and to invoke the api
-  let url = BaseFullUrl Http "localhost" 8081 ""
-      (invokeAPI :<|> _ :<|> _) = client (Proxy @MockApi) (Proxy @m) (constDyn url)
+  let invokeAPI :: Dynamic t (Either Text User) -> Event t () -> m (Event t (ReqResult Text))
+      (invokeAPI :<|> _ :<|> _) = client (Proxy @MockApi) (Proxy :: Proxy m) (constDyn url)
 
   -- A description of the visual elements
   divClass "login-clean" $ do
