@@ -11,7 +11,6 @@ import Validations
 import Web.Spock
 import Web.Spock.Config
 
-import Control.Monad.Trans
 import Data.IORef
 import qualified Data.Text as T
 

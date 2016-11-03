@@ -34,27 +34,24 @@ create_user conn user@User {user_id = _
                            ,user_firstname = first_name
                            ,user_lastname = last_name
                            ,user_status = status} = do
-  ids <-
+  users <-
     runInsertManyReturning
       conn
       userTable
-      (return
-         ( Nothing
-         , constant tenant_id
-         , pgStrictText username
-         , constant password
-         , toNullable . pgStrictText <$> first_name
-         , toNullable . pgStrictText <$> last_name
-         , constant status))
-      (\(id_, _, _, _, _, _, _) -> id_)
+      (return User {
+        user_id = Nothing
+       ,user_tenantid = constant tenant_id
+       ,user_username = pgStrictText username
+       ,user_password = constant password
+       ,user_firstname = toNullable . pgStrictText <$> first_name
+       ,user_lastname = toNullable . pgStrictText <$> last_name
+       ,user_status = constant status
+       }) id
   return $
-    case ids of
+    case users of
       [] -> Nothing
       (x:xs) ->
-        Just $
-        user
-        { user_id = x
-        }
+        Just x
 
 update_user :: Connection -> UserId -> User -> IO GHC.Int.Int64
 update_user conn (UserId tid) (User {user_id = _
@@ -64,18 +61,18 @@ update_user conn (UserId tid) (User {user_id = _
                                     ,user_firstname = firstname
                                     ,user_lastname = lastname
                                     ,user_status = status}) =
-  runUpdate
-    conn
-    userTable
-    (\(id, _, _, _, _, _, _) ->
-        ( Just id
-        , constant tenant_id
-        , pgStrictText username
-        , constant password
-        , toNullable . pgStrictText <$> firstname
-        , toNullable . pgStrictText <$> lastname
-        , constant status))
-    (\(id, _, _, _, _, _, _) -> (id .== constant tid))
+  runUpdate conn userTable update_func match_func
+  where
+    update_func User { user_id = id } = User {
+       user_id = Just id
+     , user_tenantid = constant tenant_id
+     , user_username = pgStrictText username
+     , user_password = constant password
+     , user_firstname = toNullable . pgStrictText <$> firstname
+     , user_lastname = toNullable . pgStrictText <$> lastname
+     , user_status = constant status
+    }
+    match_func User { user_id = id } = id .== constant tid
 
 activate_user :: Connection -> User -> IO GHC.Int.Int64
 activate_user conn user = set_user_status conn user UserStatusActive
@@ -106,17 +103,18 @@ set_user_status conn user@User {user_id = id
 
 remove_user :: Connection -> User -> IO GHC.Int.Int64
 remove_user conn User {user_id = tid} =
-  runDelete conn userTable (\(id, _, _, _, _, _, _) -> id .== (constant tid))
+  runDelete conn userTable match_function
+    where
+    match_function User { user_id = id } = id .== constant tid
 
 read_users :: Connection -> IO [User]
 read_users conn = do
-  r <- runQuery conn $ user_query
-  return $ make_user <$> r
+  runQuery conn $ user_query
 
 read_users_for_tenant :: Connection -> TenantId -> IO [User]
 read_users_for_tenant conn tenant_id = do
   r <- runQuery conn $ user_query_by_tenantid tenant_id
-  return $ make_user <$> r
+  return r
 
 read_user_by_id :: Connection -> UserId -> IO (Maybe User)
 read_user_by_id conn id = do
@@ -124,7 +122,7 @@ read_user_by_id conn id = do
   return $
     case r of
       [] -> Nothing
-      rows -> Just $ Prelude.head $ make_user <$> rows
+      (x:xs) -> Just x
 
 add_role_to_user :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
 add_role_to_user conn user_id role_id =
@@ -161,13 +159,13 @@ user_query = queryTable userTable
 user_query_by_id :: UserId -> Query UserTableR
 user_query_by_id t_id =
   proc () ->
-  do row@(id, _, _, _, _, _, _) <- user_query -< ()
+  do row@User{user_id = id} <- user_query -< ()
      restrict -< id .== (constant t_id)
      returnA -< row
 
 user_query_by_tenantid :: TenantId -> Query UserTableR
 user_query_by_tenantid t_tenantid =
   proc () ->
-  do row@(_, tenant_id, _, _, _, _, _) <- user_query -< ()
+  do row@User {user_tenantid = tenant_id} <- user_query -< ()
      restrict -< tenant_id .== (constant t_tenantid)
      returnA -< row

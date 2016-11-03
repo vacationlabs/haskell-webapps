@@ -48,15 +48,17 @@ newtype UserId =
   UserId Int
   deriving (Show, Generic)
 
-data User = User
-  { user_id :: UserId
-  , user_tenantid :: TenantId
-  , user_username :: Text
-  , user_password :: BcryptPassword
-  , user_firstname :: Maybe Text
-  , user_lastname :: Maybe Text
-  , user_status :: UserStatus
-  } deriving (Show)
+data UserPoly key tenant_id username password firstname lastname status  = User {
+  user_id :: key,
+  user_tenantid :: tenant_id,
+  user_username :: username,
+  user_password :: password,
+  user_firstname :: firstname,
+  user_lastname :: lastname,
+  user_status :: status
+}
+
+type User = UserPoly UserId TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus 
 
 data Permission
   = Read
@@ -65,13 +67,14 @@ data Permission
   | Delete
   deriving (Show)
 
-newtype RoleId =
-  RoleId Int
+newtype RoleId = RoleId Int
   deriving (Show)
 
-data Role = Role
-  { role_id :: RoleId
-  , role_tenantid :: TenantId
-  , role_name :: Text
-  , role_permission :: NonEmpty Permission
+data RolePoly key tenant_id name permission = Role
+  { role_id :: key
+  , role_tenantid :: tenant_id
+  , role_name :: name
+  , role_permission :: permission
   } deriving (Show)
+
+type Role = RolePoly RoleId TenantId Text (NonEmpty Permission)

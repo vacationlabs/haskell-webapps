@@ -57,25 +57,44 @@ tenantTable =
          tenant_status = (required "status"),
          tenant_ownerid = (optional "owner_id"),
          tenant_backofficedomain = (required "backoffice_domain")
-         }
+       }
      )
 
-type UserTableW = (Maybe (Column PGInt4), Column PGInt4, Column PGText, Column PGBytea, Maybe (Column (Nullable PGText)), Maybe (Column (Nullable PGText)), Column PGText)
+type UserTableW = UserPoly 
+  (Maybe (Column PGInt4))
+  (Column PGInt4)
+  (Column PGText)
+  (Column PGBytea)
+  (Maybe (Column (Nullable PGText)))
+  (Maybe (Column (Nullable PGText)))
+  (Column PGText)
 
-type UserTableR = (Column PGInt4, Column PGInt4, Column PGText, Column PGBytea, (Column (Nullable PGText)), (Column (Nullable PGText)), Column PGText)
+type UserTableR = UserPoly 
+  (Column PGInt4)
+  (Column PGInt4)
+  (Column PGText)
+  (Column PGBytea)
+  (Column (Nullable PGText))
+  (Column (Nullable PGText))
+  (Column PGText)
+
+$(makeAdaptorAndInstance "pUser" ''UserPoly)
+$(makeLensesWith abbreviatedFields ''UserPoly)
 
 userTable :: Table UserTableW UserTableR
 userTable =
   Table
     "users"
-    (p7
-       ( optional "id"
-       , required "tenant_id"
-       , required "username"
-       , required "password"
-       , optional "first_name"
-       , optional "last_name"
-       , required "status"))
+      (pUser
+        User {
+          user_id = optional "id"
+          , user_tenantid = required "tenant_id"
+          , user_username = required "username"
+          , user_password = required "password"
+          , user_firstname = optional "first_name"
+          , user_lastname = optional "last_name"
+          , user_status = required "status"
+       })
 
 type RoleTableW = (Maybe (Column PGInt4), Column PGInt4, Column PGText, Column (PGArray PGText))
 
