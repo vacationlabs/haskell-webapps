@@ -12,6 +12,7 @@ import Data.Text
 import Data.Text.Encoding
 import Database.PostgreSQL.Simple.FromField
 import Opaleye
+import Data.Maybe
 import Data.Profunctor.Product.TH (makeAdaptorAndInstance)
 
 import Control.Lens
@@ -96,19 +97,31 @@ userTable =
           , user_status = required "status"
        })
 
-type RoleTableW = (Maybe (Column PGInt4), Column PGInt4, Column PGText, Column (PGArray PGText))
+type RoleTableW = RolePoly 
+  (Maybe (Column PGInt4))
+  (Column PGInt4)
+  (Column PGText)
+  (Column (PGArray PGText))
 
-type RoleTableR = (Column PGInt4, Column PGInt4, Column PGText, Column (PGArray PGText))
+type RoleTableR = RolePoly 
+  (Column PGInt4)
+  (Column PGInt4)
+  (Column PGText)
+  (Column (PGArray PGText))
+
+$(makeAdaptorAndInstance "pRole" ''RolePoly)
+$(makeLensesWith abbreviatedFields ''RolePoly)
 
 roleTable :: Table RoleTableW RoleTableR
 roleTable =
   Table
     "roles"
-    (p4
-       ( optional "id"
-       , required "tenant_id"
-       , required "name"
-       , required "permissions"))
+    (pRole
+       Role {
+        role_id = optional "id",
+        role_tenantid = required "tenant_id",
+        role_name = required "name",
+        role_permission = required "permissions"})
 
 userRolePivotTable :: Table (Column PGInt4, Column PGInt4) (Column PGInt4, Column PGInt4)
 userRolePivotTable =
@@ -168,17 +181,30 @@ instance D.Default Constant (NonEmpty Permission) (Column (PGArray PGText)) wher
           to_text Update = "Update"
           to_text Delete = "Delete"
 
+instance QueryRunnerColumnDefault (PGArray PGText) (NonEmpty Permission) where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
+
 instance FromField Permission where
   fromField f mdata = return $ makePermission mdata
     where
       makePermission (Just x) = toPermission $ decodeUtf8 x
       makePermission Nothing = error "No data read from db"
-      toPermission :: Text -> Permission
-      toPermission "Read" = Read
-      toPermission "Create" = Create
-      toPermission "Update" = Update
-      toPermission "Delete" = Delete
-      toPermission _ = error "Unrecognized permission"
+
+toPermission :: Text -> Permission
+toPermission "Read" = Read
+toPermission "Create" = Create
+toPermission "Update" = Update
+toPermission "Delete" = Delete
+toPermission _ = error "Unrecognized permission"
+
+instance FromField [Permission] where
+  fromField field mdata = (fmap toPermission) <$> (splitByComma <$> fromField field mdata)
+    where
+      splitByComma :: Text -> [Text]
+      splitByComma = split (\x -> x == ',')
+
+instance FromField (NonEmpty Permission) where
+  fromField field mdata = (fromJust.nonEmpty) <$> (fromField field mdata)
 
 instance QueryRunnerColumnDefault PGText Permission where
   queryRunnerColumnDefault = fieldQueryRunnerColumn

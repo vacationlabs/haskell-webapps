@@ -25,39 +25,26 @@ create_role conn role@Role {role_tenantid = tenant_id
                            ,role_permission = rp} = do
   ids <-
     runInsertManyReturning
-      conn
-      roleTable
-      (return (Nothing, constant tenant_id, pgStrictText name, constant rp))
-      (\(id, _, _, _) -> id)
-  return $
-    case ids of
+      conn roleTable (return Role {
+          role_id = Nothing,
+          role_tenantid = constant tenant_id,
+          role_name = pgStrictText name,
+          role_permission = constant rp
+      }) id
+  return $ case ids of
       [] -> Nothing
-      (x:xs) ->
-        Just $
-        role
-        { role_id = x
-        }
+      (x:xs) -> Just x
 
 remove_role :: Connection -> Role -> IO GHC.Int.Int64
 remove_role conn Role {role_id = t_id} = do
   runDelete conn userRolePivotTable (\(_, role_id) -> role_id .== constant t_id)
-  runDelete conn roleTable (\(id, _, _, _) -> id .== constant t_id)
+  runDelete conn roleTable match_func
+  where
+  match_func Role {role_id = id} = id .== constant t_id
 
 read_roles_for_tenant :: Connection -> TenantId -> IO [Role]
 read_roles_for_tenant conn t_id = do
-  rows <- runQuery conn $ role_query_for_tenant t_id
-  return $ makeRole <$> rows
-
-makeRole :: (RoleId, TenantId, Text, [Permission]) -> Role
-makeRole (id, tenant_id, name, (h:t)) =
-  Role
-  { role_id = id
-  , role_tenantid = tenant_id
-  , role_name = name
-  , role_permission = h :| t
-  }
-makeRole (id, tenant_id, name, []) =
-  error "cannot create role without a permission"
+  runQuery conn $ role_query_for_tenant t_id
 
 role_query :: Query RoleTableR
 role_query = queryTable roleTable
@@ -65,6 +52,6 @@ role_query = queryTable roleTable
 role_query_for_tenant :: TenantId -> Query RoleTableR
 role_query_for_tenant t_tenantid =
   proc () ->
-  do row@(_, tenant_id, _, _) <- role_query -< ()
+  do row@ Role {role_tenantid = tenant_id } <- role_query -< ()
      restrict -< tenant_id .== (constant t_tenantid)
      returnA -< row
