@@ -16,25 +16,41 @@ import           Control.Concurrent         (threadDelay)
 import           Control.Lens
 import           Control.Lens.Wrapped
 import           Control.Monad.IO.Class
-import           Control.Monad.State.Strict
+import           Control.Monad.Reader
 import qualified Data.Map                   as M
 import           Data.Set                   (Set)
 import qualified Data.Set                   as Set
 import           Data.Text                  (Text)
+import Control.Concurrent.STM
 
-server :: Server MockApi
-server = enter (generalizeNat C.. evalStateTSNat exRoles) removeUser
+data Config = Config { rolesTVar :: TVar Roles }
+
+server :: Config -> Server MockApi
+server config
+       = enter (runReaderTNat config) removeUser
+    :<|> enter (runReaderTNat config) showRoles
     :<|> serveAssets
     :<|> serveJS
   where
     serveAssets = serveDirectory "../mockClient/assets"
     serveJS     = serveDirectory "../mockClient/js/"
 
-removeUser :: (MonadState Roles m) => RoleName -> User -> m ()
-removeUser rolename user =
-  _Wrapped' . at rolename . _Just . roleAssociatedUsers . contains user .= False
+showRoles :: (MonadReader Config m, MonadIO m) => m Roles
+showRoles = do
+  Config { rolesTVar = roles } <- ask
+  liftIO $ readTVarIO roles
+
+removeUser :: (MonadReader Config m, MonadIO m) => RoleName -> User -> m NoContent
+removeUser rolename user = do
+  Config { rolesTVar = roles } <- ask
+  liftIO $ atomically $ modifyTVar' roles
+    (_Wrapped' . at rolename . _Just . roleAssociatedUsers . contains user .~ False)
+  return NoContent
 
 main :: IO ()
-main = run 8081 (gzip gzipSettings $ serve (Proxy @MockApi) server)
+main = do
+  state <- atomically $ newTVar exRoles
+  let config = Config state
+  run 8081 (gzip gzipSettings $ serve (Proxy @MockApi) (server config))
   where
     gzipSettings = def { gzipFiles = GzipCompress }

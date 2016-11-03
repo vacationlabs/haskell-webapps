@@ -15,4 +15,6 @@ executable mockServer
                      , warp
                      , wai-extra
                      , lens
+                     , mtl
+                     , stm
   default-language:    Haskell2010

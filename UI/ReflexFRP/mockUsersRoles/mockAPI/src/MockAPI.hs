@@ -45,8 +45,10 @@ instance Wrapped Roles where
   type Unwrapped Roles = Map RoleName RoleAttributes
   _Wrapped' = iso unRoles Roles
 
-exRoles = Roles $ Map.singleton "Account administrator" (RoleAttributes undefined users)
-  where users = Set.fromList [ User "admin@mydomain.com"
+exRoles = Roles $ Map.singleton "Account administrator" (RoleAttributes roles users)
+  where
+    roles = Set.fromList [ PP ViewAllProductDetails ]
+    users = Set.fromList [ User "admin@mydomain.com"
                              , User "otheradmin@mydomain.com"
                              , User "yetanotheradmin@mydomain.com"
                              ]
@@ -54,6 +56,7 @@ exRoles = Roles $ Map.singleton "Account administrator" (RoleAttributes undefine
 instance ToJSON Roles
 instance FromJSON Roles
 
-type MockApi = "deleteUserRole" :> ReqBody '[JSON] RoleName :> "user" :> ReqBody '[JSON] User :> Delete '[JSON] ()
+type MockApi = "deleteUserRole" :> ReqBody '[JSON] RoleName :> "user" :> ReqBody '[JSON] User :> Delete '[JSON] NoContent
+          :<|> "showRoles" :> Get '[JSON] Roles
           :<|> "assets" :> Raw
           :<|> Raw
