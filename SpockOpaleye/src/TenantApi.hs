@@ -43,9 +43,9 @@ create_tenant conn tenant@Tenant
            tenantTable
            (return
               (Nothing, pgStrictText name, pgStrictText first_name, pgStrictText last_name, pgStrictText
-                                                                                              email, pgStrictText
-                                                                                                       phone, constant
-                                                                                                                TenantStatusInActive, toNullable . constant <$> owner_id, pgStrictText
+                                                                            email, pgStrictText
+                                                                                     phone, constant
+                                                                                              TenantStatusInActive, toNullable . constant <$> owner_id, pgStrictText
                                                                                                                                                                             bo_domain))
            (\(id, _, _, _, _, _, _, _, _) -> id)
   return $
