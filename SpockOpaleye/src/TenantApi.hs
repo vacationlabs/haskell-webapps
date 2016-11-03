@@ -109,10 +109,9 @@ read_tenants conn = runQuery conn tenant_query
 read_tenant_by_id :: Connection -> TenantId -> IO (Maybe Tenant)
 read_tenant_by_id conn id = do
   r <- runQuery conn $ (tenant_query_by_id id)
-  return $
-    case r of
-      [] -> Nothing
-      (x:xs) -> Just x
+  return $ case r of
+    [] -> Nothing
+    (x:xs) -> Just x
 
 read_tenant_by_backofficedomain :: Connection -> Text -> IO (Maybe Tenant)
 read_tenant_by_backofficedomain conn domain = do

@@ -44,22 +44,19 @@ $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
 $(makeLensesWith abbreviatedFields ''TenantPoly)
 
 tenantTable :: Table TenantTableW TenantTableR
-tenantTable =
-  Table
-    "tenants"
-    (pTenant
-       Tenant {
-         tenant_id = (optional "id"),
-         tenant_name = (required "name"),
-         tenant_firstname = (required "first_name"),
-         tenant_lastname = (required "last_name"),
-         tenant_email = (required "email"),
-         tenant_phone = (required "phone"),
-         tenant_status = (required "status"),
-         tenant_ownerid = (optional "owner_id"),
-         tenant_backofficedomain = (required "backoffice_domain")
-       }
-     )
+tenantTable = Table "tenants" (pTenant
+   Tenant {
+     tenant_id = (optional "id"),
+     tenant_name = (required "name"),
+     tenant_firstname = (required "first_name"),
+     tenant_lastname = (required "last_name"),
+     tenant_email = (required "email"),
+     tenant_phone = (required "phone"),
+     tenant_status = (required "status"),
+     tenant_ownerid = (optional "owner_id"),
+     tenant_backofficedomain = (required "backoffice_domain")
+   }
+ )
 
 type UserTableW = UserPoly 
   (Maybe (Column PGInt4))
@@ -83,19 +80,16 @@ $(makeAdaptorAndInstance "pUser" ''UserPoly)
 $(makeLensesWith abbreviatedFields ''UserPoly)
 
 userTable :: Table UserTableW UserTableR
-userTable =
-  Table
-    "users"
-      (pUser
-        User {
-          user_id = optional "id"
-          , user_tenantid = required "tenant_id"
-          , user_username = required "username"
-          , user_password = required "password"
-          , user_firstname = optional "first_name"
-          , user_lastname = optional "last_name"
-          , user_status = required "status"
-       })
+userTable = Table "users" (pUser
+  User {
+    user_id = optional "id"
+    , user_tenantid = required "tenant_id"
+    , user_username = required "username"
+    , user_password = required "password"
+    , user_firstname = optional "first_name"
+    , user_lastname = optional "last_name"
+    , user_status = required "status"
+ })
 
 type RoleTableW = RolePoly 
   (Maybe (Column PGInt4))
@@ -113,19 +107,14 @@ $(makeAdaptorAndInstance "pRole" ''RolePoly)
 $(makeLensesWith abbreviatedFields ''RolePoly)
 
 roleTable :: Table RoleTableW RoleTableR
-roleTable =
-  Table
-    "roles"
-    (pRole
-       Role {
-        role_id = optional "id",
-        role_tenantid = required "tenant_id",
-        role_name = required "name",
-        role_permission = required "permissions"})
+roleTable = Table "roles" (pRole Role {
+  role_id = optional "id",
+  role_tenantid = required "tenant_id",
+  role_name = required "name",
+  role_permission = required "permissions"})
 
 userRolePivotTable :: Table (Column PGInt4, Column PGInt4) (Column PGInt4, Column PGInt4)
-userRolePivotTable =
-  Table "users_roles" (p2 (required "user_id", required "role_id"))
+userRolePivotTable = Table "users_roles" (p2 (required "user_id", required "role_id"))
 
 instance D.Default Constant TenantStatus (Column PGText) where
   def = Constant def'

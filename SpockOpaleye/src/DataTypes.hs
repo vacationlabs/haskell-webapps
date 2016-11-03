@@ -7,19 +7,13 @@ import Data.List.NonEmpty
 import Data.Text
 import GHC.Generics
 
-data ValidationResult
-  = Valid
-  | Invalid
+data ValidationResult = Valid | Invalid
   deriving (Eq, Show)
 
-newtype TenantId =
-  TenantId Int
+newtype TenantId = TenantId Int
   deriving (Show, Generic)
 
-data TenantStatus
-  = TenantStatusActive
-  | TenantStatusInActive
-  | TenantStatusNew
+data TenantStatus = TenantStatusActive | TenantStatusInActive | TenantStatusNew
   deriving (Show, Generic)
 
 data TenantPoly key name fname lname email phone status owner_id b_domain = Tenant
@@ -38,14 +32,10 @@ type Tenant = TenantPoly TenantId Text Text Text Text Text TenantStatus (Maybe U
 
 type TenantIncoming = TenantPoly () Text Text Text Text Text () (Maybe UserId) Text
 
-data UserStatus
-  = UserStatusActive
-  | UserStatusInActive
-  | UserStatusBlocked
+data UserStatus = UserStatusActive | UserStatusInActive | UserStatusBlocked
   deriving (Show)
 
-newtype UserId =
-  UserId Int
+newtype UserId = UserId Int
   deriving (Show, Generic)
 
 data UserPoly key tenant_id username password firstname lastname status  = User {
@@ -60,11 +50,7 @@ data UserPoly key tenant_id username password firstname lastname status  = User 
 
 type User = UserPoly UserId TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus 
 
-data Permission
-  = Read
-  | Create
-  | Update
-  | Delete
+data Permission = Read | Create | Update | Delete
   deriving (Show)
 
 newtype RoleId = RoleId Int

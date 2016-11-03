@@ -20,9 +20,7 @@ import Opaleye
 import OpaleyeDef
 
 create_role :: Connection -> Role -> IO (Maybe Role)
-create_role conn role@Role {role_tenantid = tenant_id
-                           ,role_name = name
-                           ,role_permission = rp} = do
+create_role conn role@Role { role_tenantid = tenant_id , role_name = name , role_permission = rp } = do
   ids <-
     runInsertManyReturning
       conn roleTable (return Role {
@@ -31,16 +29,16 @@ create_role conn role@Role {role_tenantid = tenant_id
           role_name = pgStrictText name,
           role_permission = constant rp
       }) id
-  return $ case ids of
-      [] -> Nothing
-      (x:xs) -> Just x
+  return $ case ids of 
+    [] -> Nothing
+    (x:xs) -> Just x
 
 remove_role :: Connection -> Role -> IO GHC.Int.Int64
 remove_role conn Role {role_id = t_id} = do
   runDelete conn userRolePivotTable (\(_, role_id) -> role_id .== constant t_id)
   runDelete conn roleTable match_func
-  where
-  match_func Role {role_id = id} = id .== constant t_id
+    where
+    match_func Role {role_id = id} = id .== constant t_id
 
 read_roles_for_tenant :: Connection -> TenantId -> IO [Role]
 read_roles_for_tenant conn t_id = do

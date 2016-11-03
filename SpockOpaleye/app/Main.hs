@@ -11,30 +11,23 @@ import Validations
 import Web.Spock
 import Web.Spock.Config
 
-import Data.IORef
 import qualified Data.Text as T
 
 data MySession =
   EmptySession
 
-data MyAppState =
-  DummyAppState (IORef Int)
+data MyAppState = DummyAppState 
 
 connectDb :: IO Connection
-connectDb =
-  connect
-    defaultConnectInfo
-    { connectDatabase = "haskell-webapps"
-    }
+connectDb = connect defaultConnectInfo { connectDatabase = "haskell-webapps" }
 
 main :: IO ()
 main = do
-  ref <- newIORef 0
   spockCfg <-
     defaultSpockCfg
       EmptySession
       (PCConn $ ConnBuilder connectDb close (PoolCfg 10 10 10))
-      (DummyAppState ref)
+      DummyAppState
   runSpock 8080 (spock spockCfg app)
 
 app :: SpockM Connection MySession MyAppState ()
