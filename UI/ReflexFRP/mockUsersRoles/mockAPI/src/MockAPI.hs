@@ -20,9 +20,17 @@ import qualified Data.Map as Map
 
 import Permissions
 
+type Email = Text
+
 data User = User
-  { userMail :: Text
+  { userMail :: Email
   } deriving (Show, Eq, Ord, Generic)
+
+instance FromHttpApiData User where
+  parseUrlPiece mail = Right (User mail)
+
+instance ToHttpApiData User where
+  toUrlPiece (User mail) = mail
 
 instance ToJSON User
 instance FromJSON User
@@ -45,18 +53,10 @@ instance Wrapped Roles where
   type Unwrapped Roles = Map RoleName RoleAttributes
   _Wrapped' = iso unRoles Roles
 
-exRoles = Roles $ Map.singleton "Account administrator" (RoleAttributes roles users)
-  where
-    roles = Set.fromList [ PP ViewAllProductDetails ]
-    users = Set.fromList [ User "admin@mydomain.com"
-                             , User "otheradmin@mydomain.com"
-                             , User "yetanotheradmin@mydomain.com"
-                             ]
-
 instance ToJSON Roles
 instance FromJSON Roles
 
-type MockApi = "deleteUserRole" :> ReqBody '[JSON] RoleName :> "user" :> ReqBody '[JSON] User :> Delete '[JSON] NoContent
-          :<|> "showRoles" :> Get '[JSON] Roles
+type MockApi = "delete" :> Capture "role" RoleName :> Capture "user" User :> Delete '[JSON] NoContent
+          :<|> "roles" :> Get '[JSON] Roles
           :<|> "assets" :> Raw
           :<|> Raw

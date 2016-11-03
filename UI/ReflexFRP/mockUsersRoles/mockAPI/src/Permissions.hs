@@ -15,10 +15,10 @@ data Permission = PP ProductPermission | OP OrderPermission | UP UserPermission
 data ProductPermission
   = ViewAllProductDetails
   | EditProdTextualContent
-  | EdidProdPhotos
+  | EditProdPhotos
   | EditProdProperties
   | EditProdPrice
-  deriving (Show, Eq, Ord, Generic)
+  deriving (Show, Eq, Ord, Generic, Bounded, Enum)
 
 data OrderPermission
   = ViewAllOrderDetails
@@ -27,13 +27,13 @@ data OrderPermission
   | ApplyDiscounts
   | CancelOrder
   | ChangeOrderContactDetails
-  deriving (Show, Eq, Ord, Generic)
+  deriving (Show, Eq, Ord, Generic, Bounded, Enum)
 
 data UserPermission
   = ViewUserDetails
   | EditUserDetails
   | ChangeUserRole
-  deriving (Show, Eq, Ord, Generic)
+  deriving (Show, Eq, Ord, Generic, Bounded, Enum)
 
 -- Generated JSON instances
 
@@ -55,7 +55,7 @@ class UserLabel a where
 instance UserLabel ProductPermission where
   toUserLabel ViewAllProductDetails  = "View all product details"
   toUserLabel EditProdTextualContent = "Edit product textual content"
-  toUserLabel EdidProdPhotos         = "Edit product photos"
+  toUserLabel EditProdPhotos         = "Edit product photos"
   toUserLabel EditProdProperties     = "Edit product properties"
   toUserLabel EditProdPrice          = "Edit product price "
 
@@ -71,3 +71,8 @@ instance UserLabel UserPermission where
   toUserLabel ViewUserDetails = "View user details"
   toUserLabel EditUserDetails = "Edit some other user's details"
   toUserLabel ChangeUserRole = "Change roles assigned to a user"
+
+instance UserLabel Permission where
+  toUserLabel (PP p) = toUserLabel p
+  toUserLabel (OP p) = toUserLabel p
+  toUserLabel (UP p) = toUserLabel p

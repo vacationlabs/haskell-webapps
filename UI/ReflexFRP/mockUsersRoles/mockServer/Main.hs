@@ -7,6 +7,7 @@
 module Main where
 
 import MockAPI
+import ExRoles
 import Servant
 import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.Gzip
