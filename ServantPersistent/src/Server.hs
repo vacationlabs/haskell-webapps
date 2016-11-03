@@ -49,9 +49,9 @@ newSession login = do
     loginValid <- validateLogin login
     inDevel $ liftIO $ print login
     let session = Session undefined
-    if loginValid
-       then addSession authSettings randomSource serverKey session ()
-       else throwError $ err400 { errBody = "Invalid login." }
+    case loginValid of
+      Left _ -> throwError $ err400 { errBody = "Invalid login." }
+      Right _ -> addSession authSettings randomSource serverKey session ()
 
 testSessionHandler :: ServerT TestAPI App
 testSessionHandler = (newTenant :<|> getTenant) :<|> newSession :<|> productHandler
@@ -66,7 +66,6 @@ productGetHandler pid session = do
        (Right user) -> do
                     result <- handleDBError $
                               handlePermissionError $
-                              runExceptT $
                               runOperation (dbGetProduct pid) user
                     return result
        (Left _) -> throwError err403
@@ -92,7 +91,7 @@ productListHandler pfs pvs session =
       pv = mconcat pvs
   in case session of
        (Right user) -> do
-                    result <- handlePermissionError (runExceptT $ runOperation (dbGetProductList pf) user)
+                    result <- handlePermissionError (runOperation (dbGetProductList pf) user)
                     return result
        (Left _) -> throwError err403
 

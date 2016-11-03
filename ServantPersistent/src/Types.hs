@@ -45,9 +45,9 @@ instance DBMonad App where
 instance (DBMonad m) => DBMonad (ExceptT e m) where
     getDBPool = lift getDBPool
 
-data LoginForm = Login { loginUsername :: String
-                       , loginPassword :: String
-                       } deriving (Show, Generic, Serialize, FromJSON, ToJSON)
+data LoginForm = Login { loginUsername :: Text
+                       , loginPassword :: Text
+                       } deriving (Show, Generic, FromJSON, ToJSON)
 
 
 

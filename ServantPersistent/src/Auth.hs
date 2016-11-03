@@ -1,25 +1,27 @@
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE TypeOperators   #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 module Auth
     where
 
-import Servant
-import Network.Wai
-import Servant.Server.Experimental.Auth.Cookie
-import Servant.Server.Experimental.Auth
-import Control.Monad.Catch (try)
-import Control.Monad.Trans
-import Control.Monad.Reader
-import Types
-import DBTypes
-import Models
-import Database.Persist
-import Operation
-import Domain.User
+import           Control.Monad.Catch                     (try)
+import           Control.Monad.Reader
+import           Control.Monad.Trans
+import           Database.Persist
+import           DBTypes
+import           Domain.User
+import           Models
+import           Network.Wai
+import           Operation
+import           Servant
+import           Servant.Server.Experimental.Auth
+import           Servant.Server.Experimental.Auth.Cookie
+import           Types
+import Data.Text
+import Control.Lens
 
 type instance AuthCookieData = Either CookieError User
 
@@ -43,10 +45,26 @@ cookieAuthHandler config@(Config{..}) = mkAuthHandler $ \request -> flip runRead
          Right (Just s) -> do
            user <- unsafeRunOperation $ dbGetUser (sessionUserID s)
            case user of
-             Left _ -> return $ Left NotPresent
+             Left _  -> return $ Left NotPresent
              Right x -> return $ Right x
 
+data LoginError = UsernameNotFound Text
+                | TenantInactive TenantID
+                | WrongPassword
 
-validateLogin :: LoginForm -> App Bool
-validateLogin _ = return True
-
+validateLogin :: LoginForm -> App (Either LoginError ())
+validateLogin (Login{..}) =
+  runDb $ do
+    muser <- getBy (UniqueUsername loginUsername)
+    case muser of
+      Nothing -> return $ Left $ UsernameNotFound loginUsername
+      Just (Entity{entityVal=user}) -> do
+                 mtenant <- get (view dBUserTenantID user)
+                 case mtenant of
+                   Nothing -> return $ Left $ TenantInactive (view dBUserTenantID user)
+                   Just tenant -> case view dBTenantStatus tenant of
+                                    ActiveT -> if (loginPassword == user ^. dBUserPassword)
+                                               then return $ Right ()
+                                               else return $ Left WrongPassword
+                                    _ -> return $ Left $ TenantInactive (user ^. dBUserTenantID)
+ 

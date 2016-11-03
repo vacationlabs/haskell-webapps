@@ -47,8 +47,8 @@ deriving instance (MonadError e m) => MonadError e (OperationT m)
 requirePermission :: Monad m => Permission -> OperationT m a -> OperationT m a
 requirePermission = (>>) . (Op . tell . singleton)
 
-runOperation :: DBMonad m => OperationT m a -> User -> ExceptT PermissionError m a
-runOperation op u@(UserB{_userRole=role}) = do
+runOperation :: DBMonad m => OperationT m a -> User -> m (Either PermissionError a)
+runOperation op u@(UserB{_userRole=role}) = runExceptT $ do
     (a,s) <- lift $ runWriterT $ unsafeRunOp op
     let go s (EditUserDetails) =
               satisfyPermissions s
@@ -83,4 +83,4 @@ hasTenant uid tid = runDb $ do
          Just tid' -> return (tid == tid')
 
 unsafeRunOperation :: Functor m => OperationT m a -> m a
-unsafeRunOperation op = fst <$> (runWriterT $ unsafeRunOp op)
+unsafeRunOperation = fmap fst . runWriterT . unsafeRunOp
