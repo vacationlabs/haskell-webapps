@@ -36,18 +36,30 @@ instance FromJSON TenantIncoming where
     v .: "userId" <*>
     v .: "backofficeDomain"
 
+instance ToJSON TenantStatus where
+  toJSON = genericToJSON defaultOptions  
+  toEncoding = genericToEncoding defaultOptions {
+      constructorTagModifier = tg_modify
+    }
+    where
+      tg_modify :: String -> String
+      tg_modify "TenantStatusActive" = "active"
+      tg_modify "TenantStatusInActive" = "inactive"
+      tg_modify "TenantStatusNew" = "new"
+
 instance ToJSON Tenant where
-  toJSON = genericToJSON defaultOptions
-  toEncoding = genericToEncoding defaultOptions
+  toJSON = genericToJSON defaultOptions  
+  toEncoding = genericToEncoding defaultOptions {
+      fieldLabelModifier = remove_prefix
+    }
+    where
+      remove_prefix = Prelude.drop 7
+  
 
 instance ToJSON UserId where
   toJSON = genericToJSON defaultOptions
   toEncoding = genericToEncoding defaultOptions
 
 instance ToJSON TenantId where
-  toJSON = genericToJSON defaultOptions
-  toEncoding = genericToEncoding defaultOptions
-
-instance ToJSON TenantStatus where
   toJSON = genericToJSON defaultOptions
   toEncoding = genericToEncoding defaultOptions
