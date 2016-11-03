@@ -1,6 +1,8 @@
-{-# LANGUAGE ExplicitForAll, NoImplicitPrelude, NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecursiveDo                  #-}
-{-# LANGUAGE ScopedTypeVariables, TypeApplications                        #-}
+{-# LANGUAGE AllowAmbiguousTypes, ExplicitForAll, FlexibleContexts #-}
+{-# LANGUAGE NoImplicitPrelude, NoMonomorphismRestriction          #-}
+{-# LANGUAGE OverloadedStrings, PartialTypeSignatures, QuasiQuotes #-}
+{-# LANGUAGE RecursiveDo, ScopedTypeVariables, TypeApplications    #-}
+{-# LANGUAGE TypeFamilies, TypeOperators                           #-}
 
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
@@ -10,18 +12,53 @@ import ClassyPrelude
 import Data.Proxy
 import Reflex
 import Reflex.Dom
+import Reflex.Dom.Xhr
 import Servant.API
 import Servant.Reflex
+import Reflex.Dom.Contrib.Widgets.DynamicList
+import Control.Lens
+import Control.Lens.Wrapped
 
 import ReflexJsx
-
 import MockAPI
+import ExRoles
+import Permissions
 
 main :: IO ()
-main = mainWidget rolesPage
+main = mainWidget $ do
+  rolesPage (tableSection exRoles)
 
-rolesPage :: MonadWidget t m => m ()
-rolesPage = [jsx|
+displayRoles :: MonadWidget t m => m ()
+displayRoles = do
+  b <- button "show state"
+  rolesResponse <- showRoles b
+  result <- holdDyn "" $ fmap parseR rolesResponse
+  el "h2" (dynText result)
+
+url :: BaseUrl
+url = BaseFullUrl Http "localhost" 8081 ""
+
+apiClients :: forall t m. (MonadWidget t m) => _
+apiClients = client (Proxy @MockApi) (Proxy :: Proxy m) (constDyn url)
+
+deleteUser :: (MonadWidget t m) => Dynamic t (Either Text Text) -> Dynamic t (Either Text User) -> Event t () -> m (Event t (ReqResult NoContent))
+showRoles :: (MonadWidget t m) => Event t () -> m (Event t (ReqResult Roles))
+(deleteUser :<|> showRoles :<|> _) = apiClients
+
+parseR :: (Show a) => ReqResult a -> Text
+parseR (ResponseSuccess a _) = tshow a
+parseR (ResponseFailure a _) = "ResponseFailure: " <> a
+parseR (RequestFailure s)    = "RequestFailure: " <> s
+
+-- @@ Markup
+
+-- This function embeds the table, which is the main component of the page, in
+-- the remaining of the page, read directly from the html of the mock page. I
+-- feel that when https://github.com/dackerman/reflex-jsx/issues/2 will be
+-- resolved, a much more enjoyable workflow will be opened to interact with
+-- markup.
+rolesPage :: MonadWidget t m => m () -> m ()
+rolesPage table = [jsx|
 <body>
     <div>
         <nav class="navbar navbar-inverse navigation-clean-search">
@@ -64,65 +101,7 @@ rolesPage = [jsx|
                     <button class="btn btn-primary pull-right" type="button">New role</button>
                     <h1 class="page-heading">Roles </h1>
                     <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Role name</th>
-                                    <th>Permissions </th>
-                                    <th>Users </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Account administrator<a href="role-edit.html"> (edit)</a></td>
-                                    <td><em>All permissions</em></td>
-                                    <td>
-                                        <ul>
-                                            <li>admin@mydomain.com </li>
-                                            <li>otheradmin@mydomain.com <a href="#">(revoke) </a></li>
-                                            <li>yetanotheradmin@mydomain.com <a href="#">(revoke) </a></li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Product administrator <a href="role-edit.html">(edit) </a></td>
-                                    <td>
-                                        <ul>
-                                            <li>View product</li>
-                                            <li>Edit product textual content</li>
-                                            <li>Edit product properties</li>
-                                            <li>Edit product price</li>
-                                            <li> <a href="#">+ 8 more</a></li>
-                                        </ul>
-                                    </td>
-                                    <td>
-                                        <ul>
-                                            <li>user1@mydomain.com <a href="#">(revoke) </a></li>
-                                            <li>user2@mydomain.com <a href="#">(revoke) </a></li>
-                                            <li>user3@mydomain.com <a href="#">(revoke) </a></li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Product editor <a href="role-edit.html">(edit) </a></td>
-                                    <td>
-                                        <ul>
-                                            <li>View product</li>
-                                            <li>Edit product textual content</li>
-                                            <li>Edit product images</li>
-                                        </ul>
-                                    </td>
-                                    <td>
-                                        <ul>
-                                            <li>user4@mydomain.com <a href="#">(revoke) </a></li>
-                                            <li>user3@mydomain.com <a href="#">(revoke) </a></li>
-                                            <li>user7@mydomain.com <a href="#">(revoke) </a></li>
-                                            <li> <a href="#">+ 5 more</a></li>
-                                        </ul>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    {table}
                     </div>
                 </div>
             </div>
@@ -133,77 +112,78 @@ rolesPage = [jsx|
 </body>
 |]
 
---------------------------------------------------------------------------------
--- Old Code
---------------------------------------------------------------------------------
+-- @@ Dynamic lists
 
-body :: forall t m. MonadWidget t m => m ()
-body = do
-  -- Instructions to use the server at localhost and to invoke the api
-  let url = BaseFullUrl Http "localhost" 8081 ""
-      (invokeAPI :<|> _ :<|> _) = client (Proxy @MockApi) (Proxy @m) (constDyn url)
+-- Corrisponde a:
+-- <table class="table">
+--     <thead>
+--         <tr>
+--             <th>Role name</th>
+--             <th>Permissions </th>
+--             <th>Users </th>
+--         </tr>
+--     </thead>
+--     <tbody>
+--     ...
+--     </tbody>
+-- </table>
+tableSection :: MonadWidget t m => Roles -> m ()
+tableSection roles = elClass "table" "table" $ do
+  el "thead" $ do
+    el "tr" $ do
+      el "th" $ text "Role name"
+      el "th" $ text "Permissions"
+      el "th" $ text "Users"
+  el "tbody" $ do
+    mapM_ roleSection (roles ^. _Wrapped' . to mapToList)
 
-  -- A description of the visual elements
-  divClass "login-clean" $ do
-    el "form" $ do
-      rec hiddenTitle
-          icon
-          mail <- _textInput_value <$> mailInputElement
-          pass <- _textInput_value <$> passInputElement
-          let userResult = liftA2 (User) mail pass
-          send <- buttonElement send responseEvent
-          forgot
-          -- The actual API call
-          apiResponse <- invokeAPI (Right <$> userResult) send
-          let responseEvent = const () <$> apiResponse
-      -- A visual feedback on authentication
-      r <- holdDyn "" $ fmap parseR apiResponse
-      el "h2" (dynText r)
+-- roleSection corrisponde a:
+-- <tr>
+--     <td>Account administrator<a href="role-edit.html"> (edit)</a></td>
+--     <td><em>All permissions</em></td>
+--     <td>
+--         <ul>
+--             <li>admin@mydomain.com </li>
+--             <li>otheradmin@mydomain.com <a href="#">(revoke) </a></li>
+--             <li>yetanotheradmin@mydomain.com <a href="#">(revoke) </a></li>
+--         </ul>
+--     </td>
+-- </tr>
+roleSection :: MonadWidget t m => (RoleName, RoleAttributes) -> m ()
+roleSection (rolename, roleattrs) = const () <$$> el "tr" $ do
+  el "td" $ text rolename
+  el "td" $ el "em" $ permissionList (roleattrs ^. rolePermission)
+  el "td" $ el "ul" $ listComponent (rolename, roleattrs)
 
---------------------------------------------------------------------------------
--- Implementation of the visual elements:
-
-hiddenTitle, icon :: DomBuilder t m => m ()
-hiddenTitle = elClass "h2" "sr-only" (text "Login Form")
-icon = divClass "illustration" (elClass "i" "icon ion-ios-navigate" $ pure ())
-
-mailInputElement :: MonadWidget t m => m (TextInput t)
-mailInputElement = textInput $
-  def & textInputConfig_attributes .~ constDyn
-        ("class" =: "form-control" <> "name" =: "email" <> "placeholder" =: "Email")
-      & textInputConfig_inputType .~ "email"
-
-passInputElement :: MonadWidget t m => m (TextInput t)
-passInputElement = textInput $
-  def & textInputConfig_attributes .~ constDyn
-        ("class" =: "form-control" <> "name" =: "password" <> "placeholder" =: "Password")
-      & textInputConfig_inputType .~ "password"
-
-buttonElement :: DomBuilder t m => Event t () -> Event t () -> m (Event t ())
-buttonElement disable enable = divClass "form-group" (styledButton conf "Log in")
+permissionList :: forall t m. MonadWidget t m => Set Permission  -> m (Dynamic t [((), Event t ())])
+permissionList ps =
+  dynamicList displayPermission snd (const never) never (ps ^. to setToList)
   where
-    conf = def & elementConfig_initialAttributes .~ initialAttr
-               & elementConfig_modifyAttributes  .~ mergeWith (\_ b -> b)
-                   [ const disableAttr <$> disable
-                   , const enableAttr <$> enable ]
-    initialAttr = "class" =: "btn btn-primary btn-block" <> "type" =: "button"
-    disableAttr = fmap Just initialAttr  <> "disabled" =: Just "true"
-    enableAttr  = fmap Just initialAttr  <> "disabled" =: Nothing
+    displayPermission _ p _ = el "li" $ do
+      text $ toUserLabel p
+      return ((), never)
 
-forgot :: DomBuilder t m => m ()
-forgot = elAttr "a"
-  ("href" =: "#" <> "class" =: "forgot")
-  (text "Forgot your email or password?")
+listComponent :: forall t m. MonadWidget t m => (RoleName, RoleAttributes) -> m (Dynamic t [((), Event t ())])
+listComponent (rolename, roleattrs) =
+  dynamicList (displayItem rolename)
+              snd
+              (const never)
+              never
+              (roleattrs ^. roleAssociatedUsers . to setToList)
 
------ This function should be contributed back to reflex-frp
-styledButton :: DomBuilder t m => ElementConfig EventResult t m -> Text -> m (Event t ())
-styledButton conf t = do
-  (e, _) <- element "button" conf (text t)
-  return (domEvent Click e)
+-- In the original markup this was:
+-- <li>otheradmin@mydomain.com <a href="#">(revoke) </a></li>
+displayItem  :: MonadWidget t m => RoleName -> Int -> User -> Event t User -> m ((), Event t ())
+displayItem rolename _ u _ = el "li" $ do
+  text (userMail u <> " ")
+  deleteEvent <- clickLabel "(revoke)"
+  deleteConfirmed <- const () <$$> deleteUser (constDyn $ Right rolename) (constDyn $ Right u) deleteEvent
+  return ((), deleteConfirmed)
 
---------------------------------------------------------------------------------
--- Parse the response from the API
-parseR :: ReqResult Text -> Text
-parseR (ResponseSuccess a _) = a
-parseR (ResponseFailure a _) = "ResponseFailure: " <> a
-parseR (RequestFailure s) = "RequestFailure: " <> s
+clickLabel :: MonadWidget t m => Text -> m (Event t ())
+clickLabel t = do
+  (e, _) <- elAttr' "a" ("href" =: "#") (text t)
+  return $ domEvent Click e
+
+(<$$>) :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
+(<$$>) = fmap . fmap
