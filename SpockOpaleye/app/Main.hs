@@ -2,21 +2,21 @@
 
 module Main where
 
-import Database.PostgreSQL.Simple
-import DataTypes
-import JsonInstances ()
-import TenantApi
-import Validations
+import           Database.PostgreSQL.Simple
+import           DataTypes
+import           JsonInstances              ()
+import           TenantApi
+import           Validations
 
-import Web.Spock
-import Web.Spock.Config
+import           Web.Spock
+import           Web.Spock.Config
 
-import qualified Data.Text as T
+import qualified Data.Text                  as T
 
 data MySession =
   EmptySession
 
-data MyAppState = DummyAppState 
+data MyAppState = DummyAppState
 
 connectDb :: IO Connection
 connectDb = connect defaultConnectInfo { connectDatabase = "haskell-webapps" }
@@ -45,4 +45,4 @@ app = do
            Nothing -> return Nothing
        case maybe_newtenant of
          Just tenant -> json tenant
-         _ -> json $ T.pack "Tenant not created"
+         _           -> json $ T.pack "Tenant not created"

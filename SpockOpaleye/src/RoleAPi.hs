@@ -1,8 +1,8 @@
-{-# LANGUAGE Arrows #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE Arrows                #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings     #-}
 
 module RoleApi
   ( create_role
@@ -10,14 +10,14 @@ module RoleApi
   , read_roles_for_tenant
   ) where
 
-import Control.Arrow
-import Data.List.NonEmpty
-import Data.Text
-import Database.PostgreSQL.Simple (Connection)
-import DataTypes
-import GHC.Int
-import Opaleye
-import OpaleyeDef
+import           Control.Arrow
+import           Data.List.NonEmpty
+import           Data.Text
+import           Database.PostgreSQL.Simple (Connection)
+import           DataTypes
+import           GHC.Int
+import           Opaleye
+import           OpaleyeDef
 
 create_role :: Connection -> Role -> IO (Maybe Role)
 create_role conn role@Role { role_tenantid = tenant_id , role_name = name , role_permission = rp } = do
@@ -29,8 +29,8 @@ create_role conn role@Role { role_tenantid = tenant_id , role_name = name , role
           role_name = pgStrictText name,
           role_permission = constant rp
       }) id
-  return $ case ids of 
-    [] -> Nothing
+  return $ case ids of
+    []     -> Nothing
     (x:xs) -> Just x
 
 remove_role :: Connection -> Role -> IO GHC.Int.Int64

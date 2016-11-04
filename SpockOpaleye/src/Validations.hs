@@ -2,11 +2,11 @@
 
 module Validations where
 
-import Data.Maybe
-import qualified Data.Text as T
-import Database.PostgreSQL.Simple
-import DataTypes
-import TenantApi
+import           Data.Maybe
+import qualified Data.Text                  as T
+import           Database.PostgreSQL.Simple
+import           DataTypes
+import           TenantApi
 
 validateIncomingTenant :: Connection -> TenantIncoming -> IO ValidationResult
 validateIncomingTenant conn tenant@Tenant {tenant_name = name

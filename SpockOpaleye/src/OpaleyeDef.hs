@@ -1,22 +1,22 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 module OpaleyeDef where
 
-import Data.List.NonEmpty
-import Data.Profunctor.Product
-import qualified Data.Profunctor.Product.Default as D
-import Data.Text
-import Data.Text.Encoding
-import Database.PostgreSQL.Simple.FromField
-import Opaleye
-import Data.Maybe
-import Data.Profunctor.Product.TH (makeAdaptorAndInstance)
+import           Data.List.NonEmpty
+import           Data.Maybe
+import           Data.Profunctor.Product
+import qualified Data.Profunctor.Product.Default      as D
+import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
+import           Data.Text
+import           Data.Text.Encoding
+import           Database.PostgreSQL.Simple.FromField
+import           Opaleye
 
-import Control.Lens
-import DataTypes
+import           Control.Lens
+import           DataTypes
 
 type TenantTableW = TenantPoly
   (Maybe (Column PGInt4))
@@ -29,7 +29,7 @@ type TenantTableW = TenantPoly
   (Maybe (Column (Nullable PGInt4)))
   (Column PGText)
 
-type TenantTableR = TenantPoly 
+type TenantTableR = TenantPoly
   (Column PGInt4)
   (Column PGText)
   (Column PGText)
@@ -58,7 +58,7 @@ tenantTable = Table "tenants" (pTenant
    }
  )
 
-type UserTableW = UserPoly 
+type UserTableW = UserPoly
   (Maybe (Column PGInt4))
   (Column PGInt4)
   (Column PGText)
@@ -67,7 +67,7 @@ type UserTableW = UserPoly
   (Maybe (Column (Nullable PGText)))
   (Column PGText)
 
-type UserTableR = UserPoly 
+type UserTableR = UserPoly
   (Column PGInt4)
   (Column PGInt4)
   (Column PGText)
@@ -91,13 +91,13 @@ userTable = Table "users" (pUser
     , user_status = required "status"
  })
 
-type RoleTableW = RolePoly 
+type RoleTableW = RolePoly
   (Maybe (Column PGInt4))
   (Column PGInt4)
   (Column PGText)
   (Column (PGArray PGText))
 
-type RoleTableR = RolePoly 
+type RoleTableR = RolePoly
   (Column PGInt4)
   (Column PGInt4)
   (Column PGText)
@@ -121,18 +121,18 @@ instance D.Default Constant TenantStatus (Column PGText) where
     where
       def' :: TenantStatus -> (Column PGText)
       def' TenantStatusInActive = pgStrictText "inactive"
-      def' TenantStatusActive = pgStrictText "active"
-      def' TenantStatusNew = pgStrictText "new"
+      def' TenantStatusActive   = pgStrictText "active"
+      def' TenantStatusNew      = pgStrictText "new"
 
 instance FromField (TenantStatus) where
   fromField f mdata = return tStatus
     where
       tStatus =
         case mdata of
-          Just "active" -> TenantStatusActive
+          Just "active"   -> TenantStatusActive
           Just "inactive" -> TenantStatusInActive
-          Just "new" -> TenantStatusNew
-          _ -> error "Bad value read for user status"
+          Just "new"      -> TenantStatusNew
+          _               -> error "Bad value read for user status"
 
 instance QueryRunnerColumnDefault PGText TenantStatus where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
@@ -142,18 +142,18 @@ instance D.Default Constant UserStatus (Column PGText) where
     where
       def' :: UserStatus -> (Column PGText)
       def' UserStatusInActive = pgStrictText "inactive"
-      def' UserStatusActive = pgStrictText "active"
-      def' UserStatusBlocked = pgStrictText "blocked"
+      def' UserStatusActive   = pgStrictText "active"
+      def' UserStatusBlocked  = pgStrictText "blocked"
 
 instance FromField (UserStatus) where
   fromField f mdata = return gender
     where
       gender =
         case mdata of
-          Just "active" -> UserStatusActive
+          Just "active"   -> UserStatusActive
           Just "inactive" -> UserStatusInActive
-          Just "blocked" -> UserStatusBlocked
-          _ -> error "Bad value read for user status"
+          Just "blocked"  -> UserStatusBlocked
+          _               -> error "Bad value read for user status"
 
 instance QueryRunnerColumnDefault PGText UserStatus where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
@@ -165,7 +165,7 @@ instance D.Default Constant (NonEmpty Permission) (Column (PGArray PGText)) wher
       def' (ph :| pl) = pgArray pgStrictText $ to_text <$> (ph : pl)
         where
           to_text :: Permission -> Text
-          to_text Read = "Read"
+          to_text Read   = "Read"
           to_text Create = "Create"
           to_text Update = "Update"
           to_text Delete = "Delete"
@@ -177,14 +177,14 @@ instance FromField Permission where
   fromField f mdata = return $ makePermission mdata
     where
       makePermission (Just x) = toPermission $ decodeUtf8 x
-      makePermission Nothing = error "No data read from db"
+      makePermission Nothing  = error "No data read from db"
 
 toPermission :: Text -> Permission
-toPermission "Read" = Read
+toPermission "Read"   = Read
 toPermission "Create" = Create
 toPermission "Update" = Update
 toPermission "Delete" = Delete
-toPermission _ = error "Unrecognized permission"
+toPermission _        = error "Unrecognized permission"
 
 instance FromField [Permission] where
   fromField field mdata = (fmap toPermission) <$> (splitByComma <$> fromField field mdata)

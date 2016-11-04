@@ -1,8 +1,8 @@
-{-# LANGUAGE Arrows #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE Arrows                #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings     #-}
 
 module UserApi
   ( create_user
@@ -16,15 +16,15 @@ module UserApi
   , activate_user
   ) where
 
-import Control.Arrow
-import Data.Text
-import Database.PostgreSQL.Simple (Connection)
-import DataTypes
-import GHC.Int
-import Opaleye
-import OpaleyeDef
+import           Control.Arrow
+import           Data.Text
+import           Database.PostgreSQL.Simple (Connection)
+import           DataTypes
+import           GHC.Int
+import           Opaleye
+import           OpaleyeDef
 
-import CryptoDef
+import           CryptoDef
 
 create_user :: Connection -> User -> IO (Maybe User)
 create_user conn user@User {
@@ -47,7 +47,7 @@ create_user conn user@User {
          ,user_status = constant status
          }) id
     return $ case users of
-      [] -> Nothing
+      []     -> Nothing
       (x:xs) -> Just x
 
 update_user :: Connection -> UserId -> User -> IO GHC.Int.Int64
@@ -112,7 +112,7 @@ read_user_by_id :: Connection -> UserId -> IO (Maybe User)
 read_user_by_id conn id = do
   r <- runQuery conn $ user_query_by_id id
   return $ case r of
-    [] -> Nothing
+    []     -> Nothing
     (x:xs) -> Just x
 
 add_role_to_user :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64

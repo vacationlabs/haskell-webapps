@@ -1,8 +1,8 @@
-{-# LANGUAGE Arrows #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE Arrows                #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings     #-}
 
 module TenantApi
   ( create_tenant
@@ -15,15 +15,15 @@ module TenantApi
   , deactivate_tenant
   ) where
 
-import Control.Arrow
-import Data.Text
-import Database.PostgreSQL.Simple (Connection)
-import DataTypes
-import GHC.Int
-import Opaleye
-import OpaleyeDef
-import RoleApi
-import UserApi
+import           Control.Arrow
+import           Data.Text
+import           Database.PostgreSQL.Simple (Connection)
+import           DataTypes
+import           GHC.Int
+import           Opaleye
+import           OpaleyeDef
+import           RoleApi
+import           UserApi
 
 create_tenant :: Connection -> TenantIncoming -> IO (Maybe Tenant)
 create_tenant conn tenant@Tenant {
@@ -48,7 +48,7 @@ create_tenant conn tenant@Tenant {
    ,tenant_backofficedomain = pgStrictText bo_domain
   }) id
   return $ case tenants of
-    [] -> Nothing
+    []     -> Nothing
     (x:xs) ->Just x
 
 activate_tenant :: Connection -> Tenant -> IO Tenant
@@ -110,21 +110,21 @@ read_tenant_by_id :: Connection -> TenantId -> IO (Maybe Tenant)
 read_tenant_by_id conn id = do
   r <- runQuery conn $ (tenant_query_by_id id)
   return $ case r of
-    [] -> Nothing
+    []     -> Nothing
     (x:xs) -> Just x
 
 read_tenant_by_backofficedomain :: Connection -> Text -> IO (Maybe Tenant)
 read_tenant_by_backofficedomain conn domain = do
   r <- runQuery conn $ (tenant_query_by_backoffocedomain domain)
   return $ case r of
-    [] -> Nothing
+    []     -> Nothing
     (x:xs) -> Just x
 
 tenant_query :: Opaleye.Query TenantTableR
 tenant_query = queryTable tenantTable
 
 tenant_query_by_id :: TenantId -> Opaleye.Query TenantTableR
-tenant_query_by_id t_id = proc () -> do 
+tenant_query_by_id t_id = proc () -> do
   row@Tenant {tenant_id = id} <- tenant_query -< ()
   restrict -< id .== (constant t_id)
   returnA -< row

@@ -1,19 +1,19 @@
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings     #-}
 
 module CryptoDef
   ( BcryptPassword
   , bcryptPassword
   ) where
 
-import Crypto.BCrypt
-import Data.ByteString
-import qualified Data.Profunctor.Product.Default as D
-import Data.Text
-import Data.Text.Encoding
-import Database.PostgreSQL.Simple.FromField
-import Opaleye
+import           Crypto.BCrypt
+import           Data.ByteString
+import qualified Data.Profunctor.Product.Default      as D
+import           Data.Text
+import           Data.Text.Encoding
+import           Database.PostgreSQL.Simple.FromField
+import           Opaleye
 
 newtype BcryptPassword =
   BcryptPassword ByteString
