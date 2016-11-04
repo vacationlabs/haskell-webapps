@@ -25,24 +25,11 @@ mainContentWith table =
   el "div" $ divClass "container" $ divClass "row" $ do
     lateralNavigation
     divClass "col-md-9" $ do
-      sitePosition
-      newRole <- styledButton "New Role"
+      sitePosition ["Account Settings", "Roles"]
+      newRole <- buttonClass "btn btn-primary pull-right" "New Role"
       elClass "h1" "page-heading" $ text "Roles"
-      elClass "div" "table-responsive" $ table
+      _ <- divClass "table-responsive" $ table
       return newRole
-
-sitePosition :: MonadWidget t m => m ()
-sitePosition =
-  elAttr "ol" ("class"=:"breadcrumb") $ do
-    el "li" $ el "a" $ el "span" $ text "Account settings"
-    el "li" $ el "a" $ el "span" $ text "Roles"
-
-styledButton :: MonadWidget t m => Text -> m (Event t ())
-styledButton t = do
-  (b, _) <- elAttr' "button"
-                    ("class" =: "btn btn-primary pull-right" <> "type" =: "button")
-                    (text t)
-  return (domEvent Click b)
 
 tableSection :: MonadWidget t m => Roles -> m ()
 tableSection roles = elClass "table" "table" $ do

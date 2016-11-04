@@ -1,9 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, NoImplicitPrelude #-}
 
 module Pages.Common where
 
+import ClassyPrelude
 import Reflex.Dom
-import Data.Monoid
 
 pageHeader :: MonadWidget t m => m ()
 pageHeader =
@@ -42,3 +42,15 @@ lateralNavigation =
         elAttr "a" ("href"=:"#") $ text "Products"
       el "li" $
         elAttr "a" ("href"=:"#") $ text "Orders"
+
+sitePosition :: MonadWidget t m => [Text] -> m ()
+sitePosition ts =
+  elAttr "ol" ("class"=:"breadcrumb") $ forM_ ts $ \t ->
+    el "li" $ el "a" $ el "span" $ text t
+
+buttonClass :: MonadWidget t m => Text -> Text -> m (Event t ())
+buttonClass cls t = do
+  (b, _) <- elAttr' "button"
+                    ("class" =: cls <> "type" =: "button")
+                    (text t)
+  return (domEvent Click b)

@@ -8,6 +8,7 @@ import MockAPI
 import ExRoles
 
 import Pages.Overview
+import Pages.Edit
 import Utils
 
 data AppState = BootApp | Overview Roles | Edit Roles (RoleName, RoleAttributes)
@@ -31,5 +32,5 @@ app (Overview _) = do
   return $ Edit undefined ("cipolla", undefined) <$ a
 
 app (Edit _ (rolename, _)) = do
-  text $ "Editing " <> rolename
+  editPage
   return $ leftmost []
