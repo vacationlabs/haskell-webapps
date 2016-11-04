@@ -49,7 +49,7 @@ create_tenant conn tenant@Tenant {
   }) id
   return $ case tenants of
     []     -> Nothing
-    (x:xs) ->Just x
+    (x:xs) -> Just x
 
 activate_tenant :: Connection -> Tenant -> IO Tenant
 activate_tenant conn tenant = set_tenant_status conn tenant TenantStatusActive
@@ -81,12 +81,12 @@ update_tenant conn t_tenantid tenant@Tenant {
     update_func x = Tenant {
       tenant_id = constant $ Just id
       ,tenant_name =  pgStrictText name
-      ,tenant_firstname =  pgStrictText first_name
-      ,tenant_lastname =  pgStrictText last_name
-      ,tenant_email =  pgStrictText email
-      ,tenant_phone =  pgStrictText phone
-      ,tenant_status =  constant status
-      ,tenant_ownerid =  toNullable . constant <$> owner_id
+      ,tenant_firstname = pgStrictText first_name
+      ,tenant_lastname = pgStrictText last_name
+      ,tenant_email = pgStrictText email
+      ,tenant_phone = pgStrictText phone
+      ,tenant_status = constant status
+      ,tenant_ownerid = toNullable . constant <$> owner_id
       ,tenant_backofficedomain =  pgStrictText bo_domain
     }
 
