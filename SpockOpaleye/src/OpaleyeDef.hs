@@ -204,6 +204,12 @@ instance D.Default Constant (UserId) (Column PGInt4) where
       def' :: UserId -> (Column PGInt4)
       def' (UserId id) = pgInt4 id
 
+instance D.Default Constant (UserId) (Column (Nullable PGInt4)) where
+  def = Constant def'
+    where
+      def' :: UserId -> (Column (Nullable PGInt4))
+      def' (UserId id) = (toNullable.pgInt4) id
+
 instance FromField UserId where
   fromField field mdata = do
     x <- fromField field mdata
@@ -241,3 +247,14 @@ instance FromField TenantId where
 
 instance QueryRunnerColumnDefault PGInt4 TenantId where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+--
+
+instance D.Default Constant () (Maybe (Column PGInt4)) where
+  def = Constant (\_ -> Nothing)
+
+instance D.Default Constant () (Column PGText) where
+  def = Constant (\_ -> "")
+
+instance D.Default Constant () (Column (Nullable PGText)) where
+  def = Constant (\_ -> toNullable $ pgStrictText "")

@@ -26,27 +26,8 @@ import           RoleApi
 import           UserApi
 
 create_tenant :: Connection -> TenantIncoming -> IO (Maybe Tenant)
-create_tenant conn tenant@Tenant {
-  tenant_id = _
- ,tenant_name = name
- ,tenant_firstname = first_name
- ,tenant_lastname = last_name
- ,tenant_email = email
- ,tenant_phone = phone
- ,tenant_status = _
- ,tenant_ownerid = owner_id
- ,tenant_backofficedomain = bo_domain} = do
-  tenants <- runInsertManyReturning conn tenantTable (return Tenant {
-    tenant_id = Nothing
-   ,tenant_name = pgStrictText name
-   ,tenant_firstname = pgStrictText first_name
-   ,tenant_lastname = pgStrictText last_name
-   ,tenant_email = pgStrictText email
-   ,tenant_phone = pgStrictText phone
-   ,tenant_status = constant TenantStatusInActive
-   ,tenant_ownerid = toNullable . constant <$> owner_id
-   ,tenant_backofficedomain = pgStrictText bo_domain
-  }) id
+create_tenant conn tenant = do
+  tenants <- runInsertManyReturning conn tenantTable [constant tenant] id
   return $ case tenants of
     []     -> Nothing
     (x:xs) -> Just x

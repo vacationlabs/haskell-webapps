@@ -38,11 +38,7 @@ instance FromJSON TenantIncoming where
 
 instance ToJSON TenantStatus where
   toJSON = genericToJSON defaultOptions
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-      { constructorTagModifier = tg_modify
-      }
+  toEncoding = genericToEncoding defaultOptions { constructorTagModifier = tg_modify }
     where
       tg_modify :: String -> String
       tg_modify "TenantStatusActive"   = "active"
@@ -51,11 +47,7 @@ instance ToJSON TenantStatus where
 
 instance ToJSON Tenant where
   toJSON = genericToJSON defaultOptions
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-      { fieldLabelModifier = remove_prefix
-      }
+  toEncoding = genericToEncoding defaultOptions { fieldLabelModifier = remove_prefix }
     where
       remove_prefix = Prelude.drop 7
 
