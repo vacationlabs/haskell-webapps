@@ -210,6 +210,12 @@ instance D.Default Constant (UserId) (Column (Nullable PGInt4)) where
       def' :: UserId -> (Column (Nullable PGInt4))
       def' (UserId id) = (toNullable.pgInt4) id
 
+instance D.Default Constant (UserId) (Maybe (Column PGInt4)) where
+  def = Constant def'
+    where
+      def' :: UserId -> Maybe (Column PGInt4)
+      def' (UserId id) = Just $ pgInt4 id
+
 instance FromField UserId where
   fromField field mdata = do
     x <- fromField field mdata
@@ -225,6 +231,12 @@ instance D.Default Constant (RoleId) (Column PGInt4) where
       def' :: RoleId -> (Column PGInt4)
       def' (RoleId id) = pgInt4 id
 
+instance D.Default Constant (RoleId) (Maybe (Column PGInt4)) where
+  def = Constant def'
+    where
+      def' :: RoleId -> Maybe (Column PGInt4)
+      def' (RoleId id) = Just $ pgInt4 id
+
 instance FromField RoleId where
   fromField field mdata = do
     x <- fromField field mdata
@@ -239,6 +251,12 @@ instance D.Default Constant (TenantId) (Column PGInt4) where
     where
       def' :: TenantId -> (Column PGInt4)
       def' (TenantId id) = pgInt4 id
+
+instance D.Default Constant (TenantId) (Maybe (Column PGInt4)) where
+  def = Constant def'
+    where
+      def' :: TenantId -> Maybe (Column PGInt4)
+      def' (TenantId id) = Just $ pgInt4 id
 
 instance FromField TenantId where
   fromField field mdata = do
@@ -258,3 +276,7 @@ instance D.Default Constant () (Column PGText) where
 
 instance D.Default Constant () (Column (Nullable PGText)) where
   def = Constant (\_ -> toNullable $ pgStrictText "")
+
+instance D.Default Constant Text (Column (Nullable PGText)) where
+  def = Constant (toNullable.pgStrictText)
+

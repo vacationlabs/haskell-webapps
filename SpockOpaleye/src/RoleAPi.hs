@@ -19,19 +19,8 @@ import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
 
-create_role :: Connection -> Role -> IO (Maybe Role)
-create_role conn role@Role { role_tenantid = tenant_id , role_name = name , role_permission = rp } = do
-  ids <-
-    runInsertManyReturning
-      conn roleTable (return Role {
-          role_id = Nothing,
-          role_tenantid = constant tenant_id,
-          role_name = pgStrictText name,
-          role_permission = constant rp
-      }) id
-  return $ case ids of
-    []     -> Nothing
-    (x:xs) -> Just x
+create_role :: Connection -> Role -> IO Role
+create_role conn role = fmap Prelude.head $ runInsertManyReturning conn roleTable [constant role] id
 
 remove_role :: Connection -> Role -> IO GHC.Int.Int64
 remove_role conn Role {role_id = t_id} = do

@@ -25,12 +25,9 @@ import           OpaleyeDef
 import           RoleApi
 import           UserApi
 
-create_tenant :: Connection -> TenantIncoming -> IO (Maybe Tenant)
+create_tenant :: Connection -> TenantIncoming -> IO Tenant
 create_tenant conn tenant = do
-  tenants <- runInsertManyReturning conn tenantTable [constant tenant] id
-  return $ case tenants of
-    []     -> Nothing
-    (x:xs) -> Just x
+  fmap Prelude.head $ runInsertManyReturning conn tenantTable [constant tenant] id
 
 activate_tenant :: Connection -> Tenant -> IO Tenant
 activate_tenant conn tenant = set_tenant_status conn tenant TenantStatusActive
@@ -39,37 +36,17 @@ deactivate_tenant :: Connection -> Tenant -> IO Tenant
 deactivate_tenant conn tenant = set_tenant_status conn tenant TenantStatusInActive
 
 set_tenant_status :: Connection -> Tenant -> TenantStatus -> IO Tenant
-set_tenant_status conn tenant status = update_tenant conn (tenant_id tenant)
-                                              tenant { tenant_status = status }
+set_tenant_status conn tenant status = update_tenant conn (tenant_id tenant) tenant { tenant_status = status }
 
 update_tenant :: Connection -> TenantId -> Tenant -> IO Tenant
-update_tenant conn t_tenantid tenant@Tenant {
-  tenant_id = id
-  ,tenant_name = name
-  ,tenant_firstname = first_name
-  ,tenant_lastname = last_name
-  ,tenant_email = email
-  ,tenant_phone = phone
-  ,tenant_status = status
-  ,tenant_ownerid = owner_id
-  ,tenant_backofficedomain = bo_domain} = do
+update_tenant conn t_tenantid tenant = do
   runUpdate conn tenantTable update_func match_func
   return tenant
   where
     match_func :: TenantTableR -> Column PGBool
-    match_func Tenant { tenant_id = id } = id .== (constant t_tenantid)
+    match_func Tenant { tenant_id = id } = id .== constant t_tenantid
     update_func :: TenantTableR -> TenantTableW
-    update_func x = Tenant {
-      tenant_id = constant $ Just id
-      ,tenant_name =  pgStrictText name
-      ,tenant_firstname = pgStrictText first_name
-      ,tenant_lastname = pgStrictText last_name
-      ,tenant_email = pgStrictText email
-      ,tenant_phone = pgStrictText phone
-      ,tenant_status = constant status
-      ,tenant_ownerid = toNullable . constant <$> owner_id
-      ,tenant_backofficedomain =  pgStrictText bo_domain
-    }
+    update_func x = constant tenant
 
 remove_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
 remove_tenant conn tenant@Tenant {tenant_id = tid} = do

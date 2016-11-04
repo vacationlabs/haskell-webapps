@@ -26,73 +26,27 @@ import           OpaleyeDef
 
 import           CryptoDef
 
-create_user :: Connection -> User -> IO (Maybe User)
-create_user conn user@User {
-   user_id = _
-  ,user_tenantid = tenant_id
-  ,user_username = username
-  ,user_password = password
-  ,user_firstname = first_name
-  ,user_lastname = last_name
-  ,user_status = status
-  } = do
-    users <-
-      runInsertManyReturning conn userTable (return User {
-          user_id = Nothing
-         ,user_tenantid = constant tenant_id
-         ,user_username = pgStrictText username
-         ,user_password = constant password
-         ,user_firstname = toNullable . pgStrictText <$> first_name
-         ,user_lastname = toNullable . pgStrictText <$> last_name
-         ,user_status = constant status
-         }) id
-    return $ case users of
-      []     -> Nothing
-      (x:xs) -> Just x
+create_user :: Connection -> User -> IO User
+create_user conn user = Prelude.head <$> runInsertManyReturning conn userTable [constant user] id
 
-update_user :: Connection -> UserId -> User -> IO GHC.Int.Int64
-update_user conn (UserId tid) (User {
-  user_id = _
-  ,user_tenantid = tenant_id
-  ,user_username = username
-  ,user_password = password
-  ,user_firstname = firstname
-  ,user_lastname = lastname
-  ,user_status = status }) = runUpdate conn userTable update_func match_func
+update_user :: Connection -> UserId -> User -> IO User
+update_user conn user_id user = do
+  runUpdate conn userTable update_func match_func
+  return user
   where
-    update_func User { user_id = id } = User {
-       user_id = Just id
-     , user_tenantid = constant tenant_id
-     , user_username = pgStrictText username
-     , user_password = constant password
-     , user_firstname = toNullable . pgStrictText <$> firstname
-     , user_lastname = toNullable . pgStrictText <$> lastname
-     , user_status = constant status
-    }
-    match_func User { user_id = id } = id .== constant tid
+    update_func :: UserTableR -> UserTableW
+    update_func _ = constant user
+    match_func :: UserTableR -> Column PGBool
+    match_func User { user_id = id } = id .== constant user_id
 
-activate_user :: Connection -> User -> IO GHC.Int.Int64
+activate_user :: Connection -> User -> IO User
 activate_user conn user = set_user_status conn user UserStatusActive
 
-deactivate_user :: Connection -> User -> IO GHC.Int.Int64
+deactivate_user :: Connection -> User -> IO User
 deactivate_user conn user = set_user_status conn user UserStatusInActive
 
-set_user_status :: Connection -> User -> UserStatus -> IO GHC.Int.Int64
-set_user_status conn user@User {
-   user_id = id
-  ,user_tenantid = tid
-  ,user_username = username
-  ,user_password = password
-  ,user_firstname = firstname
-  ,user_lastname = lastname
-  ,user_status = status} new_status = update_user conn id User { user_id = id
-    ,user_tenantid = tid
-    ,user_username = username
-    ,user_password = password
-    ,user_firstname = firstname
-    ,user_lastname = lastname
-    ,user_status = new_status }
-
+set_user_status :: Connection -> User -> UserStatus -> IO User
+set_user_status conn user new_status = update_user conn (user_id user) user { user_status = new_status }
 remove_user :: Connection -> User -> IO GHC.Int.Int64
 remove_user conn User {user_id = tid} =
   runDelete conn userTable match_function
@@ -100,13 +54,10 @@ remove_user conn User {user_id = tid} =
     match_function User { user_id = id } = id .== constant tid
 
 read_users :: Connection -> IO [User]
-read_users conn = do
-  runQuery conn $ user_query
+read_users conn = runQuery conn user_query
 
 read_users_for_tenant :: Connection -> TenantId -> IO [User]
-read_users_for_tenant conn tenant_id = do
-  r <- runQuery conn $ user_query_by_tenantid tenant_id
-  return r
+read_users_for_tenant conn tenant_id = runQuery conn $ user_query_by_tenantid tenant_id
 
 read_user_by_id :: Connection -> UserId -> IO (Maybe User)
 read_user_by_id conn id = do
