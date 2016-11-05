@@ -1,9 +1,10 @@
+{-# LANGUAGE RecordWildCards #-}
 module Domain.Tenant
     where
 
 import           Control.Lens
 import           Control.Monad.Except
-import           Data.ByteString      (ByteString)
+
 import           Data.Time
 import           Database.Persist
 import           DBTypes
@@ -11,6 +12,7 @@ import           Models
 import           Operation
 import           Types
 import           Updater
+import Data.Text (Text)
 
 dbCreateTenant :: DBMonad m => TenantInput -> m (Maybe TenantID)
 dbCreateTenant ti = runDb $ do
@@ -39,19 +41,18 @@ dbUpdateTenant upd tid = requirePermission (EditTenant tid) $ runDb $ do
                  (Left . ViolatesTenantUniqueness)
              <$> (replaceUnique tid =<< applyUpdate upd oldTenant)
 
-encode :: a
-encode = undefined
+activateTenant :: DBMonad m => UserID -> Text -> m (Either ActivationError ())
+activateTenant owner key = runDb $ runExceptT $ do
+                       r <- lift $ getBy (UniqueTenantKey key)
+                       time <- liftIO getCurrentTime
+                       case r of
+                         Nothing -> throwError ActivationError
+                         Just Entity{..} -> do
+                           let tid = view dBTenantActivationTenantID entityVal
+                           lift $ update tid [ DBTenantStatus =. ActiveT
+                                             , DBTenantOwnerId =. Just owner
+                                             , DBTenantUpdatedAt =. time
+                                             ]
+                           lift $ delete entityKey
+                       return ()
 
-decode :: a
-decode = undefined
-
-activateTenant :: DBMonad m => UserID -> ByteString -> m (Either ActivationError Tenant)
-activateTenant owner actkey = runDb $ runExceptT $ do
-    let (Activation tid _) = decode actkey
-    time <- liftIO $ getCurrentTime
-    lift $ updateGet
-            tid
-            [ DBTenantOwnerId   =. Just owner
-            , DBTenantStatus    =. ActiveT
-            , DBTenantUpdatedAt =. time
-            ]

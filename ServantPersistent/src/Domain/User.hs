@@ -1,18 +1,20 @@
+{-# LANGUAGE RecordWildCards #-}
 module Domain.User
     where
 
-import Control.Lens
-import Data.Time
-import Database.Persist
-import Control.Monad.IO.Class
-import Control.Monad.Except
-import Data.ByteString
-import Data.Default
-import Models
-import Types
-import Updater
-import DBTypes
-import Operation
+import           Control.Lens
+import           Control.Monad.Except
+
+
+import           Data.Default
+import           Data.Text              (Text)
+import           Data.Time
+import           Database.Persist
+import           DBTypes
+import           Models
+import           Operation
+import           Types
+import           Updater
 
 dbCreateUser :: DBMonad m => UserInput -> m (Either UserCreationError UserID)
 dbCreateUser u = runExceptT $ do
@@ -30,7 +32,7 @@ dbCreateUser u = runExceptT $ do
                      }
     result <- runDb $ insertUnique dbu
     case result of
-         Just a -> return a
+         Just a  -> return a
          Nothing -> throwError $ UserExists (view username u)
 
 dbUpdateUser :: DBMonad m => UserID -> UserUpdater -> OperationT m (Either DBError ())
@@ -59,5 +61,17 @@ dbGetUser uid = requirePermission (ViewUser uid) $ runExceptT $ do
                   }
     return u
 
-dbActivateUser :: ByteString -> m ()
-dbActivateUser = undefined
+dbActivateUser :: DBMonad m => Text -> m (Either ActivationError ())
+dbActivateUser key = runDb $ runExceptT $ do
+                       r <- lift $ getBy (UniqueUserKey key)
+                       time <- liftIO getCurrentTime
+                       case r of
+                         Nothing -> throwError ActivationError
+                         Just Entity{..} -> do
+                           let uid = view dBUserActivationUserID entityVal
+                           lift $ update uid [ DBUserStatus =. ActiveU
+                                             , DBUserUpdatedAt =. time
+                                             ]
+                           lift $ delete entityKey
+                       return ()
+

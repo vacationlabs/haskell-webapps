@@ -49,15 +49,15 @@ DBTenantActivation
     tenantID DBTenantId
     key Text
     createdAt UTCTime
-    UniqueTenantKey key
     UniqueTenantActivation tenantID
+    UniqueTenantKey key
 
 DBUserActivation
     userID DBUserId
     key Text
     createdAt UTCTime
-    UniqueUserKey key
     UniqueUserActivation userID
+    UniqueUserKey key
 
 DBProduct
     name Text
