@@ -32,7 +32,8 @@ executable RelationalRecord
                     HDBC,
                     HDBC-postgresql,
                     aeson >= 1.0.2,
-                    bytestring
+                    bytestring,
+                    time
 
     hs-source-dirs: src
 
