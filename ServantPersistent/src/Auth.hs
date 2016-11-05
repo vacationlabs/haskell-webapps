@@ -7,9 +7,10 @@
 module Auth
     where
 
+import           Control.Lens
 import           Control.Monad.Catch                     (try)
 import           Control.Monad.Reader
-import           Control.Monad.Trans
+import           Data.Text
 import           Database.Persist
 import           DBTypes
 import           Domain.User
@@ -20,8 +21,6 @@ import           Servant
 import           Servant.Server.Experimental.Auth
 import           Servant.Server.Experimental.Auth.Cookie
 import           Types
-import Data.Text
-import Control.Lens
 
 type instance AuthCookieData = Either CookieError User
 
@@ -67,4 +66,4 @@ validateLogin (Login{..}) =
                                                then return $ Right ()
                                                else return $ Left WrongPassword
                                     _ -> return $ Left $ TenantInactive (user ^. dBUserTenantID)
- 
+

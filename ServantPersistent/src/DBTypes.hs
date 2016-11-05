@@ -15,6 +15,7 @@ import Data.Time.Clock
 import GHC.Generics
 import Control.Lens
 import Types
+import Price
 import Models
 import Data.Default
 import Database.Persist
@@ -28,13 +29,32 @@ type TenantOutput = DBTenant
 type UserID = Key DBUser
 type ProductID = Key DBProduct
 
+
 data Product = Product { getProduct :: Entity DBProduct
                        , getVariants :: [Entity DBVariant]}
 -- Dummy instance
 
 instance ToJSON Product where
   toJSON = undefined
-data ProductInput = PIn {}
+data ProductInput =
+    ProductI { piName :: Text
+             , piDescription :: Text
+             , piCurrency :: Text
+             , piType :: ProductType
+             , piVariants :: [VariantInput]
+             , piProperties :: AppJSON
+             , piCostPrice :: Maybe Price
+             , piComparisonPrice :: Maybe Price
+             , piAdvertisedPrice :: Maybe Price
+             , piURLSlug :: Maybe Text
+             }
+data VariantInput =
+    VariantI { viName :: Text
+             , viSKU :: Text
+             , viWeightInGrams :: Maybe Double
+             , viWeightDisplayUnit :: Maybe Text
+             , viPrice :: Price
+             }
 
 instance Serialize UserID where
   get = DBUserKey . SqlBackendKey <$> Data.Serialize.get

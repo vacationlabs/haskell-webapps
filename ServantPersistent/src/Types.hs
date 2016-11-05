@@ -26,6 +26,7 @@ data Environment = Test | Devel | Production deriving (Eq, Show)
 
 data CookieError = NotPresent | AuthError AuthCookieException deriving (Eq, Show)
 
+
 data Config = Config
     { authSettings :: AuthCookieSettings
     , randomSource :: RandomSource

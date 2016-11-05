@@ -3,7 +3,7 @@ module Domain.Tenant
 
 import           Control.Lens
 import           Control.Monad.Except
-import           Data.ByteString        (ByteString)
+import           Data.ByteString      (ByteString)
 import           Data.Time
 import           Database.Persist
 import           DBTypes

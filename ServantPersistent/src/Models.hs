@@ -16,8 +16,9 @@ import           Data.Text
 import           Data.Time.Clock
 import           Database.Persist.Sql
 import           Database.Persist.TH
-
+import           Price
 import           Types
+
 
 share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
 DBTenant json
@@ -62,9 +63,9 @@ DBProduct
     name Text
     description Text
     currency Text
-    advertisedPrice Rational
-    comparisionPrice Rational
-    costPrice Rational Maybe
+    advertisedPrice Price
+    comparisionPrice Price
+    costPrice Price Maybe
     productType ProductType
     properties AppJSON
     urlSlug Text
@@ -77,8 +78,8 @@ DBVariant
     name Text
     productID DBProductId
     sku Text
-    price Rational
-    weightInGrams Int Maybe
+    price Price
+    weightInGrams Double Maybe
     weightDisplayUnit Text Maybe
     createdAt UTCTime
     updatedAt UTCTime
