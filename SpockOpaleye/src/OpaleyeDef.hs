@@ -25,7 +25,7 @@ type TenantTableW = TenantPoly
   (Column PGText)
   (Column PGText)
   (Column PGText)
-  (Column PGText)
+  (Maybe (Column PGText))
   (Maybe (Column (Nullable PGInt4)))
   (Column PGText)
 
@@ -52,7 +52,7 @@ tenantTable = Table "tenants" (pTenant
      tenant_lastname = (required "last_name"),
      tenant_email = (required "email"),
      tenant_phone = (required "phone"),
-     tenant_status = (required "status"),
+     tenant_status = (optional "status"),
      tenant_ownerid = (optional "owner_id"),
      tenant_backofficedomain = (required "backoffice_domain")
    }
@@ -116,15 +116,15 @@ roleTable = Table "roles" (pRole Role {
 userRolePivotTable :: Table (Column PGInt4, Column PGInt4) (Column PGInt4, Column PGInt4)
 userRolePivotTable = Table "users_roles" (p2 (required "user_id", required "role_id"))
 
-instance D.Default Constant TenantStatus (Column PGText) where
+instance D.Default Constant TenantStatus (Maybe (Column PGText)) where
   def = Constant def'
     where
-      def' :: TenantStatus -> (Column PGText)
-      def' TenantStatusInActive = pgStrictText "inactive"
-      def' TenantStatusActive   = pgStrictText "active"
-      def' TenantStatusNew      = pgStrictText "new"
+      def' :: TenantStatus -> (Maybe (Column PGText))
+      def' TenantStatusInActive = Just $ pgStrictText "inactive"
+      def' TenantStatusActive   = Just $ pgStrictText "active"
+      def' TenantStatusNew      = Just $ pgStrictText "new"
 
-instance FromField (TenantStatus) where
+instance FromField TenantStatus where
   fromField f mdata = return tStatus
     where
       tStatus =
@@ -225,13 +225,13 @@ instance QueryRunnerColumnDefault PGInt4 UserId where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
 
 --
-instance D.Default Constant (RoleId) (Column PGInt4) where
+instance D.Default Constant RoleId (Column PGInt4) where
   def = Constant def'
     where
       def' :: RoleId -> (Column PGInt4)
       def' (RoleId id) = pgInt4 id
 
-instance D.Default Constant (RoleId) (Maybe (Column PGInt4)) where
+instance D.Default Constant RoleId (Maybe (Column PGInt4)) where
   def = Constant def'
     where
       def' :: RoleId -> Maybe (Column PGInt4)
@@ -246,13 +246,13 @@ instance QueryRunnerColumnDefault PGInt4 RoleId where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
 
 --
-instance D.Default Constant (TenantId) (Column PGInt4) where
+instance D.Default Constant TenantId (Column PGInt4) where
   def = Constant def'
     where
       def' :: TenantId -> (Column PGInt4)
       def' (TenantId id) = pgInt4 id
 
-instance D.Default Constant (TenantId) (Maybe (Column PGInt4)) where
+instance D.Default Constant TenantId (Maybe (Column PGInt4)) where
   def = Constant def'
     where
       def' :: TenantId -> Maybe (Column PGInt4)
@@ -271,12 +271,8 @@ instance QueryRunnerColumnDefault PGInt4 TenantId where
 instance D.Default Constant () (Maybe (Column PGInt4)) where
   def = Constant (\_ -> Nothing)
 
-instance D.Default Constant () (Column PGText) where
-  def = Constant (\_ -> "")
-
-instance D.Default Constant () (Column (Nullable PGText)) where
-  def = Constant (\_ -> toNullable $ pgStrictText "")
+instance D.Default Constant () (Maybe (Column PGText)) where
+  def = Constant (\_ -> Nothing)
 
 instance D.Default Constant Text (Column (Nullable PGText)) where
   def = Constant (toNullable.pgStrictText)
-
