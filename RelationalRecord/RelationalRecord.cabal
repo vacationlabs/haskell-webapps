@@ -40,6 +40,8 @@ executable RelationalRecord
 
     if flag(Optimize)
         ghc-options:    -O2 -funbox-strict-fields
+    else
+        ghc-options:    -Wall
 
     default-language: Haskell2010
 

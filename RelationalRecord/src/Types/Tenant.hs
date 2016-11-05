@@ -12,16 +12,10 @@ import  GHC.Generics            (Generic)
 import  Data.Aeson              (ToJSON)
 
 
+$(defineTable "tenants")
 
-import Database.HDBC.Query.TH
-import Database.Record
-
-
-
-$(defineTable "tenant")
-
-deriving instance Generic Tenant
-instance ToJSON Tenant
+deriving instance Generic Tenants
+instance ToJSON Tenants
 
 
 
