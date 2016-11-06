@@ -5,6 +5,7 @@
 {-# LANGUAGE DeriveFunctor  #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 module Types
     where
 
@@ -13,6 +14,7 @@ import Servant
 import Servant.Server.Experimental.Auth.Cookie
 import GHC.Generics
 import Control.Monad.Except
+import Control.Monad.State.Strict
 import Control.Monad.Reader
 import Data.Serialize
 import Data.Text
@@ -21,10 +23,21 @@ import Control.Lens hiding ((.=))
 import Database.Persist.Sql
 import Database.Persist.TH
 import Data.Monoid
+import Control.Monad.Trans.Control
 
 data Environment = Test | Devel | Production deriving (Eq, Show)
 
-data CookieError = NotPresent | AuthError AuthCookieException deriving (Eq, Show)
+data CookieError = NotPresent
+                 | AuthError AuthCookieException
+                 | InactiveUser
+                 | SessionInvalid
+                   deriving (Eq, Show)
+
+data Capability = ViewUserDetails
+                | EditUserDetails
+                | EditUserRoles
+                | EditTenantDetails deriving (Read, Show)
+derivePersistField "Capability"
 
 
 data Config = Config
@@ -37,13 +50,17 @@ data Config = Config
 
 type App = (ReaderT Config (ExceptT ServantErr IO))
 
-class (Monad m, MonadIO m) => DBMonad m where
-    getDBPool :: m ConnectionPool
+
+class (Monad m, MonadBaseControl IO m) => DBMonad m where
+  getDBPool :: m ConnectionPool
 
 instance DBMonad App where
-    getDBPool = asks dbPool
+  getDBPool = asks dbPool
 
 instance (DBMonad m) => DBMonad (ExceptT e m) where
+    getDBPool = lift getDBPool
+
+instance (DBMonad m) => DBMonad (StateT s m) where
     getDBPool = lift getDBPool
 
 data LoginForm = Login { loginUsername :: Text

@@ -19,8 +19,8 @@ data ProductCreationError = EmptyVariantList
 
 sluggify = undefined
 
-dbCreateProduct :: DBMonad m => TenantID -> ProductInput -> OperationT m (Either ProductCreationError ProductID)
-dbCreateProduct tid ProductI{..} = runDb $ runExceptT $ do
+dbCreateProduct :: MonadIO m => TenantID -> ProductInput -> OperationT (TransactionT m) (Either ProductCreationError ProductID)
+dbCreateProduct tid ProductI{..} = lift $ runExceptT $ do
                           time <- liftIO getCurrentTime
                           when (null piVariants) $
                                throwError EmptyVariantList
@@ -28,14 +28,14 @@ dbCreateProduct tid ProductI{..} = runDb $ runExceptT $ do
                             Phys -> when (any (\VariantI{..} -> isNothing viWeightInGrams
                                                              || isNothing viWeightDisplayUnit)
                                               piVariants) $
-                                      throwError $ PhysicalProductFieldsMissing
+                                      throwError PhysicalProductFieldsMissing
                             Dig -> when (any (\VariantI{..} -> isJust viWeightInGrams
-                                                             || isJust viWeightDisplayUnit)
+                                                            || isJust viWeightDisplayUnit)
                                               piVariants) $
-                                      throwError $ DigitalProductExtraFields
+                                      throwError DigitalProductExtraFields
                           let advertisedPrice = fromMaybe (minimum $ map viPrice piVariants)
                                                           piAdvertisedPrice
-                          let comparisionPrice = fromMaybe (advertisedPrice)
+                          let comparisionPrice = fromMaybe advertisedPrice
                                                            piComparisonPrice
                           let urlSlug = fromMaybe (sluggify piName)
                                                   piURLSlug
@@ -67,17 +67,17 @@ dbCreateProduct tid ProductI{..} = runDb $ runExceptT $ do
                             Just pid -> do lift $ insertMany_ $ map (mkDBVar pid) piVariants
                                            return pid
 
-dbGetProduct :: DBMonad m => ProductID -> OperationT m (Either DBError Product)
-dbGetProduct pid = runDb $ runExceptT $ do
-                   product <- ExceptT $
+dbGetProduct :: MonadIO m => ProductID -> OperationT (TransactionT m) (Either DBError Product)
+dbGetProduct pid = lift $ runExceptT $ do
+                   prod <- ExceptT $
                               maybe (Left $ ProductNotFound pid)
                                     Right
                                 <$> get pid
                    variants <- lift $ selectList [DBVariantProductID ==. pid] []
-                   return $ Product (Entity pid product) variants
+                   return $ Product (Entity pid prod) variants
 
-dbGetProductList :: DBMonad m => ProductFilter -> OperationT m [Product]
-dbGetProductList pf = runDb $ do
+dbGetProductList :: MonadIO m => ProductFilter -> OperationT (TransactionT m) [Product]
+dbGetProductList pf = lift $ do
                    products <- selectList (getProductFilter pf) []
                    variants <- forM (map entityKey products) $ \pid ->
                                  selectList (getVariantFilter pf ++ [DBVariantProductID ==. pid]) []

@@ -22,6 +22,7 @@ import           Servant.Server.Experimental.Auth.Cookie
 import           Types
 import ProductQuery
 import Operation
+import Models
 
 
 type TestAPI = API
@@ -31,14 +32,14 @@ testAPI = Proxy
 
 newTenant :: TenantInput -> App (Headers '[Header "location" String] TenantID)
 newTenant ti = do
-    result <- dbCreateTenant ti
+    result <- runTransaction $ dbCreateTenant ti
     case result of
          Nothing -> throwError $ err400 { errBody = "Tenant already exists" }
          Just tid -> return $ addHeader (show tid) tid
 
 getTenant :: TenantID -> App TenantOutput
 getTenant tid = do
-    result <- dbGetTenant tid
+    result <- runTransaction $ dbGetTenant tid
     case result of
          Nothing -> throwError $ err404 { errBody = "Tenant doesn't exist" }
          Just t  -> return t
@@ -66,7 +67,8 @@ productGetHandler pid session = do
        (Right user) -> do
                     result <- handleDBError $
                               handlePermissionError $
-                              runOperation (dbGetProduct pid) user
+                              runTransaction $
+                              runOperation (dbGetProduct pid) (Just user)
                     return result
        (Left _) -> throwError err403
 
@@ -91,7 +93,9 @@ productListHandler pfs pvs session =
       pv = mconcat pvs
   in case session of
        (Right user) -> do
-                    result <- handlePermissionError (runOperation (dbGetProductList pf) user)
+                    result <- handlePermissionError $
+                              runTransaction $
+                              (runOperation (dbGetProductList pf) $ Just user)
                     return result
        (Left _) -> throwError err403
 

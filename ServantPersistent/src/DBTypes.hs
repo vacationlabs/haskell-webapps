@@ -5,6 +5,7 @@
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE FlexibleContexts   #-}
+{-# LANGUAGE UndecidableInstances #-}
 module DBTypes where
 
 import Data.Aeson
@@ -17,10 +18,11 @@ import Control.Lens
 import Types
 import Price
 import Models
-import Data.Default
+
 import Database.Persist
 import Database.Persist.Sql
 import Data.Serialize
+import GHC.TypeLits
 
 
 type TenantID = Key DBTenant
@@ -28,6 +30,7 @@ type Tenant = DBTenant
 type TenantOutput = DBTenant
 type UserID = Key DBUser
 type ProductID = Key DBProduct
+type RoleID = Key Role
 
 
 data Product = Product { getProduct :: Entity DBProduct
@@ -66,6 +69,7 @@ data Session = Session { sessionUserID :: UserID
 data DBError = TenantNotFound TenantID
              | UserNotFound UserID 
              | ProductNotFound ProductID
+             | RoleNotFound (Either RoleID Text)
              | ViolatesTenantUniqueness (Unique Tenant)
                 deriving (Eq, Show)
 
@@ -74,17 +78,6 @@ data UserCreationError = UserExists Text
                         deriving (Eq, Show)
 data ActivationError = ActivationError
 
-data Role = Role { roleName :: Text
-                 , roleCapabilities :: [Capability]
-                 }
-
-instance Default Role where
-    def = Role "Default Role" []
-
-data Capability = ViewUserDetails
-                | EditUserDetails
-                | EditUserRoles
-                | EditTenantDetails
 
 data Activation =
     Activation { activationTenantID :: TenantID
@@ -108,12 +101,15 @@ instance HasBackofficeDomain TenantIdent where
 
 type TenantInput = TenantIdent
 
-data FieldStatus = Present | Absent | Unknown
 
-type family Omittable (state :: FieldStatus) a where
-    Omittable Present a = a
-    Omittable Absent a = ()
-    Omittable Unknown a = Maybe a
+data UserType = Input
+              | Regular
+
+type family Omittable (state :: UserType) (s :: Symbol) a where
+  Omittable Input "password" a = a
+  Omittable Input _ a = ()
+  Omittable Regular "password" a = ()
+  Omittable Regular _ a = a
 
 class HasTenantID s where
     tenantID :: Lens' s TenantID
@@ -124,42 +120,42 @@ class HasUserID s where
 instance HasTenantID DBUser where
     tenantID = dBUserTenantID
 
-data UserBase (pass :: FieldStatus) (st :: FieldStatus) (rl :: FieldStatus) (id :: FieldStatus) =
+data UserBase (userType :: UserType)=
     UserB { _userFirstName :: Text
           , _userLastName :: Text
           , _userEmail :: Text
           , _userPhone :: Text
           , _userUsername :: Text
           , _userTenantID :: TenantID
-          , _userPassword :: Omittable pass Text
-          , _userStatus :: Omittable st UserStatus
-          , _userRole :: Omittable rl Role
-          , _userUserID :: Omittable id UserID
+          , _userPassword :: Omittable userType "password" Text
+          , _userStatus :: Omittable userType "status" UserStatus
+          , _userRole :: Omittable userType "role" Role
+          , _userUserID :: Omittable userType "userID" UserID
           } deriving (Generic)
 
 makeLenses ''UserBase
 
-instance HasHumanName (UserBase pass st rl id) where
+instance HasHumanName (UserBase a) where
     firstName = userFirstName
     lastName = userLastName
-instance HasContactDetails (UserBase pass st rl id) where
+instance HasContactDetails (UserBase a) where
     email = userEmail
     phone = userPhone
-instance HasUsername (UserBase pass st rl id) where
+instance HasUsername (UserBase a) where
     username = userUsername
-instance HasPassword (UserBase Present st rl id) where
+instance HasPassword (UserBase Input) where
     password = userPassword
-instance HasTenantID (UserBase pas st rl id) where
+instance HasTenantID (UserBase a) where
     tenantID = userTenantID
-instance HasUserID (UserBase pas st rl Present) where
+instance HasUserID (UserBase Regular) where
     userID = userUserID
 
-deriving instance (Show (Omittable pass Text),
-                   Show (Omittable st UserStatus),
-                   Show (Omittable rl Role),
-                   Show (Omittable id UserID))
-                   => Show (UserBase pass st rl id)
+deriving instance (Show (Omittable a "password" Text),
+                   Show (Omittable a "status" UserStatus),
+                   Show (Omittable a "role" Role),
+                   Show (Omittable a "userID" UserID))
+                   => Show (UserBase a)
 
-type UserInput = UserBase Present Absent Absent Absent
-type User = UserBase Absent Present Present Present
+type UserInput = UserBase Input
+type User = UserBase Regular
 

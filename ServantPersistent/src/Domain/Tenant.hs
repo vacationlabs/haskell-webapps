@@ -14,8 +14,8 @@ import           Types
 import           Updater
 import Data.Text (Text)
 
-dbCreateTenant :: DBMonad m => TenantInput -> m (Maybe TenantID)
-dbCreateTenant ti = runDb $ do
+dbCreateTenant :: MonadIO m => TenantInput -> TransactionT m (Maybe TenantID)
+dbCreateTenant ti =  do
     time <- liftIO getCurrentTime
     let dbt = DBTenant { _dBTenantName = ti ^. name
                        , _dBTenantBackofficeDomain = ti ^. backofficeDomain
@@ -27,12 +27,12 @@ dbCreateTenant ti = runDb $ do
     insertUnique dbt
 
 
-dbGetTenant :: DBMonad m => TenantID -> m (Maybe Tenant)
-dbGetTenant = runDb . get
+dbGetTenant :: MonadIO m => TenantID -> TransactionT m (Maybe Tenant)
+dbGetTenant = get
 
-dbUpdateTenant :: DBMonad m =>
-                  TenantUpdater -> TenantID -> OperationT m (Either DBError ())
-dbUpdateTenant upd tid = requirePermission (EditTenant tid) $ runDb $ do
+dbUpdateTenant :: MonadIO m =>
+                  TenantUpdater -> TenantID -> OperationT (TransactionT m) (Either DBError ())
+dbUpdateTenant upd tid = requirePermission (EditTenant tid) $ lift $ do
     oldTenant' <- get tid
     case oldTenant' of
          Nothing -> return $ Left $ TenantNotFound tid
@@ -41,8 +41,8 @@ dbUpdateTenant upd tid = requirePermission (EditTenant tid) $ runDb $ do
                  (Left . ViolatesTenantUniqueness)
              <$> (replaceUnique tid =<< applyUpdate upd oldTenant)
 
-activateTenant :: DBMonad m => UserID -> Text -> m (Either ActivationError ())
-activateTenant owner key = runDb $ runExceptT $ do
+activateTenant :: MonadIO m => UserID -> Text -> TransactionT m (Either ActivationError ())
+activateTenant owner key = runExceptT $ do
                        r <- lift $ getBy (UniqueTenantKey key)
                        time <- liftIO getCurrentTime
                        case r of

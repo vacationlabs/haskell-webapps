@@ -4,9 +4,8 @@ module Domain.User
 
 import           Control.Lens
 import           Control.Monad.Except
+import Domain.Roles
 
-
-import           Data.Default
 import           Data.Text              (Text)
 import           Data.Time
 import           Database.Persist
@@ -16,9 +15,11 @@ import           Operation
 import           Types
 import           Updater
 
-dbCreateUser :: DBMonad m => UserInput -> m (Either UserCreationError UserID)
+dbCreateUser :: MonadIO m => UserInput -> TransactionT m (Either UserCreationError UserID)
 dbCreateUser u = runExceptT $ do
     time <- liftIO getCurrentTime
+    roleId <- lift $  either entityKey id
+                   <$> insertBy (Role "Default Role" [] $ u ^. tenantID)
     let dbu = DBUser { _dBUserFirstName = view firstName u
                      , _dBUserLastName  = view lastName u
                      , _dBUserTenantID  = view tenantID u
@@ -29,25 +30,30 @@ dbCreateUser u = runExceptT $ do
                      , _dBUserStatus    = InactiveU
                      , _dBUserCreatedAt = time
                      , _dBUserUpdatedAt = time
+                     , _dBUserRoleId      = roleId
                      }
-    result <- runDb $ insertUnique dbu
+    result <- lift $ insertUnique dbu
     case result of
          Just a  -> return a
          Nothing -> throwError $ UserExists (view username u)
 
-dbUpdateUser :: DBMonad m => UserID -> UserUpdater -> OperationT m (Either DBError ())
-dbUpdateUser uid upd = requirePermission (EditUser uid) $ runDb $ do
+dbUpdateUser :: MonadIO m => UserID -> UserUpdater -> OperationT (TransactionT m) (Either DBError ())
+dbUpdateUser uid upd = requirePermission (EditUser uid) $ lift $ do
     oldUser' <- get uid
     case oldUser' of
          Nothing -> return $ Left $ UserNotFound uid
          Just oldUser ->
            Right <$> (replace uid =<< applyUpdate upd oldUser)
 
-dbGetUser :: DBMonad m => UserID -> OperationT m (Either DBError User)
-dbGetUser uid = requirePermission (ViewUser uid) $ runExceptT $ do
+dbGetUser :: MonadIO m => UserID -> OperationT (TransactionT m) (Either DBError User)
+dbGetUser uid = requirePermission (ViewUser uid) $  lift $ runExceptT $ do
     dbu <- ExceptT $ maybe (Left $ UserNotFound uid)
                            Right
-                       <$> (runDb $ get uid)
+                       <$> get uid
+    let roleId = view dBUserRoleId dbu
+    role <- ExceptT $ maybe (Left $ RoleNotFound  $ Left roleId)
+                            Right
+                        <$> get roleId
     let u = UserB { _userFirstName = view firstName dbu
                   , _userLastName  = view lastName dbu
                   , _userTenantID  = view tenantID dbu
@@ -56,13 +62,13 @@ dbGetUser uid = requirePermission (ViewUser uid) $ runExceptT $ do
                   , _userEmail     = view email dbu
                   , _userPhone     = view phone dbu
                   , _userStatus    = InactiveU
-                  , _userRole      = def
+                  , _userRole      = role
                   , _userUserID    = uid
                   }
     return u
 
-dbActivateUser :: DBMonad m => Text -> m (Either ActivationError ())
-dbActivateUser key = runDb $ runExceptT $ do
+dbActivateUser :: MonadIO m => Text -> TransactionT m (Either ActivationError ())
+dbActivateUser key = runExceptT $ do
                        r <- lift $ getBy (UniqueUserKey key)
                        time <- liftIO getCurrentTime
                        case r of
@@ -75,3 +81,19 @@ dbActivateUser key = runDb $ runExceptT $ do
                            lift $ delete entityKey
                        return ()
 
+dbUserAssignRole :: MonadIO m
+                 => Text
+                 -> UserID
+                 -> OperationT (TransactionT m) (Either DBError ())
+dbUserAssignRole name uid =
+  runExceptT $ do
+    time <- liftIO getCurrentTime
+    u <- ExceptT $ dbGetUser uid
+    let tid = view tenantID u
+    roleE <- ExceptT $ maybe (Left $ RoleNotFound $ Right name)
+                       Right
+                   <$> lift (dbGetRoleByName name tid)
+    lift . lift $ update uid [ DBUserRoleId =. entityKey roleE
+                             , DBUserUpdatedAt =. time
+                             ]
+    return ()

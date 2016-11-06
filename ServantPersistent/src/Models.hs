@@ -11,13 +11,14 @@
 module Models
     where
 
-import           Control.Monad.IO.Class
+
 import           Data.Text
 import           Data.Time.Clock
 import           Database.Persist.Sql
 import           Database.Persist.TH
 import           Price
 import           Types
+
 
 
 share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
@@ -40,6 +41,7 @@ DBUser
     status UserStatus
     email Text
     phone Text
+    roleId RoleId
     createdAt UTCTime
     updatedAt UTCTime
     UniqueUsername username
@@ -83,6 +85,13 @@ DBVariant
     weightDisplayUnit Text Maybe
     createdAt UTCTime
     updatedAt UTCTime
+    UniqueSku sku
+
+Role
+    name Text
+    capabilities [Capability]
+    tenant DBTenantId
+    UniqueRoleName name tenant
 |]
 
 deriving instance Eq (Unique DBTenant)
@@ -112,7 +121,9 @@ instance HasUsername DBUser where
 instance HasPassword DBUser where
     password = dBUserPassword
 
-runDb :: DBMonad m => SqlPersistT IO b -> m b
-runDb query = do
+type TransactionT = SqlPersistT
+
+runTransaction :: DBMonad m => TransactionT m a -> m a
+runTransaction t = do
     pool <- getDBPool
-    liftIO $ runSqlPool query pool
+    runSqlPool t pool

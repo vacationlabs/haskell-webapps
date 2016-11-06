@@ -24,36 +24,38 @@ library
                      , Domain.Tenant
                      , Domain.User
                      , Domain.Product
+                     , Domain.Roles
                      , Updater
                      , DBTypes
                      , Operation
                      , ProductQuery
                      , Price
   ghc-options:       -Wall -fno-warn-unticked-promoted-constructors
-  build-depends:       base >= 4.7 && < 5
-                     , aeson
-                     , servant-server
-                     , servant
-                     , servant-auth-cookie
-                     , cereal
-                     , wai
-                     , ghc-prim
-                     , text
-                     , time
+  build-depends:       aeson
+                     , base >= 4.7 && < 5
                      , bytestring
-                     , warp
+                     , cereal
+                     , containers
+                     , data-default
+                     , exceptions
+                     , ghc-prim
+                     , lens
+                     , monad-control >= 1.0.1.0
+                     , monad-logger
                      , mtl
                      , persistent
-                     , persistent-template
                      , persistent-postgresql
-                     , monad-logger
-                     , exceptions
-                     , lens
-                     , unordered-containers
-                     , containers
+                     , persistent-template
+                     , servant
+                     , servant-auth-cookie
+                     , servant-server
+                     , text
+                     , time
                      , transformers
-                     , data-default
+                     , unordered-containers
                      , vector
+                     , wai
+                     , warp
   default-language:    Haskell2010
   default-extensions:  OverloadedStrings
                      , StandaloneDeriving
@@ -63,25 +65,27 @@ executable ServantPersistent-exe
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
-                     , ServantPersistent
-                     , servant-server
-                     , servant
-                     , servant-auth-cookie
-                     , persistent-postgresql
-                     , monad-logger
-                     , wai
-                     , warp
+  build-depends:       ServantPersistent
+                     , base
                      , cryptonite
                      , data-default
+                     , monad-control >= 1.0.1.0
+                     , monad-logger
+                     , persistent-postgresql
+                     , servant
+                     , servant-auth-cookie
+                     , servant-server
+                     , wai
+                     , warp
   default-language:    Haskell2010
 
 test-suite ServantPersistent-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  build-depends:       base
-                     , ServantPersistent
+  build-depends:       ServantPersistent
+                     , base
+                     , monad-control >= 1.0.1.0
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
