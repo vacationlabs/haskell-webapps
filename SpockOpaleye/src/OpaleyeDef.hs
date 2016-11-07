@@ -69,6 +69,8 @@ tenantTable = Table "tenants" (pTenant
 
 type UserTableW = UserPoly
   (Maybe (Column PGInt4))
+  (Maybe (Column PGTimestamptz)) -- createdAt
+  (Maybe (Column PGTimestamptz)) -- updatedAt
   (Column PGInt4)
   (Column PGText)
   (Column PGBytea)
@@ -78,6 +80,8 @@ type UserTableW = UserPoly
 
 type UserTableR = UserPoly
   (Column PGInt4)
+  (Column PGTimestamptz) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
   (Column PGInt4)
   (Column PGText)
   (Column PGBytea)
@@ -92,22 +96,28 @@ userTable :: Table UserTableW UserTableR
 userTable = Table "users" (pUser
   User {
     user_id = optional "id"
-    , user_tenantid = required "tenant_id"
-    , user_username = required "username"
-    , user_password = required "password"
-    , user_firstname = optional "first_name"
-    , user_lastname = optional "last_name"
-    , user_status = required "status"
+  , user_createdat = (optional "created_at")
+  , user_updatedat = (optional "updated_at")
+  , user_tenantid = required "tenant_id"
+  , user_username = required "username"
+  , user_password = required "password"
+  , user_firstname = optional "first_name"
+  , user_lastname = optional "last_name"
+  , user_status = required "status"
  })
 
 type RoleTableW = RolePoly
   (Maybe (Column PGInt4))
+  (Maybe (Column PGTimestamptz)) -- createdAt
+  (Maybe (Column PGTimestamptz)) -- updatedAt
   (Column PGInt4)
   (Column PGText)
   (Column (PGArray PGText))
 
 type RoleTableR = RolePoly
   (Column PGInt4)
+  (Column PGTimestamptz) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
   (Column PGInt4)
   (Column PGText)
   (Column (PGArray PGText))
@@ -118,6 +128,8 @@ $(makeLensesWith abbreviatedFields ''RolePoly)
 roleTable :: Table RoleTableW RoleTableR
 roleTable = Table "roles" (pRole Role {
   role_id = optional "id",
+  role_createdat = optional "created_at",
+  role_updatedat = optional "updated_at",
   role_tenantid = required "tenant_id",
   role_name = required "name",
   role_permission = required "permissions"})
@@ -291,7 +303,6 @@ instance D.Default Constant () (Maybe (Column PGTimestamptz)) where
 
 instance D.Default Constant UTCTime (Maybe (Column PGTimestamptz)) where
   def = Constant (\time -> Just $ pgUTCTime time)
-
 
 create_item :: (D.Default Constant haskells columnsW, D.Default QueryRunner returned b) 
     => Connection -> Table columnsW returned -> haskells -> IO b
