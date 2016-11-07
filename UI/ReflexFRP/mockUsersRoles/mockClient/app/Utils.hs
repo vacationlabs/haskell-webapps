@@ -11,7 +11,6 @@ import Reflex.Dom
 import Servant.API
 import Servant.Reflex
 
-import           Control.Monad.Identity (Identity)
 import qualified Data.Dependent.Map     as DMap
 import           Data.GADT.Compare
 import           Data.Proxy             (Proxy (..))

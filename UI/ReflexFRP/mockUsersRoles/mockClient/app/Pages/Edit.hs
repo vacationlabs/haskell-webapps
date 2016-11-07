@@ -10,7 +10,6 @@ import Control.Lens
 import Reflex.Dom
 
 import MockAPI
-import Permissions
 import Pages.Common
 import Utils
 
@@ -85,7 +84,7 @@ permissionCheckboxes groupName permissions groupToDisplay =
         elClass "label" "control-label" $ do
           let groupComplete = (\ps -> length ps == length groupToDisplay) <$> temp
           groupChecked <- _checkbox_change <$>
-            checkbox (length permissions == length groupToDisplay)
+            checkbox (all (\p -> p `member` permissions) groupToDisplay)
                      (def & checkboxConfig_setValue .~ updated groupComplete)
           el "strong" $ text groupName
           return groupChecked

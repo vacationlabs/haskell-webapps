@@ -28,6 +28,7 @@ extra-deps:
 - ref-tf-0.4.0.1
 - webkitgtk3-javascriptcore-0.13.2.0
 - zenc-0.1.1
+- digestive-functors-0.8.1.1
 
 flags: {}
 

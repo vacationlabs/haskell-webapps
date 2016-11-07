@@ -3,7 +3,6 @@
 module Pages.Overview where
 
 import MockAPI
-import Permissions
 
 import ClassyPrelude
 import Reflex.Dom

@@ -36,3 +36,4 @@ extra-deps:
 - reflex-jsx-0.1.0.0
 - ref-tf-0.4.0.1
 - zenc-0.1.1
+- digestive-functors-0.8.1.1

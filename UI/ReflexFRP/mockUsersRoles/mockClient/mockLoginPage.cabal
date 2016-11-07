@@ -18,8 +18,6 @@ executable mockClient
                      , reflex-dom-contrib
                      , servant-reflex
                      , reflex-jsx
-                     , containers
-                     , text
                      , safe
                      , string-conv
                      , classy-prelude
@@ -29,7 +27,7 @@ executable mockClient
                      , lens
                      , dependent-map
                      , dependent-sum
-                     , mtl
+                     , digestive-functors
   default-language:  Haskell2010
   if impl(ghcjs)
     ghc-options:    -dedupe
