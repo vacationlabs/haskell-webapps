@@ -1,4 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module DataTypes where
 
@@ -6,6 +8,7 @@ import           CryptoDef
 import           Data.List.NonEmpty
 import           Data.Text
 import           GHC.Generics
+import           Data.Time(UTCTime)
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)
@@ -16,8 +19,10 @@ newtype TenantId = TenantId Int
 data TenantStatus = TenantStatusActive | TenantStatusInActive | TenantStatusNew
   deriving (Show, Generic)
 
-data TenantPoly key name fname lname email phone status owner_id b_domain = Tenant
+data TenantPoly key created_at updated_at name fname lname email phone status owner_id b_domain = Tenant
   { tenant_id               :: key
+  , tenant_createdat        :: created_at
+  , tenant_updatedat        :: updated_at
   , tenant_name             :: name
   , tenant_firstname        :: fname
   , tenant_lastname         :: lname
@@ -28,9 +33,9 @@ data TenantPoly key name fname lname email phone status owner_id b_domain = Tena
   , tenant_backofficedomain :: b_domain
   } deriving (Show, Generic)
 
-type Tenant = TenantPoly TenantId Text Text Text Text Text TenantStatus (Maybe UserId) Text
+type Tenant = TenantPoly TenantId  UTCTime UTCTime Text Text Text Text Text TenantStatus (Maybe UserId) Text
 
-type TenantIncoming = TenantPoly () Text Text Text Text Text () (Maybe UserId) Text
+type TenantIncoming = TenantPoly () () () Text Text Text Text Text () (Maybe UserId) Text
 
 data UserStatus = UserStatusActive | UserStatusInActive | UserStatusBlocked
   deriving (Show)

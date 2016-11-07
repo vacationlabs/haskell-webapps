@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -11,8 +12,10 @@ import           Data.Profunctor.Product
 import qualified Data.Profunctor.Product.Default      as D
 import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
 import           Data.Text
+import           Data.Time(UTCTime)
 import           Data.Text.Encoding
 import           Database.PostgreSQL.Simple.FromField
+import           Database.PostgreSQL.Simple           (Connection)
 import           Opaleye
 
 import           Control.Lens
@@ -20,6 +23,8 @@ import           DataTypes
 
 type TenantTableW = TenantPoly
   (Maybe (Column PGInt4))
+  (Maybe (Column PGTimestamptz)) -- createdAt
+  (Maybe (Column PGTimestamptz)) -- updatedAt
   (Column PGText)
   (Column PGText)
   (Column PGText)
@@ -31,6 +36,8 @@ type TenantTableW = TenantPoly
 
 type TenantTableR = TenantPoly
   (Column PGInt4)
+  (Column PGTimestamptz) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
   (Column PGText)
   (Column PGText)
   (Column PGText)
@@ -47,6 +54,8 @@ tenantTable :: Table TenantTableW TenantTableR
 tenantTable = Table "tenants" (pTenant
    Tenant {
      tenant_id = (optional "id"),
+     tenant_createdat = (optional "created_at"),
+     tenant_updatedat = (optional "updated_at"),
      tenant_name = (required "name"),
      tenant_firstname = (required "first_name"),
      tenant_lastname = (required "last_name"),
@@ -276,3 +285,14 @@ instance D.Default Constant () (Maybe (Column PGText)) where
 
 instance D.Default Constant Text (Column (Nullable PGText)) where
   def = Constant (toNullable.pgStrictText)
+
+instance D.Default Constant () (Maybe (Column PGTimestamptz)) where
+  def = Constant (\_ -> Nothing)
+
+instance D.Default Constant UTCTime (Maybe (Column PGTimestamptz)) where
+  def = Constant (\time -> Just $ pgUTCTime time)
+
+
+create_item :: (D.Default Constant haskells columnsW, D.Default QueryRunner returned b) 
+    => Connection -> Table columnsW returned -> haskells -> IO b
+create_item conn table item = fmap Prelude.head $ runInsertManyReturning conn table [constant item] id

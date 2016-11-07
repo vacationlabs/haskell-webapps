@@ -27,7 +27,7 @@ import           UserApi
 
 create_tenant :: Connection -> TenantIncoming -> IO Tenant
 create_tenant conn tenant = do
-  fmap Prelude.head $ runInsertManyReturning conn tenantTable [constant tenant] id
+  create_item conn tenantTable tenant 
 
 activate_tenant :: Connection -> Tenant -> IO Tenant
 activate_tenant conn tenant = set_tenant_status conn tenant TenantStatusActive
