@@ -6,9 +6,13 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     MockAPI
-                     , ExRoles
+                     , MockAPI.Prelude
+                     -- , ExRoles
                      , GenericStructure
-                     , Permissions
+                     , MockAPI.Permission
+                     , MockAPI.User
+                     , MockAPI.RoleAttributes
+                     , MockAPI.Roles
   build-depends:       base >= 4.7 && < 5
                      , servant
                      , text
@@ -16,4 +20,7 @@ library
                      , mtl
                      , containers
                      , lens
+                     , digestive-functors
+                     , email-validate
+                     , string-conversions >= 0.4
   default-language:    Haskell2010

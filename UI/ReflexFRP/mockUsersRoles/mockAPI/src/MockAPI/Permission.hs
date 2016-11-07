@@ -1,11 +1,8 @@
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric, OverloadedStrings #-}
 
-module Permissions where
+module MockAPI.Permission where
 
-import Data.Aeson
-import Data.Text
-import GHC.Generics
+import MockAPI.Prelude
 
 -- A permission can be a permission in several ambiti
 
@@ -70,7 +67,7 @@ instance UserLabel OrderPermission where
 instance UserLabel UserPermission where
   toUserLabel ViewUserDetails = "View user details"
   toUserLabel EditUserDetails = "Edit some other user's details"
-  toUserLabel ChangeUserRole = "Change roles assigned to a user"
+  toUserLabel ChangeUserRole  = "Change roles assigned to a user"
 
 instance UserLabel Permission where
   toUserLabel (PP p) = toUserLabel p

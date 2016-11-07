@@ -1,7 +1,8 @@
 resolver: lts-7.5
 packages:
 - '.'
-extra-deps: []
+extra-deps:
+- digestive-functors-0.8.1.1
 flags: {}
 extra-package-dbs: []
 
