@@ -1,28 +1,15 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE DataKinds, OverloadedStrings, TypeApplications, TypeOperators #-}
-
-{-# LANGUAGE PartialTypeSignatures #-}
-{-# OPTIONS_GHC -fdefer-typed-holes #-}
+{-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings, TypeApplications, TypeOperators #-}
 
 module Main where
 
 import MockAPI
-import ExRoles
 import Servant
 import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.Gzip
 
-import qualified Control.Category           as C
-import           Control.Concurrent         (threadDelay)
-import           Control.Lens
-import           Control.Lens.Wrapped
-import           Control.Monad.IO.Class
-import           Control.Monad.Reader
-import qualified Data.Map                   as M
-import           Data.Set                   (Set)
-import qualified Data.Set                   as Set
-import           Data.Text                  (Text)
-import Control.Concurrent.STM
+import ClassyPrelude
+import Control.Lens
 
 data Config = Config { rolesTVar :: TVar Roles }
 
@@ -55,3 +42,44 @@ main = do
   run 8081 (gzip gzipSettings $ serve (Proxy @MockApi) (server config))
   where
     gzipSettings = def { gzipFiles = GzipCompress }
+
+--------------------------------------------------------------------------------
+---- Example roles to be served by the server:
+--------------------------------------------------------------------------------
+
+exRoles = Roles $ accountAdministrator <> productAdministrator <> productEditor
+
+allPermissions :: [Permission]
+allPermissions = concat [ map PP [minBound .. maxBound]
+                        , map OP [minBound .. maxBound]
+                        , map UP [minBound .. maxBound]
+                        ]
+
+accountAdministrator = singletonMap "Account administrator" (RoleAttributes roles users)
+  where
+    roles = setFromList allPermissions
+    users = setFromList [ User "admin@mydomain.com"
+                        , User "otheradmin@mydomain.com"
+                        , User "yetanotheradmin@mydomain.com"
+                        ]
+
+productAdministrator = singletonMap "Product administrator" (RoleAttributes roles users)
+  where
+    roles = setFromList $ map PP [minBound .. maxBound]
+    users = setFromList [ User "user1@mydomain.com"
+                        , User "user2@mydomain.com"
+                        , User "user3@mydomain.com"
+                        ]
+
+productEditor = singletonMap "Product editor" (RoleAttributes roles users)
+  where
+    roles = setFromList $ map PP [ViewAllProductDetails, EditProdTextualContent, EditProdPhotos]
+    users = setFromList [ User "user4@mydomain.com"
+                        , User "user5@mydomain.com"
+                        , User "user6@mydomain.com"
+                        , User "user7@mydomain.com"
+                        , User "user8@mydomain.com"
+                        , User "user9@mydomain.com"
+                        , User "user10@mydomain.com"
+                        , User "user11@mydomain.com"
+                        ]
