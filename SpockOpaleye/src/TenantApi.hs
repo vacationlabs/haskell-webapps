@@ -17,6 +17,7 @@ module TenantApi
 
 import           Control.Arrow
 import           Data.Text
+import           Data.Time                  (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
@@ -27,7 +28,8 @@ import           UserApi
 
 create_tenant :: Connection -> TenantIncoming -> IO Tenant
 create_tenant conn tenant = do
-  create_item conn tenantTable tenant 
+  current_time <- getCurrentTime
+  create_item conn tenantTable tenant { tenant_createdat = current_time, tenant_updatedat = current_time }
 
 activate_tenant :: Connection -> Tenant -> IO Tenant
 activate_tenant conn tenant = set_tenant_status conn tenant TenantStatusActive
@@ -40,13 +42,14 @@ set_tenant_status conn tenant status = update_tenant conn (tenant_id tenant) ten
 
 update_tenant :: Connection -> TenantId -> Tenant -> IO Tenant
 update_tenant conn t_tenantid tenant = do
-  runUpdate conn tenantTable update_func match_func
+  current_time <- getCurrentTime
+  runUpdate conn tenantTable (update_func current_time) match_func
   return tenant
   where
     match_func :: TenantTableR -> Column PGBool
     match_func Tenant { tenant_id = id } = id .== constant t_tenantid
-    update_func :: TenantTableR -> TenantTableW
-    update_func x = constant tenant
+    update_func :: UTCTime -> TenantTableR -> TenantTableW
+    update_func current_time x = constant (tenant { tenant_updatedat = current_time })
 
 remove_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
 remove_tenant conn tenant@Tenant {tenant_id = tid} = do

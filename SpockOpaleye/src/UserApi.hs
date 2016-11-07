@@ -18,6 +18,7 @@ module UserApi
 
 import           Control.Arrow
 import           Data.Text
+import           Data.Time                  (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
@@ -26,16 +27,24 @@ import           OpaleyeDef
 
 import           CryptoDef
 
-create_user :: Connection -> User -> IO User
-create_user conn user = Prelude.head <$> runInsertManyReturning conn userTable [constant user] id
+create_user :: Connection -> UserIncoming -> IO User
+create_user conn user@ User { user_password = password } = do
+  Just hash <- bcryptPassword password
+  current_time <- getCurrentTime
+  Prelude.head <$> runInsertManyReturning conn userTable [constant (user {
+        user_createdat = current_time
+      , user_updatedat = current_time
+      , user_password = hash
+      } )] id
 
 update_user :: Connection -> UserId -> User -> IO User
 update_user conn user_id user = do
-  runUpdate conn userTable update_func match_func
+  current_time <- getCurrentTime
+  runUpdate conn userTable (update_func current_time) match_func
   return user
   where
-    update_func :: UserTableR -> UserTableW
-    update_func _ = constant user
+    update_func :: UTCTime -> UserTableR -> UserTableW
+    update_func current_time _ = constant (user { user_updatedat = current_time } )
     match_func :: UserTableR -> Column PGBool
     match_func User { user_id = id } = id .== constant user_id
 

@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -12,10 +12,10 @@ import           Data.Profunctor.Product
 import qualified Data.Profunctor.Product.Default      as D
 import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
 import           Data.Text
-import           Data.Time(UTCTime)
 import           Data.Text.Encoding
-import           Database.PostgreSQL.Simple.FromField
+import           Data.Time                            (UTCTime)
 import           Database.PostgreSQL.Simple           (Connection)
+import           Database.PostgreSQL.Simple.FromField
 import           Opaleye
 
 import           Control.Lens
@@ -76,7 +76,7 @@ type UserTableW = UserPoly
   (Column PGBytea)
   (Maybe (Column (Nullable PGText)))
   (Maybe (Column (Nullable PGText)))
-  (Column PGText)
+  (Maybe (Column PGText))
 
 type UserTableR = UserPoly
   (Column PGInt4)
@@ -103,7 +103,7 @@ userTable = Table "users" (pUser
   , user_password = required "password"
   , user_firstname = optional "first_name"
   , user_lastname = optional "last_name"
-  , user_status = required "status"
+  , user_status = optional "status"
  })
 
 type RoleTableW = RolePoly
@@ -158,13 +158,13 @@ instance FromField TenantStatus where
 instance QueryRunnerColumnDefault PGText TenantStatus where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
 
-instance D.Default Constant UserStatus (Column PGText) where
+instance D.Default Constant UserStatus (Maybe (Column PGText)) where
   def = Constant def'
     where
-      def' :: UserStatus -> (Column PGText)
-      def' UserStatusInActive = pgStrictText "inactive"
-      def' UserStatusActive   = pgStrictText "active"
-      def' UserStatusBlocked  = pgStrictText "blocked"
+      def' :: UserStatus -> Maybe (Column PGText)
+      def' UserStatusInActive = Just $ pgStrictText "inactive"
+      def' UserStatusActive   = Just $ pgStrictText "active"
+      def' UserStatusBlocked  = Just $ pgStrictText "blocked"
 
 instance FromField (UserStatus) where
   fromField f mdata = return gender
@@ -304,6 +304,6 @@ instance D.Default Constant () (Maybe (Column PGTimestamptz)) where
 instance D.Default Constant UTCTime (Maybe (Column PGTimestamptz)) where
   def = Constant (\time -> Just $ pgUTCTime time)
 
-create_item :: (D.Default Constant haskells columnsW, D.Default QueryRunner returned b) 
+create_item :: (D.Default Constant haskells columnsW, D.Default QueryRunner returned b)
     => Connection -> Table columnsW returned -> haskells -> IO b
 create_item conn table item = fmap Prelude.head $ runInsertManyReturning conn table [constant item] id

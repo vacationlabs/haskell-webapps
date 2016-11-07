@@ -1,14 +1,14 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveGeneric        #-}
+{-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
 
 module DataTypes where
 
 import           CryptoDef
 import           Data.List.NonEmpty
 import           Data.Text
+import           Data.Time          (UTCTime)
 import           GHC.Generics
-import           Data.Time(UTCTime)
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)
@@ -56,6 +56,8 @@ data UserPoly key created_at updated_at tenant_id username password firstname la
 }
 
 type User = UserPoly UserId UTCTime UTCTime TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
+
+type UserIncoming = UserPoly () () () TenantId Text Text (Maybe Text) (Maybe Text) ()
 
 data Permission = Read | Create | Update | Delete
   deriving (Show)

@@ -13,6 +13,7 @@ module RoleApi
 import           Control.Arrow
 import           Data.List.NonEmpty
 import           Data.Text
+import           Data.Time                  (getCurrentTime)
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
@@ -20,7 +21,13 @@ import           Opaleye
 import           OpaleyeDef
 
 create_role :: Connection -> Role -> IO Role
-create_role conn role = fmap Prelude.head $ runInsertManyReturning conn roleTable [constant role] id
+create_role conn role = do
+  current_time <- getCurrentTime
+  fmap Prelude.head $ runInsertManyReturning conn roleTable [constant (role {
+      role_createdat = current_time,
+      role_updatedat = current_time
+    })
+    ] id
 
 remove_role :: Connection -> Role -> IO GHC.Int.Int64
 remove_role conn Role {role_id = t_id} = do
