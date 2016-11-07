@@ -1,11 +1,21 @@
 
 -- copy of /ServantOpaleye/db/schema.sql
 
+-- modified to circumvent postgres enums and arrays
+
+
+create table enum_tenant_status(
+    id serial primary key
+    ,name text not null
+);
+insert into enum_tenant_status (name) values ('inactive');                      /* id = 1 */
+insert into enum_tenant_status (name) values ('active');                        /* id = 2 */
+insert into enum_tenant_status (name) values ('new');                           /* id = 3 */
+
 --
 -- Tenants
 --
 
-create type tenant_status as enum('active', 'inactive', 'new');
 create table tenants(
        id serial primary key
        ,created_at timestamp with time zone not null default current_timestamp
@@ -15,10 +25,10 @@ create table tenants(
        ,last_name text not null
        ,email text not null
        ,phone text not null
-       ,status tenant_status not null default 'inactive'
+       ,status integer not null default 1 references enum_tenant_status(id)
        ,owner_id integer
        ,backoffice_domain text not null
-       constraint ensure_not_null_owner_id check (status!='active' or owner_id is not null)
+       constraint ensure_not_null_owner_id check (status!=2 or owner_id is not null)
 );
 create unique index idx_index_owner_id on tenants(owner_id);
 create index idx_status on tenants(status);

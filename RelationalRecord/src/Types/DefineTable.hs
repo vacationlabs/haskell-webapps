@@ -2,10 +2,12 @@
 
 module Types.DefineTable
     ( defineTable
+    , module Types.DB
     ) where
 
 
 import  DataSource
+import  Types.DB
 
 import  Language.Haskell.TH             (Q, Dec)
 
