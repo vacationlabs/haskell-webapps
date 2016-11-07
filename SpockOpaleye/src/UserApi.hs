@@ -35,7 +35,7 @@ create_user conn user@ User { user_password = password } = do
         user_createdat = current_time
       , user_updatedat = current_time
       , user_password = hash
-      } )] id
+      } )] Prelude.id
 
 update_user :: Connection -> UserId -> User -> IO User
 update_user conn user_id user = do

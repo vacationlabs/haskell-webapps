@@ -33,6 +33,7 @@ library
                       ,text
                       ,lens
                       ,mtl
+                      ,vector
                       ,Spock >=0.11
                       ,aeson
   default-language:    Haskell2010
@@ -49,6 +50,7 @@ executable SpockOpaleye-exe
                      , lens
                      , text
                      , bcrypt
+                     , vector
                      , aeson
   default-language:    Haskell2010
 

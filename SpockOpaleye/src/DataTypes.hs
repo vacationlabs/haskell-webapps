@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module DataTypes where
 
@@ -9,6 +10,7 @@ import           Data.List.NonEmpty
 import           Data.Text
 import           Data.Time          (UTCTime)
 import           GHC.Generics
+import Control.Lens
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)
@@ -65,13 +67,15 @@ data Permission = Read | Create | Update | Delete
 newtype RoleId = RoleId Int
   deriving (Show)
 
-data RolePoly key created_at updated_at tenant_id name permission = Role {
-    role_id         :: key
-  , role_createdat  :: created_at
-  , role_updatedat  :: updated_at
-  , role_tenantid   :: tenant_id
-  , role_name       :: name
-  , role_permission :: permission
+data RolePoly key tenant_id name permission created_at updated_at  = Role {
+    _id         :: key
+  , _tenantid   :: tenant_id
+  , _name       :: name
+  , _permission :: permission
+  , _createdat  :: created_at
+  , _updatedat  :: updated_at
 } deriving (Show)
 
-type Role = RolePoly RoleId UTCTime UTCTime TenantId Text (NonEmpty Permission)
+makeLenses ''RolePoly
+
+type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) UTCTime UTCTime 

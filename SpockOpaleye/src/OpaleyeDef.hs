@@ -20,6 +20,7 @@ import           Opaleye
 
 import           Control.Lens
 import           DataTypes
+import Data.Vector
 
 type TenantTableW = TenantPoly
   (Maybe (Column PGInt4))
@@ -108,31 +109,32 @@ userTable = Table "users" (pUser
 
 type RoleTableW = RolePoly
   (Maybe (Column PGInt4))
-  (Maybe (Column PGTimestamptz)) -- createdAt
-  (Maybe (Column PGTimestamptz)) -- updatedAt
   (Column PGInt4)
   (Column PGText)
   (Column (PGArray PGText))
+  (Maybe (Column PGTimestamptz)) -- createdAt
+  (Maybe (Column PGTimestamptz)) -- updatedAt
 
 type RoleTableR = RolePoly
   (Column PGInt4)
-  (Column PGTimestamptz) -- createdAt
-  (Column PGTimestamptz) -- updatedAt
   (Column PGInt4)
   (Column PGText)
   (Column (PGArray PGText))
+  (Column PGTimestamptz) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
 
 $(makeAdaptorAndInstance "pRole" ''RolePoly)
 $(makeLensesWith abbreviatedFields ''RolePoly)
 
 roleTable :: Table RoleTableW RoleTableR
 roleTable = Table "roles" (pRole Role {
-  role_id = optional "id",
-  role_createdat = optional "created_at",
-  role_updatedat = optional "updated_at",
-  role_tenantid = required "tenant_id",
-  role_name = required "name",
-  role_permission = required "permissions"})
+  _id = optional "id",
+  _tenantid = required "tenant_id",
+  _name = required "name",
+  _permission = required "permissions",
+  _createdat = optional "created_at",
+  _updatedat = optional "updated_at"
+  })
 
 userRolePivotTable :: Table (Column PGInt4, Column PGInt4) (Column PGInt4, Column PGInt4)
 userRolePivotTable = Table "users_roles" (p2 (required "user_id", required "role_id"))
@@ -208,10 +210,10 @@ toPermission "Delete" = Delete
 toPermission _        = error "Unrecognized permission"
 
 instance FromField [Permission] where
-  fromField field mdata = (fmap toPermission) <$> (splitByComma <$> fromField field mdata)
+  fromField field mdata = fmap toPermissionList $ fromField field mdata
     where
-      splitByComma :: Text -> [Text]
-      splitByComma = split (\x -> x == ',')
+      toPermissionList :: Vector Text -> [Permission] 
+      toPermissionList v = Data.Vector.toList $ fmap toPermission v
 
 instance FromField (NonEmpty Permission) where
   fromField field mdata = (fromJust.nonEmpty) <$> (fromField field mdata)
@@ -306,4 +308,4 @@ instance D.Default Constant UTCTime (Maybe (Column PGTimestamptz)) where
 
 create_item :: (D.Default Constant haskells columnsW, D.Default QueryRunner returned b)
     => Connection -> Table columnsW returned -> haskells -> IO b
-create_item conn table item = fmap Prelude.head $ runInsertManyReturning conn table [constant item] id
+create_item conn table item = fmap Prelude.head $ runInsertManyReturning conn table [constant item] Prelude.id
