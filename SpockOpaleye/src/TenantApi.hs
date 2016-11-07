@@ -29,7 +29,7 @@ import           UserApi
 create_tenant :: Connection -> TenantIncoming -> IO Tenant
 create_tenant conn tenant = do
   current_time <- getCurrentTime
-  create_item conn tenantTable tenant { tenant_createdat = current_time, tenant_updatedat = current_time }
+  create_item_1 conn tenantTable tenant { tenant_createdat = current_time, tenant_updatedat = current_time }
 
 activate_tenant :: Connection -> Tenant -> IO Tenant
 activate_tenant conn tenant = set_tenant_status conn tenant TenantStatusActive

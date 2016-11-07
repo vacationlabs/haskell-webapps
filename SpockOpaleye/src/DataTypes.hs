@@ -68,14 +68,14 @@ newtype RoleId = RoleId Int
   deriving (Show)
 
 data RolePoly key tenant_id name permission created_at updated_at  = Role {
-    _id         :: key
-  , _tenantid   :: tenant_id
-  , _name       :: name
-  , _permission :: permission
-  , _createdat  :: created_at
-  , _updatedat  :: updated_at
+    _rolepolyId         :: key
+  , _rolepolyTenantid   :: tenant_id
+  , _rolepolyName       :: name
+  , _rolepolyPermission :: permission
+  , _rolepolyCreatedat  :: created_at
+  , _rolepolyUpdatedat  :: updated_at
 } deriving (Show)
 
-makeLenses ''RolePoly
-
 type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) UTCTime UTCTime 
+
+makeFields ''RolePoly

@@ -3,6 +3,8 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE FunctionalDependencies       #-}
+
 
 module OpaleyeDef where
 
@@ -13,7 +15,7 @@ import qualified Data.Profunctor.Product.Default      as D
 import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
 import           Data.Text
 import           Data.Text.Encoding
-import           Data.Time                            (UTCTime)
+import           Data.Time                            (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple           (Connection)
 import           Database.PostgreSQL.Simple.FromField
 import           Opaleye
@@ -128,12 +130,12 @@ $(makeLensesWith abbreviatedFields ''RolePoly)
 
 roleTable :: Table RoleTableW RoleTableR
 roleTable = Table "roles" (pRole Role {
-  _id = optional "id",
-  _tenantid = required "tenant_id",
-  _name = required "name",
-  _permission = required "permissions",
-  _createdat = optional "created_at",
-  _updatedat = optional "updated_at"
+  _rolepolyId = optional "id",
+  _rolepolyTenantid = required "tenant_id",
+  _rolepolyName = required "name",
+  _rolepolyPermission = required "permissions",
+  _rolepolyCreatedat = optional "created_at",
+  _rolepolyUpdatedat = optional "updated_at"
   })
 
 userRolePivotTable :: Table (Column PGInt4, Column PGInt4) (Column PGInt4, Column PGInt4)
@@ -210,10 +212,7 @@ toPermission "Delete" = Delete
 toPermission _        = error "Unrecognized permission"
 
 instance FromField [Permission] where
-  fromField field mdata = fmap toPermissionList $ fromField field mdata
-    where
-      toPermissionList :: Vector Text -> [Permission] 
-      toPermissionList v = Data.Vector.toList $ fmap toPermission v
+  fromField field mdata =  (fmap toPermission) <$> Data.Vector.toList <$> fromField field mdata
 
 instance FromField (NonEmpty Permission) where
   fromField field mdata = (fromJust.nonEmpty) <$> (fromField field mdata)
@@ -306,6 +305,15 @@ instance D.Default Constant () (Maybe (Column PGTimestamptz)) where
 instance D.Default Constant UTCTime (Maybe (Column PGTimestamptz)) where
   def = Constant (\time -> Just $ pgUTCTime time)
 
-create_item :: (D.Default Constant haskells columnsW, D.Default QueryRunner returned b)
+create_item_1 :: (D.Default Constant haskells columnsW, D.Default QueryRunner returned b)
     => Connection -> Table columnsW returned -> haskells -> IO b
-create_item conn table item = fmap Prelude.head $ runInsertManyReturning conn table [constant item] Prelude.id
+create_item_1 conn table item = do
+  fmap Prelude.head $ runInsertManyReturning conn table [constant $ item] Prelude.id
+
+create_item :: (HasCreatedat haskells UTCTime, HasUpdatedat haskells UTCTime, D.Default Constant haskells columnsW, D.Default QueryRunner returned b)
+    => Connection -> Table columnsW returned -> haskells -> IO b
+create_item conn table item = do
+  current_time <- getCurrentTime
+  let cl = over createdat (\_ -> current_time)
+  let ul = over updatedat (\_ -> current_time)
+  fmap Prelude.head $ runInsertManyReturning conn table [constant $ (cl.ul) item] Prelude.id
