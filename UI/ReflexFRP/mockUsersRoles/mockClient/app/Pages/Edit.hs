@@ -1,88 +1,99 @@
-{-# LANGUAGE OverloadedStrings, NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings, NoImplicitPrelude, RecursiveDo #-}
 
--- {-# OPTIONS_GHC -fdefer-typed-holes #-}
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Pages.Edit where
 
 import ClassyPrelude
+import Control.Lens
 import Reflex.Dom
 
-
+import MockAPI
 import Permissions
 import Pages.Common
+import Utils
 
-editPage :: MonadWidget t m => m ()
-editPage = do
+import Reflex.Dom.Contrib.Widgets.DynamicList
+
+editPage :: MonadWidget t m => RoleName -> RoleAttributes -> m (Event t (RoleName, RoleAttributes))
+editPage roleName roleAttrs = do
   el "body" $ do
     pageHeader
     el "div" $
-      elAttr "div" ("class"=:"container") $ do
-        elAttr "div" ("class"=:"row") $ do
+      divClass "container" $ do
+        divClass "row" $ do
           lateralNavigation
-          elAttr "div" ("class"=:"col-md-9") $ do
-            sitePosition ["Account Settings", "Roles", "Edit role: Product Editor"]
-            form
-            elAttr "div" ("class"=:"form-group") $ do
-              elAttr "button" ("class"=:"btn btn-primary" <> "type"=:"submit") $ text "Save"
+          divClass "col-md-9" $ do
+            sitePosition ["Account Settings", "Roles", "Edit role: " <> roleName]
+            newData <- form roleName roleAttrs
+            divClass "form-group" $ do
+              btn <- buttonClass "btn btn-primary" "Save"
               elAttr "a" ("href"=:"#" <> "class"=:"cancel text-danger") $ text "cancel"
+              return (tagPromptlyDyn newData btn)
 
-form :: MonadWidget t m => m ()
-form = do
+form :: MonadWidget t m => RoleName -> RoleAttributes -> m (Dynamic t (RoleName, RoleAttributes))
+form roleName roleAttrs =
   el "form" $ do
-    divClass "form-group" $ do
+    newRoleName <- divClass "form-group" $ do
       elAttr "label" ("class"=:"control-label") $ text "Role name"
-      elAttr "input" ("class"=:"form-control" <> "type"=:"text" <> "value"=:"Product editor") $ pure ()
-    divClass "form-group" $ do
-      elAttr "label" ("class"=:"control-label") $ text "Permissions"
+      fmap _textInput_value . textInput $ def
+        & textInputConfig_initialValue .~ roleName
+        & textInputConfig_attributes   .~ constDyn ("class"=:"form-control")
+    newRolePerms <- divClass "form-group" $ do
+      elClass "label" "control-label" $ text "Permissions"
       divClass "row" $ do
-        permissionCheckboxes "Products" (map PP [minBound..maxBound])
-        permissionCheckboxes "Orders"   (map OP [minBound..maxBound])
-        permissionCheckboxes "Users"    (map UP [minBound..maxBound])
-    deleteUserWidget
+        pp <- permissionCheckboxes "Products" (roleAttrs^.rolePermission) (map PP [minBound..maxBound])
+        op <- permissionCheckboxes "Orders"   (roleAttrs^.rolePermission) (map OP [minBound..maxBound])
+        up <- permissionCheckboxes "Users"    (roleAttrs^.rolePermission) (map UP [minBound..maxBound])
+        return (mconcat [pp, op, up])
+    updatedUsers <- updateUsers (roleAttrs^.roleAssociatedUsers)
+    return $ liftA2 (,) newRoleName (RoleAttributes <$> newRolePerms <*> updatedUsers)
 
-usersWithThisRole :: MonadWidget t m => m ()
-usersWithThisRole = do
+updateUsers :: MonadWidget t m => Set User -> m (Dynamic t (Set User))
+updateUsers users = setFromList . map fst <$$>
+  (divClass "form-group" $ do
     elClass "label" "control-label" $ text "Users with this role:"
-    el "ul" $ do
-      el "li" $ do
-        text "user1@mydomain.com"
-        elAttr "a" ("href"=:"#") $ text "(revoke)"
-      el "li" $ do
-        text "user2@mydomain.com"
-        elAttr "a" ("href"=:"#") $ text "(revoke)"
-      el "li" $ do
-        text "user3@mydomain.com"
-        elAttr "a" ("href"=:"#") $ text "(revoke)"
-      el "li" $ do
-        text "user4@mydomain.com"
-        elAttr "a" ("href"=:"#") $ text "(revoke)"
+    do rec a <- el "ul" $
+             dynamicList renderUser snd (const never) moreUsers (setToList users)
+           moreUsers <- addAnotherUser
+       return a)
 
-deleteUserWidget :: MonadWidget t m => m ()
-deleteUserWidget =
-  divClass "form-group" $ do
-    usersWithThisRole
-    addAnotherUser
-
-addAnotherUser :: MonadWidget t m => m ()
+addAnotherUser :: MonadWidget t m => m (Event t User)
 addAnotherUser =
- divClass "row" $ do
-   divClass "col-lg-6 col-md-8 col-sm-8 col-xs-12" $ do
+ divClass "row" $
+   divClass "col-lg-6 col-md-8 col-sm-8 col-xs-12" $
      divClass "input-group" $ do
-       divClass "input-group-addon" $
-         el "span" $ text "Add another user"
-       elAttr "input" ("class"=:"form-control" <> "type"=:"text") $ pure ()
-       divClass "input-group-btn" $
-         void $ buttonClass "btn btn-default" "Add"
+       divClass "input-group-addon" $ el "span" $ text "Add another user"
+       userInput <- textInput $ def & (textInputConfig_attributes .~ constDyn ("class"=:"form-control"))
+       let user = User <$> userInput ^. textInput_value
+       addUser <- divClass "input-group-btn" $ buttonClass "btn btn-default" "Add"
+       return (tagPromptlyDyn user addUser)
 
-permissionCheckboxes :: MonadWidget t m => Text -> [Permission] -> m ()
-permissionCheckboxes groupName permissions =
+renderUser :: MonadWidget t m => Int -> User -> Event t User -> m (User, Event t ())
+renderUser _ u _ =
+  el "li" $ do
+    text (userMail u)
+    revokeUser <- link " (revoke)"
+    return (u, _link_clicked revokeUser)
+
+permissionCheckboxes :: MonadWidget t m => Text -> Set Permission -> [Permission] -> m (Dynamic t (Set Permission))
+permissionCheckboxes groupName permissions groupToDisplay =
   divClass "col-lg-4 col-md-4 col-md-offset-0 col-sm-6 col-xs-12" $ do
-    divClass "checkbox permission-group-heading" $
-      elClass "label" "control-label" $ do
-        _ <- checkbox False def
-        el "strong" $ text groupName
-    forM_ permissions $ \p ->
-      divClass "checkbox" $
+    rec
+      allGroup <- divClass "checkbox permission-group-heading" $
         elClass "label" "control-label" $ do
-          _ <- checkbox False def
-          text (toUserLabel p)
+          let groupComplete = (\ps -> length ps == length groupToDisplay) <$> temp
+          groupChecked <- _checkbox_change <$>
+            checkbox (length permissions == length groupToDisplay)
+                     (def & checkboxConfig_setValue .~ updated groupComplete)
+          el "strong" $ text groupName
+          return groupChecked
+      temp <- fmap mconcat $ forM groupToDisplay $ \p ->
+        divClass "checkbox" $
+          elClass "label" "control-label" $ do
+            temp1 <- _checkbox_value <$> checkbox (p `member` permissions) (def
+                                          & checkboxConfig_setValue .~ allGroup)
+            text (toUserLabel p)
+            return $ bool (mempty :: Set Permission) (singletonSet p) <$> temp1
+    return temp

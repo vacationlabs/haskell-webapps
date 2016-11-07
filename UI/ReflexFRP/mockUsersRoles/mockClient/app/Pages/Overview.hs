@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings, NoImplicitPrelude #-}
--- {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Pages.Overview where
 
@@ -11,41 +10,39 @@ import Reflex.Dom
 import Reflex.Dom.Contrib.Widgets.DynamicList
 import Pages.Common
 import Control.Lens
-import Control.Lens.Wrapped
 
 import Utils
 
-overview :: MonadWidget t m => m () -> m (Event t ())
-overview table = el "body" $ do
+overview :: MonadWidget t m => Roles -> Roles -> m (Event t AppState)
+overview serverState clientState = el "body" $ do
   pageHeader
-  mainContentWith table
-
-mainContentWith :: MonadWidget t m => m a -> m (Event t ())
-mainContentWith table =
   el "div" $ divClass "container" $ divClass "row" $ do
     lateralNavigation
     divClass "col-md-9" $ do
       sitePosition ["Account Settings", "Roles"]
       newRole <- buttonClass "btn btn-primary pull-right" "New Role"
       elClass "h1" "page-heading" $ text "Roles"
-      _ <- divClass "table-responsive" $ table
-      return newRole
+      change <- divClass "table-responsive" $ (tableSection serverState clientState)
+      return $ leftmost [change, Edit serverState clientState ("New role", emptyRoleAttributes) <$ newRole]
 
-tableSection :: MonadWidget t m => Roles -> m ()
-tableSection roles = elClass "table" "table" $ do
+tableSection :: MonadWidget t m => Roles -> Roles -> m (Event t AppState)
+tableSection serverState clientState = elClass "table" "table" $ do
   el "thead" $ do
     el "tr" $ do
       el "th" $ text "Role name"
       el "th" $ text "Permissions"
       el "th" $ text "Users"
   el "tbody" $ do
-    mapM_ roleSection (roles ^. _Wrapped' . to mapToList)
+    leftmost <$> mapM (roleSection serverState clientState) (clientState ^. _Wrapped' . to mapToList)
 
-roleSection :: MonadWidget t m => (RoleName, RoleAttributes) -> m ()
-roleSection (rolename, roleattrs) = const () <$$> el "tr" $ do
-  el "td" $ text rolename
-  el "td" $ el "em" $ permissionList (roleattrs ^. rolePermission)
-  el "td" $ el "ul" $ listComponent (rolename, roleattrs)
+roleSection :: MonadWidget t m => Roles -> Roles -> (RoleName, RoleAttributes) -> m (Event t AppState)
+roleSection serverState clientState (rolename, roleattrs) = el "tr" $ do
+  edit <- el "td" $ do
+    text rolename
+    link " (edit)"
+  _ <- el "td" $ el "em" $ permissionList (roleattrs ^. rolePermission)
+  _ <- el "td" $ el "ul" $ listComponent (rolename, roleattrs)
+  return (Edit serverState clientState (rolename, roleattrs) <$ _link_clicked edit)
 
 permissionList :: MonadWidget t m => Set Permission  -> m (Dynamic t [((), Event t ())])
 permissionList ps =
@@ -63,8 +60,6 @@ listComponent (rolename, roleattrs) =
               never
               (roleattrs ^. roleAssociatedUsers . to setToList)
 
--- In the original markup this was:
--- <li>otheradmin@mydomain.com <a href="#">(revoke) </a></li>
 displayItem  :: MonadWidget t m => RoleName -> Int -> User -> Event t User -> m ((), Event t ())
 displayItem rolename _ u _ = el "li" $ do
   text (userMail u <> " ")
@@ -76,6 +71,3 @@ clickLabel :: MonadWidget t m => Text -> m (Event t ())
 clickLabel t = do
   (e, _) <- elAttr' "a" ("href" =: "#") (text t)
   return $ domEvent Click e
-
-(<$$>) :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
-(<$$>) = fmap . fmap

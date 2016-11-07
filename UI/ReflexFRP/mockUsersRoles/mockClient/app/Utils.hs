@@ -17,8 +17,15 @@ import           Data.GADT.Compare
 import           Data.Proxy             (Proxy (..))
 
 
--------------- Thanks to Paolo! -------------
+type ServerState = Roles
+type ClientState = Roles
 
+
+data AppState = BootApp
+              | Overview ServerState ClientState
+              | Edit ServerState ClientState (RoleName, RoleAttributes)
+
+-------------- These four functions are being used after a discussion with Paolo -------------
 type Morph t m a = Dynamic t (m a) -> m (Event t a)
 
 mapMorph  :: (MonadHold t m, Reflex t) => Morph t m (Event t b) -> (a -> m (Event t b)) -> Dynamic t a -> m (Event t b)
@@ -80,3 +87,7 @@ parseR :: ReqResult a -> DMap.DMap (ServerResponse a) Identity
 parseR (ResponseSuccess a _) = DMap.singleton Success (Identity a)
 parseR (ResponseFailure t _) = DMap.singleton Failure (Identity $ "Response failure: " <> t)
 parseR (RequestFailure t)    = DMap.singleton Failure (Identity $ "Request failure: "  <> t)
+
+(<$$>) :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
+(<$$>) = fmap . fmap
+infixl 4 <$$>

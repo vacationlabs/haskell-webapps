@@ -42,6 +42,9 @@ data RoleAttributes = RoleAttributes
   , _roleAssociatedUsers :: Set User
   } deriving (Show, Eq, Ord, Generic)
 
+emptyRoleAttributes :: RoleAttributes
+emptyRoleAttributes = RoleAttributes mempty mempty
+
 makeLenses ''RoleAttributes
 
 instance ToJSON RoleAttributes

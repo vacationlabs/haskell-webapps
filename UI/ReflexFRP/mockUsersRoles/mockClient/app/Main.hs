@@ -10,8 +10,7 @@ import ExRoles
 import Pages.Overview
 import Pages.Edit
 import Utils
-
-data AppState = BootApp | Overview Roles | Edit Roles (RoleName, RoleAttributes)
+import Data.Map (insert)
 
 main :: IO ()
 main = mainWidget $ do
@@ -24,13 +23,16 @@ app BootApp = do
   text "Collecting roles..."
   e <- getPostBuild
   roles <- parseR <$$> showRoles e
-  return $ leftmost [ Overview      <$> pick Success roles
-                    , const BootApp <$> pick Failure roles]
+  return $ leftmost [ (\r -> Overview r r) <$> pick Success roles
+                    , const BootApp        <$> pick Failure roles]
 
-app (Overview _) = do
-  a <- overview (tableSection exRoles)
-  return $ Edit undefined ("cipolla", undefined) <$ a
+app (Overview serverState clientState) = do
+  overview serverState clientState
+      -- return $ leftmost [change, Edit undefined undefined ("ciplla", undefined) <$ newRole]
+  -- return $ Edit undefined ("cipolla", undefined) <$ a
 
-app (Edit _ (rolename, _)) = do
-  editPage
-  return $ leftmost []
+app (Edit serverState clientState (rolename, roleattrs)) = do
+  n <- editPage rolename roleattrs
+  performEvent_ $ (liftIO $ putStrLn "ciao") <$ n
+  let saveClient (Roles clientRoles) (rName, rAttr) = Roles $ insert rName rAttr clientRoles
+  return $ leftmost [Overview serverState <$> saveClient clientState <$> n]
