@@ -8,6 +8,7 @@ import           Control.Monad
 import           Data.Aeson
 import           Data.Aeson.Types
 import           Data.Text
+import Data.Char
 import           DataTypes
 
 instance FromJSON UserId where
@@ -47,9 +48,9 @@ instance ToJSON TenantStatus where
 
 instance ToJSON Tenant where
   toJSON = genericToJSON defaultOptions
-  toEncoding = genericToEncoding defaultOptions { fieldLabelModifier = remove_prefix }
+  toEncoding = genericToEncoding defaultOptions { fieldLabelModifier = (fmap Data.Char.toLower).remove_prefix }
     where
-      remove_prefix = Prelude.drop 7
+      remove_prefix = Prelude.drop 11
 
 instance ToJSON UserId where
   toJSON = genericToJSON defaultOptions
