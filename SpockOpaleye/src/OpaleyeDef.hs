@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE FunctionalDependencies       #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE TemplateHaskell        #-}
 
 
 module OpaleyeDef where
@@ -21,8 +21,8 @@ import           Database.PostgreSQL.Simple.FromField
 import           Opaleye
 
 import           Control.Lens
+import           Data.Vector
 import           DataTypes
-import Data.Vector
 
 type TenantTableW = TenantPoly
   (Maybe (Column PGInt4))
@@ -56,17 +56,17 @@ $(makeLensesWith abbreviatedFields ''TenantPoly)
 tenantTable :: Table TenantTableW TenantTableR
 tenantTable = Table "tenants" (pTenant
    Tenant {
-     tenant_id = (optional "id"),
-     tenant_createdat = (optional "created_at"),
-     tenant_updatedat = (optional "updated_at"),
-     tenant_name = (required "name"),
-     tenant_firstname = (required "first_name"),
-     tenant_lastname = (required "last_name"),
-     tenant_email = (required "email"),
-     tenant_phone = (required "phone"),
-     tenant_status = (optional "status"),
-     tenant_ownerid = (optional "owner_id"),
-     tenant_backofficedomain = (required "backoffice_domain")
+     _tenantpolyId = (optional "id"),
+     _tenantpolyCreatedat = (optional "created_at"),
+     _tenantpolyUpdatedat = (optional "updated_at"),
+     _tenantpolyName = (required "name"),
+     _tenantpolyFirstname = (required "first_name"),
+     _tenantpolyLastname = (required "last_name"),
+     _tenantpolyEmail = (required "email"),
+     _tenantpolyPhone = (required "phone"),
+     _tenantpolyStatus = (optional "status"),
+     _tenantpolyOwnerid = (optional "owner_id"),
+     _tenantpolyBackofficedomain = (required "backoffice_domain")
    }
  )
 
@@ -305,15 +305,17 @@ instance D.Default Constant () (Maybe (Column PGTimestamptz)) where
 instance D.Default Constant UTCTime (Maybe (Column PGTimestamptz)) where
   def = Constant (\time -> Just $ pgUTCTime time)
 
-create_item_1 :: (D.Default Constant haskells columnsW, D.Default QueryRunner returned b)
-    => Connection -> Table columnsW returned -> haskells -> IO b
-create_item_1 conn table item = do
-  fmap Prelude.head $ runInsertManyReturning conn table [constant $ item] Prelude.id
+instance QueryRunnerColumnDefault PGTimestamptz (Maybe UTCTime) where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
 
-create_item :: (HasCreatedat haskells UTCTime, HasUpdatedat haskells UTCTime, D.Default Constant haskells columnsW, D.Default QueryRunner returned b)
+create_item :: (
+      HasCreatedat haskells (Maybe UTCTime)
+    , HasUpdatedat haskells (Maybe UTCTime)
+    , D.Default Constant haskells columnsW
+    , D.Default QueryRunner returned b)
     => Connection -> Table columnsW returned -> haskells -> IO b
 create_item conn table item = do
   current_time <- getCurrentTime
-  let cl = over createdat (\_ -> current_time)
-  let ul = over updatedat (\_ -> current_time)
+  let cl = createdat .~ Just current_time
+  let ul = updatedat .~ Just current_time
   fmap Prelude.head $ runInsertManyReturning conn table [constant $ (cl.ul) item] Prelude.id

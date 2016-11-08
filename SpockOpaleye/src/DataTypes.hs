@@ -1,16 +1,16 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module DataTypes where
 
+import           Control.Lens
 import           CryptoDef
 import           Data.List.NonEmpty
 import           Data.Text
 import           Data.Time          (UTCTime)
 import           GHC.Generics
-import Control.Lens
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)
@@ -22,22 +22,24 @@ data TenantStatus = TenantStatusActive | TenantStatusInActive | TenantStatusNew
   deriving (Show, Generic)
 
 data TenantPoly key created_at updated_at name fname lname email phone status owner_id b_domain = Tenant {
-    tenant_id               :: key
-  , tenant_createdat        :: created_at
-  , tenant_updatedat        :: updated_at
-  , tenant_name             :: name
-  , tenant_firstname        :: fname
-  , tenant_lastname         :: lname
-  , tenant_email            :: email
-  , tenant_phone            :: phone
-  , tenant_status           :: status
-  , tenant_ownerid          :: owner_id
-  , tenant_backofficedomain :: b_domain
+    _tenantpolyId               :: key
+  , _tenantpolyCreatedat        :: created_at
+  , _tenantpolyUpdatedat        :: updated_at
+  , _tenantpolyName             :: name
+  , _tenantpolyFirstname        :: fname
+  , _tenantpolyLastname         :: lname
+  , _tenantpolyEmail            :: email
+  , _tenantpolyPhone            :: phone
+  , _tenantpolyStatus           :: status
+  , _tenantpolyOwnerid          :: owner_id
+  , _tenantpolyBackofficedomain :: b_domain
 } deriving (Show, Generic)
 
-type Tenant = TenantPoly TenantId  UTCTime UTCTime Text Text Text Text Text TenantStatus (Maybe UserId) Text
+makeFields ''TenantPoly
 
-type TenantIncoming = TenantPoly () () () Text Text Text Text Text () (Maybe UserId) Text
+type Tenant = TenantPoly TenantId (Maybe UTCTime) (Maybe UTCTime) Text Text Text Text Text TenantStatus (Maybe UserId) Text
+
+type TenantIncoming = TenantPoly () (Maybe UTCTime) (Maybe UTCTime) Text Text Text Text Text () (Maybe UserId) Text
 
 data UserStatus = UserStatusActive | UserStatusInActive | UserStatusBlocked
   deriving (Show)
@@ -76,6 +78,7 @@ data RolePoly key tenant_id name permission created_at updated_at  = Role {
   , _rolepolyUpdatedat  :: updated_at
 } deriving (Show)
 
-type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) UTCTime UTCTime 
+type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) (Maybe UTCTime) (Maybe UTCTime)
+type RoleIncoming = RolePoly () TenantId Text (NonEmpty Permission) (Maybe UTCTime) (Maybe UTCTime)
 
 makeFields ''RolePoly

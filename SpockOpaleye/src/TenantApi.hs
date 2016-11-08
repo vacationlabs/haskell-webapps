@@ -16,6 +16,7 @@ module TenantApi
   ) where
 
 import           Control.Arrow
+import           Control.Lens
 import           Data.Text
 import           Data.Time                  (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple (Connection)
@@ -23,13 +24,12 @@ import           DataTypes
 import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
+import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
 
 create_tenant :: Connection -> TenantIncoming -> IO Tenant
-create_tenant conn tenant = do
-  current_time <- getCurrentTime
-  create_item_1 conn tenantTable tenant { tenant_createdat = current_time, tenant_updatedat = current_time }
+create_tenant conn tenant = create_item conn tenantTable tenant
 
 activate_tenant :: Connection -> Tenant -> IO Tenant
 activate_tenant conn tenant = set_tenant_status conn tenant TenantStatusActive
@@ -38,7 +38,7 @@ deactivate_tenant :: Connection -> Tenant -> IO Tenant
 deactivate_tenant conn tenant = set_tenant_status conn tenant TenantStatusInActive
 
 set_tenant_status :: Connection -> Tenant -> TenantStatus -> IO Tenant
-set_tenant_status conn tenant status = update_tenant conn (tenant_id tenant) tenant { tenant_status = status }
+set_tenant_status conn tenant st = update_tenant conn (tenant ^. id) (tenant & status .~ st)
 
 update_tenant :: Connection -> TenantId -> Tenant -> IO Tenant
 update_tenant conn t_tenantid tenant = do
@@ -47,22 +47,23 @@ update_tenant conn t_tenantid tenant = do
   return tenant
   where
     match_func :: TenantTableR -> Column PGBool
-    match_func Tenant { tenant_id = id } = id .== constant t_tenantid
+    match_func tenantR = (tenantR ^. id) .== constant t_tenantid
     update_func :: UTCTime -> TenantTableR -> TenantTableW
-    update_func current_time x = constant (tenant { tenant_updatedat = current_time })
+    update_func current_time x = constant (tenant & updatedat .~ (Just current_time))
 
 remove_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
-remove_tenant conn tenant@Tenant {tenant_id = tid} = do
+remove_tenant conn tenant = do
   deactivate_tenant conn tenant
-  update_tenant conn (tenant_id tenant) tenant { tenant_ownerid = Nothing }
+  update_tenant conn tid (tenant & ownerid .~ Nothing)
   users_for_tenant <- read_users_for_tenant conn tid
   roles_for_tenant <- read_roles_for_tenant conn tid
   mapM_ (remove_role conn) roles_for_tenant
   mapM_ (remove_user conn) users_for_tenant
   runDelete conn tenantTable match_func
   where
+    tid = tenant ^. id
     match_func :: TenantTableR -> Column PGBool
-    match_func Tenant { tenant_id = id } = id .== (constant tid)
+    match_func Tenant { _tenantpolyId = id } = id .== (constant tid)
 
 read_tenants :: Connection -> IO [Tenant]
 read_tenants conn = runQuery conn tenant_query
@@ -86,12 +87,12 @@ tenant_query = queryTable tenantTable
 
 tenant_query_by_id :: TenantId -> Opaleye.Query TenantTableR
 tenant_query_by_id t_id = proc () -> do
-  row@Tenant {tenant_id = id} <- tenant_query -< ()
-  restrict -< id .== (constant t_id)
-  returnA -< row
+  tenant <- tenant_query -< ()
+  restrict -< (tenant ^. id) .== (constant t_id)
+  returnA -< tenant
 
 tenant_query_by_backoffocedomain :: Text -> Opaleye.Query TenantTableR
 tenant_query_by_backoffocedomain domain = proc () -> do
-  row@Tenant { tenant_backofficedomain = bo_domain } <- tenant_query -< ()
-  restrict -< bo_domain .== (pgStrictText domain)
-  returnA -< row
+  tenant <- tenant_query -< ()
+  restrict -< (tenant ^. backofficedomain) .== (pgStrictText domain)
+  returnA -< tenant
