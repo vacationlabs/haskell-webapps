@@ -23,6 +23,7 @@ import           Opaleye
 import           Control.Lens
 import           Data.Vector
 import           DataTypes
+import GHC.Int
 
 type TenantTableW = TenantPoly
   (Maybe (Column PGInt4))
@@ -310,12 +311,24 @@ instance QueryRunnerColumnDefault PGTimestamptz (Maybe UTCTime) where
 
 create_item :: (
       HasCreatedat haskells (Maybe UTCTime)
-    , HasUpdatedat haskells (Maybe UTCTime)
     , D.Default Constant haskells columnsW
     , D.Default QueryRunner returned b)
     => Connection -> Table columnsW returned -> haskells -> IO b
 create_item conn table item = do
   current_time <- getCurrentTime
   let cl = createdat .~ Just current_time
-  let ul = updatedat .~ Just current_time
-  fmap Prelude.head $ runInsertManyReturning conn table [constant $ (cl.ul) item] Prelude.id
+  fmap Prelude.head $ runInsertManyReturning conn table [constant $ cl item] Prelude.id
+
+update_item :: (
+    HasUpdatedat haskells (Maybe UTCTime)
+    , D.Default Constant haskells columnsW
+    , ItemId item_id
+    )
+    => Connection -> Table columnsW columnsR -> item_id -> haskells -> IO GHC.Int.Int64
+update_item conn table it_id item = do
+  current_time <- getCurrentTime
+  let cl = updatedat .~ Just current_time
+  runUpdate conn table (\_ -> constant $ cl item) match_func 
+  where
+    match_func :: (haskells -> Column PGBool)
+    match_func item = pgBool True
