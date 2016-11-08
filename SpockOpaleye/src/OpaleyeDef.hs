@@ -323,6 +323,8 @@ update_item :: (
     HasUpdatedat haskells (Maybe UTCTime)
     , D.Default Constant haskells columnsW
     , ItemId item_id
+    , HasId haskells item_id
+    , HasId columnsR (Column PGInt4)
     )
     => Connection -> Table columnsW columnsR -> item_id -> haskells -> IO GHC.Int.Int64
 update_item conn table it_id item = do
@@ -330,5 +332,5 @@ update_item conn table it_id item = do
   let cl = updatedat .~ Just current_time
   runUpdate conn table (\_ -> constant $ cl item) match_func 
   where
-    match_func :: (haskells -> Column PGBool)
-    match_func item = pgBool True
+    match_func :: (HasId cmR (Column PGInt4)) => (cmR -> Column PGBool)
+    match_func item = (item ^. OpaleyeDef.id) .== (pgInt4 $ getWrappedId it_id)
