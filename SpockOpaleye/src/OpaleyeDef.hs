@@ -23,7 +23,7 @@ import           Opaleye
 import           Control.Lens
 import           Data.Vector
 import           DataTypes
-import GHC.Int
+import           GHC.Int
 
 type TenantTableW = TenantPoly
   (Maybe (Column PGInt4))
@@ -99,15 +99,15 @@ $(makeLensesWith abbreviatedFields ''UserPoly)
 userTable :: Table UserTableW UserTableR
 userTable = Table "users" (pUser
   User {
-    user_id = optional "id"
-  , user_createdat = (optional "created_at")
-  , user_updatedat = (optional "updated_at")
-  , user_tenantid = required "tenant_id"
-  , user_username = required "username"
-  , user_password = required "password"
-  , user_firstname = optional "first_name"
-  , user_lastname = optional "last_name"
-  , user_status = optional "status"
+    _userpolyId = optional "id"
+  , _userpolyCreatedat = (optional "created_at")
+  , _userpolyUpdatedat = (optional "updated_at")
+  , _userpolyTenantid = required "tenant_id"
+  , _userpolyUsername = required "username"
+  , _userpolyPassword = required "password"
+  , _userpolyFirstname = optional "first_name"
+  , _userpolyLastname = optional "last_name"
+  , _userpolyStatus = optional "status"
  })
 
 type RoleTableW = RolePoly

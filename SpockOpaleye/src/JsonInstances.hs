@@ -7,8 +7,8 @@ module JsonInstances where
 import           Control.Monad
 import           Data.Aeson
 import           Data.Aeson.Types
+import           Data.Char
 import           Data.Text
-import Data.Char
 import           DataTypes
 
 instance FromJSON UserId where

@@ -17,6 +17,7 @@ module UserApi
   ) where
 
 import           Control.Arrow
+import           Control.Lens
 import           Data.Text
 import           Data.Time                  (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple (Connection)
@@ -28,25 +29,13 @@ import           OpaleyeDef
 import           CryptoDef
 
 create_user :: Connection -> UserIncoming -> IO User
-create_user conn user@ User { user_password = password } = do
-  Just hash <- bcryptPassword password
-  current_time <- getCurrentTime
-  Prelude.head <$> runInsertManyReturning conn userTable [constant (user {
-        user_createdat = current_time
-      , user_updatedat = current_time
-      , user_password = hash
-      } )] Prelude.id
+create_user conn user = do
+  Just hash <- bcryptPassword $ user ^. password
+  let full_user = user { _userpolyPassword = hash }
+  create_item conn userTable full_user
 
 update_user :: Connection -> UserId -> User -> IO User
-update_user conn user_id user = do
-  current_time <- getCurrentTime
-  runUpdate conn userTable (update_func current_time) match_func
-  return user
-  where
-    update_func :: UTCTime -> UserTableR -> UserTableW
-    update_func current_time _ = constant (user { user_updatedat = current_time } )
-    match_func :: UserTableR -> Column PGBool
-    match_func User { user_id = id } = id .== constant user_id
+update_user conn user_id user = update_item conn userTable user_id user
 
 activate_user :: Connection -> User -> IO User
 activate_user conn user = set_user_status conn user UserStatusActive
@@ -55,12 +44,13 @@ deactivate_user :: Connection -> User -> IO User
 deactivate_user conn user = set_user_status conn user UserStatusInActive
 
 set_user_status :: Connection -> User -> UserStatus -> IO User
-set_user_status conn user new_status = update_user conn (user_id user) user { user_status = new_status }
+set_user_status conn user new_status = update_user conn (user ^. OpaleyeDef.id) $ user & status .~ new_status
+
 remove_user :: Connection -> User -> IO GHC.Int.Int64
-remove_user conn User {user_id = tid} =
+remove_user conn user_t =
   runDelete conn userTable match_function
     where
-    match_function User { user_id = id } = id .== constant tid
+    match_function user = (user ^. OpaleyeDef.id).== constant (user_t ^. OpaleyeDef.id)
 
 read_users :: Connection -> IO [User]
 read_users conn = runQuery conn user_query
@@ -88,12 +78,12 @@ user_query = queryTable userTable
 
 user_query_by_id :: UserId -> Query UserTableR
 user_query_by_id t_id = proc () -> do
-  row@User{user_id = id} <- user_query -< ()
-  restrict -< id .== (constant t_id)
-  returnA -< row
+  user <- user_query -< ()
+  restrict -< (user ^. OpaleyeDef.id) .== (constant t_id)
+  returnA -< user
 
 user_query_by_tenantid :: TenantId -> Query UserTableR
 user_query_by_tenantid t_tenantid = proc () -> do
-  row@User {user_tenantid = tenant_id} <- user_query -< ()
-  restrict -< tenant_id .== (constant t_tenantid)
-  returnA -< row
+  user <- user_query -< ()
+  restrict -< (user ^. tenantid) .== (constant t_tenantid)
+  returnA -< user

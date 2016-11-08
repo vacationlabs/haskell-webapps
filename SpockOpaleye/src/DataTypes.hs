@@ -48,20 +48,22 @@ newtype UserId = UserId Int
   deriving (Show, Generic)
 
 data UserPoly key created_at updated_at tenant_id username password firstname lastname status  = User {
-    user_id        :: key
-  , user_createdat :: created_at
-  , user_updatedat :: updated_at
-  , user_tenantid  :: tenant_id
-  , user_username  :: username
-  , user_password  :: password
-  , user_firstname :: firstname
-  , user_lastname  :: lastname
-  , user_status    :: status
+    _userpolyId        :: key
+  , _userpolyCreatedat :: created_at
+  , _userpolyUpdatedat :: updated_at
+  , _userpolyTenantid  :: tenant_id
+  , _userpolyUsername  :: username
+  , _userpolyPassword  :: password
+  , _userpolyFirstname :: firstname
+  , _userpolyLastname  :: lastname
+  , _userpolyStatus    :: status
 }
 
-type User = UserPoly UserId UTCTime UTCTime TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
+makeFields ''UserPoly
 
-type UserIncoming = UserPoly () () () TenantId Text Text (Maybe Text) (Maybe Text) ()
+type User = UserPoly UserId (Maybe UTCTime) (Maybe UTCTime) TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
+
+type UserIncoming = UserPoly () (Maybe UTCTime) (Maybe UTCTime) TenantId Text Text (Maybe Text) (Maybe Text) ()
 
 data Permission = Read | Create | Update | Delete
   deriving (Show)

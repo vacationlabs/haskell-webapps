@@ -44,17 +44,6 @@ update_tenant :: Connection -> TenantId -> Tenant -> IO Tenant
 update_tenant conn t_tenantid tenant = do
   update_item conn tenantTable t_tenantid tenant
 
---update_tenant :: Connection -> TenantId -> Tenant -> IO Tenant
---update_tenant conn t_tenantid tenant = do
---  current_time <- getCurrentTime
---  runUpdate conn tenantTable (update_func current_time) match_func
---  return tenant
---  where
---    match_func :: TenantTableR -> Column PGBool
---    match_func tenantR = (tenantR ^. id) .== constant t_tenantid
---    update_func :: UTCTime -> TenantTableR -> TenantTableW
---    update_func current_time x = constant (tenant & updatedat .~ (Just current_time))
-
 remove_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
 remove_tenant conn tenant = do
   deactivate_tenant conn tenant
@@ -67,7 +56,7 @@ remove_tenant conn tenant = do
   where
     tid = tenant ^. id
     match_func :: TenantTableR -> Column PGBool
-    match_func Tenant { _tenantpolyId = id } = id .== (constant tid)
+    match_func tenant  = (tenant ^. id) .== (constant tid)
 
 read_tenants :: Connection -> IO [Tenant]
 read_tenants conn = runQuery conn tenant_query
