@@ -43,7 +43,6 @@ set_tenant_status conn tenant st = update_tenant conn (tenant ^. id) (tenant & s
 update_tenant :: Connection -> TenantId -> Tenant -> IO Tenant
 update_tenant conn t_tenantid tenant = do
   update_item conn tenantTable t_tenantid tenant
-  return tenant
 
 --update_tenant :: Connection -> TenantId -> Tenant -> IO Tenant
 --update_tenant conn t_tenantid tenant = do

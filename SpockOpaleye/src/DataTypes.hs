@@ -82,10 +82,3 @@ type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) (Maybe UTCTime) 
 type RoleIncoming = RolePoly () TenantId Text (NonEmpty Permission) (Maybe UTCTime) (Maybe UTCTime)
 
 makeFields ''RolePoly
-
-class ItemId a where
-  getWrappedId :: a -> Int
-
-instance ItemId TenantId where
-  getWrappedId (TenantId a) = a
-
