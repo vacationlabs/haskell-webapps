@@ -38,7 +38,7 @@ import Prelude hiding (id)
 --  create_item conn userTable full_user
 
 update_user :: Connection -> UserId -> User -> IO User
-update_user conn user_id user = update_item conn userTable user_id user
+update_user conn user_id user = update_row conn userTable user_id user
 
 activate_user :: Connection -> User -> IO User
 activate_user conn user = set_user_status conn user UserStatusActive

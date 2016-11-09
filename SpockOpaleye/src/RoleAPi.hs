@@ -29,7 +29,7 @@ import           Prelude                    hiding (id)
 --create_role conn role = create_item conn roleTable role
 
 update_role :: Connection -> RoleId -> Role -> IO Role
-update_role conn role_id role = update_item conn roleTable role_id role
+update_role conn role_id role = update_row conn roleTable role_id role
 
 remove_role :: Connection -> Role -> IO GHC.Int.Int64
 remove_role conn role = do

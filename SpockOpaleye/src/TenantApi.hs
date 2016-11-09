@@ -31,7 +31,7 @@ import           RoleApi
 import           UserApi
 
 create_tenant :: Connection -> TenantIncoming -> IO Tenant
-create_tenant conn tenant = create_item conn tenantTable tenant
+create_tenant conn tenant = create_row conn tenantTable tenant
 
 activate_tenant :: Connection -> Tenant -> IO Tenant
 activate_tenant conn tenant = set_tenant_status conn tenant TenantStatusActive
@@ -44,7 +44,7 @@ set_tenant_status conn tenant st = update_tenant conn (tenant ^. id) (tenant & s
 
 update_tenant :: Connection -> TenantId -> Tenant -> IO Tenant
 update_tenant conn t_tenantid tenant = do
-  update_item conn tenantTable t_tenantid tenant
+  update_row conn tenantTable t_tenantid tenant
 
 remove_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
 remove_tenant conn tenant = do

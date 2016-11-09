@@ -18,17 +18,17 @@ import OpaleyeDef
 import Prelude hiding (id)
 import OpaleyeTypes
 
-create_item ::(
+create_row ::(
     HasCreatedat columnsW (Maybe (Column PGTimestamptz)),
     HasUpdatedat columnsW (Maybe (Column PGTimestamptz)),
-    D.Default Constant t columnsW, D.Default QueryRunner returned b) 
-    => Connection -> Table columnsW returned -> t -> IO b
-create_item conn table item = do
+    D.Default Constant incoming columnsW, D.Default QueryRunner returned row) 
+    => Connection -> Table columnsW returned -> incoming -> IO row
+create_row conn table item = do
   current_time <- fmap pgUTCTime getCurrentTime
   let itemPg = (constant item) & createdat .~ (Just current_time) & updatedat .~ (Just current_time)
   fmap head $ runInsertManyReturning conn table [itemPg] (\x -> x)
 
-update_item :: (
+update_row :: (
     HasUpdatedat haskells UTCTime
     , D.Default Constant haskells columnsW
     , D.Default Constant item_id (Column PGInt4)
@@ -36,7 +36,7 @@ update_item :: (
     , HasId columnsR (Column PGInt4)
     )
     => Connection -> Table columnsW columnsR -> item_id -> haskells -> IO haskells
-update_item conn table it_id item = do
+update_row conn table it_id item = do
   current_time <- getCurrentTime
   let updated_item = (put_updated_timestamp current_time) item
   runUpdate conn table (\_ -> constant updated_item) match_func
