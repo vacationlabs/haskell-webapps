@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE AllowAmbiguousTypes     #-}
 
 module ApiBase where
 
@@ -15,19 +16,20 @@ import           Database.PostgreSQL.Simple
 import Opaleye
 import OpaleyeDef
 import Prelude hiding (id)
+import OpaleyeTypes
 
-create_item :: (
-      HasCreatedat haskells (Maybe UTCTime)
-    , D.Default Constant haskells columnsW
-    , D.Default QueryRunner returned b)
-    => Connection -> Table columnsW returned -> haskells -> IO b
+create_item ::(
+    HasCreatedat columnsW (Maybe (Column PGTimestamptz)),
+    HasUpdatedat columnsW (Maybe (Column PGTimestamptz)),
+    D.Default Constant t columnsW, D.Default QueryRunner returned b) 
+    => Connection -> Table columnsW returned -> t -> IO b
 create_item conn table item = do
-  current_time <- getCurrentTime
-  let cl = createdat .~ Just current_time
-  fmap head $ runInsertManyReturning conn table [constant $ cl item] (\x -> x)
+  current_time <- fmap pgUTCTime getCurrentTime
+  let itemPg = (constant item) & createdat .~ (Just current_time) & updatedat .~ (Just current_time)
+  fmap head $ runInsertManyReturning conn table [itemPg] (\x -> x)
 
 update_item :: (
-    HasUpdatedat haskells (Maybe UTCTime)
+    HasUpdatedat haskells UTCTime
     , D.Default Constant haskells columnsW
     , D.Default Constant item_id (Column PGInt4)
     , HasId haskells item_id
@@ -40,7 +42,7 @@ update_item conn table it_id item = do
   runUpdate conn table (\_ -> constant updated_item) match_func
   return updated_item
   where
-    put_updated_timestamp :: (HasUpdatedat item (Maybe UTCTime)) => UTCTime -> item -> item
-    put_updated_timestamp timestamp  = updatedat .~ Just timestamp
+    put_updated_timestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
+    put_updated_timestamp timestamp  = updatedat .~ timestamp
     match_func :: (HasId cmR (Column PGInt4)) => (cmR -> Column PGBool)
     match_func item = (item ^. id) .== (constant it_id)

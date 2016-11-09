@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE FunctionalDependencies      #-}
@@ -7,12 +8,15 @@
 
 module DataTypes where
 
+import qualified Data.Profunctor.Product.Default      as D
+import Opaleye
 import           Control.Lens
 import           CryptoDef
 import           Data.List.NonEmpty
 import           Data.Text
 import           Data.Time          (UTCTime)
 import           GHC.Generics
+import Data.Time (UTCTime, getCurrentTime)
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)
@@ -38,9 +42,10 @@ data TenantPoly key created_at updated_at name fname lname email phone status ow
 } deriving (Show, Generic)
 
 
-type Tenant = TenantPoly TenantId (Maybe UTCTime) (Maybe UTCTime) Text Text Text Text Text TenantStatus (Maybe UserId) Text
+type Tenant = TenantPoly TenantId UTCTime UTCTime Text Text Text Text Text TenantStatus (Maybe UserId) Text
 
-type TenantIncoming = TenantPoly () (Maybe UTCTime) (Maybe UTCTime) Text Text Text Text Text () (Maybe UserId) Text
+type TenantIncoming = TenantPoly () () () Text Text Text Text Text () (Maybe UserId) Text
+type TenantIncomingCreatable = TenantPoly () UTCTime UTCTime Text Text Text Text Text () (Maybe UserId) Text
 
 data UserStatus = UserStatusActive | UserStatusInActive | UserStatusBlocked
   deriving (Show)
@@ -60,9 +65,9 @@ data UserPoly key created_at updated_at tenant_id username password firstname la
   , _userpolyStatus    :: status
 }
 
-type User = UserPoly UserId (Maybe UTCTime) (Maybe UTCTime) TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
+type User = UserPoly UserId UTCTime UTCTime TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
 
-type UserIncoming = UserPoly () (Maybe UTCTime) (Maybe UTCTime) TenantId Text Text (Maybe Text) (Maybe Text) ()
+type UserIncoming = UserPoly () () () TenantId Text Text (Maybe Text) (Maybe Text) ()
 
 data Permission = Read | Create | Update | Delete
   deriving (Show)
@@ -79,8 +84,8 @@ data RolePoly key tenant_id name permission created_at updated_at  = Role {
   , _rolepolyUpdatedat  :: updated_at
 } deriving (Show)
 
-type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) (Maybe UTCTime) (Maybe UTCTime)
-type RoleIncoming = RolePoly () TenantId Text (NonEmpty Permission) (Maybe UTCTime) (Maybe UTCTime)
+type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) UTCTime UTCTime
+type RoleIncoming = RolePoly () TenantId Text (NonEmpty Permission) () ()
 
 makeLensesWith abbreviatedFields ''RolePoly
 makeLensesWith abbreviatedFields ''TenantPoly

@@ -30,7 +30,7 @@ instance FromJSON TenantStatus where
 
 instance FromJSON TenantIncoming where
   parseJSON (Object v) =
-    (Tenant () Nothing Nothing) <$> v .: "name" <*> v .: "firstname" <*> v .: "lastname" <*>
+    (Tenant () () ()) <$> v .: "name" <*> v .: "firstname" <*> v .: "lastname" <*>
     v .: "email" <*>
     v .: "phone" <*>
     (pure ()) <*>

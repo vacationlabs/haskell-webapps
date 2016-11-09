@@ -29,6 +29,7 @@ library
                       ,product-profunctors
                       ,bytestring
                       ,opaleye
+                      ,time
                       ,postgresql-simple
                       ,bcrypt
                       ,text

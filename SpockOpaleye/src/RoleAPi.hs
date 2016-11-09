@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module RoleApi
-  ( create_role
-  , remove_role
+  (
+  remove_role
   , read_roles_for_tenant
   ) where
 
@@ -19,13 +19,14 @@ import           DataTypes
 import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
+import           OpaleyeTypes
 
 import           ApiBase
 import           Control.Lens
 import           Prelude                    hiding (id)
 
-create_role :: Connection -> RoleIncoming -> IO Role
-create_role conn role = create_item conn roleTable role
+--create_role :: Connection -> RoleIncoming -> IO Role
+--create_role conn role = create_item conn roleTable role
 
 update_role :: Connection -> RoleId -> Role -> IO Role
 update_role conn role_id role = update_item conn roleTable role_id role
