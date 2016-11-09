@@ -1,7 +1,7 @@
 module OpaleyeTypes where
 
-import Opaleye
-import DataTypes
+import           DataTypes
+import           Opaleye
 
 type TenantTableW = TenantPoly
   (Maybe (Column PGInt4))
@@ -32,7 +32,7 @@ type TenantTableR = TenantPoly
 type UserTableW = UserPoly
   (Maybe (Column PGInt4))
   (Maybe (Column PGTimestamptz)) -- createdAt
-  (Maybe (Column PGTimestamptz)) -- updatedAt
+  (Column PGTimestamptz) -- updatedAt
   (Column PGInt4)
   (Column PGText)
   (Column PGBytea)
@@ -57,7 +57,7 @@ type RoleTableW = RolePoly
   (Column PGText)
   (Column (PGArray PGText))
   (Maybe (Column PGTimestamptz)) -- createdAt
-  (Maybe (Column PGTimestamptz)) -- updatedAt
+  (Column PGTimestamptz) -- updatedAt
 
 type RoleTableR = RolePoly
   (Column PGInt4)

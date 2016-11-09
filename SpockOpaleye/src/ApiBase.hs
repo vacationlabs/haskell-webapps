@@ -7,20 +7,20 @@
 
 module ApiBase where
 
-import qualified Data.Profunctor.Product.Default      as D
-import           Data.Time                            (UTCTime, getCurrentTime)
 import           Control.Lens
-import           DataTypes
+import qualified Data.Profunctor.Product.Default as D
+import           Data.Time                       (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple
-import Opaleye
-import OpaleyeDef
-import Prelude hiding (id)
-import OpaleyeTypes
+import           DataTypes
+import           Opaleye
+import           OpaleyeDef
+import           OpaleyeTypes
+import           Prelude                         hiding (id)
 
 create_row ::(
     HasCreatedat columnsW (Maybe (Column PGTimestamptz)),
     HasUpdatedat columnsW (Column PGTimestamptz),
-    D.Default Constant incoming columnsW, D.Default QueryRunner returned row) 
+    D.Default Constant incoming columnsW, D.Default QueryRunner returned row)
     => Connection -> Table columnsW returned -> incoming -> IO row
 create_row conn table item = do
   current_time <- fmap pgUTCTime getCurrentTime

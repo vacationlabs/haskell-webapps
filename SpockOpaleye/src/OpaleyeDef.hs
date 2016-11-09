@@ -7,7 +7,6 @@
 
 module OpaleyeDef where
 
-import OpaleyeTypes
 import           Data.List.NonEmpty
 import           Data.Maybe
 import           Data.Profunctor.Product
@@ -15,10 +14,11 @@ import qualified Data.Profunctor.Product.Default      as D
 import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
 import           Data.Text
 import           Data.Text.Encoding
-import           Data.Time                            
+import           Data.Time
 import           Database.PostgreSQL.Simple           (Connection)
 import           Database.PostgreSQL.Simple.FromField
 import           Opaleye
+import           OpaleyeTypes
 
 import           Control.Lens
 import           Data.Vector
@@ -51,7 +51,7 @@ userTable = Table "users" (pUser
   User {
     _userpolyId = optional "id"
   , _userpolyCreatedat = (optional "created_at")
-  , _userpolyUpdatedat = (optional "updated_at")
+  , _userpolyUpdatedat = (required "updated_at")
   , _userpolyTenantid = required "tenant_id"
   , _userpolyUsername = required "username"
   , _userpolyPassword = required "password"
@@ -69,7 +69,7 @@ roleTable = Table "roles" (pRole Role {
   _rolepolyName = required "name",
   _rolepolyPermission = required "permissions",
   _rolepolyCreatedat = optional "created_at",
-  _rolepolyUpdatedat = optional "updated_at"
+  _rolepolyUpdatedat = required "updated_at"
   })
 
 userRolePivotTable :: Table (Column PGInt4, Column PGInt4) (Column PGInt4, Column PGInt4)

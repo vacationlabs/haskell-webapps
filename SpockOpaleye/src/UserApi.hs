@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module UserApi
-  ( 
-  read_users
+  ( create_user
+  , read_users
   , read_user_by_id
   , read_users_for_tenant
   , add_role_to_user
@@ -16,6 +16,7 @@ module UserApi
   , activate_user
   ) where
 
+import           ApiBase
 import           Control.Arrow
 import           Control.Lens
 import           Data.Text
@@ -26,16 +27,15 @@ import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
 import           OpaleyeTypes
-import ApiBase
 
 import           CryptoDef
-import Prelude hiding (id)
+import           Prelude                    hiding (id)
 
---create_user :: Connection -> UserIncoming -> IO User
---create_user conn user = do
---  Just hash <- bcryptPassword $ user ^. password
---  let full_user = user { _userpolyPassword = hash }
---  create_item conn userTable full_user
+create_user :: Connection -> UserIncoming -> IO User
+create_user conn user = do
+  Just hash <- bcryptPassword $ user ^. password
+  let full_user = user { _userpolyPassword = hash }
+  create_row conn userTable full_user
 
 update_user :: Connection -> UserId -> User -> IO User
 update_user conn user_id user = update_row conn userTable user_id user

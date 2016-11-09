@@ -1,22 +1,22 @@
-{-# LANGUAGE DeriveGeneric        #-}
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE FunctionalDependencies      #-}
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE TypeSynonymInstances   #-}
 
 module DataTypes where
 
-import qualified Data.Profunctor.Product.Default      as D
-import Opaleye
 import           Control.Lens
 import           CryptoDef
 import           Data.List.NonEmpty
+import qualified Data.Profunctor.Product.Default as D
 import           Data.Text
-import           Data.Time          (UTCTime)
+import           Data.Time                       (UTCTime)
+import           Data.Time                       (UTCTime, getCurrentTime)
 import           GHC.Generics
-import Data.Time (UTCTime, getCurrentTime)
+import           Opaleye
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)

@@ -8,11 +8,11 @@
 
 module Validations where
 
-import Control.Lens
-import           DataTypes
+import           Control.Lens
 import           Data.Maybe
 import qualified Data.Text                  as T
 import           Database.PostgreSQL.Simple
+import           DataTypes
 import           TenantApi
 
 validateIncomingTenant :: Connection -> TenantIncoming -> IO ValidationResult

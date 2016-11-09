@@ -15,6 +15,7 @@ module TenantApi
   , deactivate_tenant
   ) where
 
+import           ApiBase
 import           Control.Arrow
 import           Control.Lens
 import           Data.Text
@@ -26,7 +27,6 @@ import           Opaleye
 import           OpaleyeDef
 import           OpaleyeTypes
 import           Prelude                    hiding (id)
-import           ApiBase
 import           RoleApi
 import           UserApi
 

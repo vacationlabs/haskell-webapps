@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module RoleApi
-  (
-  remove_role
+  ( create_role
+  , remove_role
   , read_roles_for_tenant
   ) where
 
@@ -25,8 +25,8 @@ import           ApiBase
 import           Control.Lens
 import           Prelude                    hiding (id)
 
---create_role :: Connection -> RoleIncoming -> IO Role
---create_role conn role = create_item conn roleTable role
+create_role :: Connection -> RoleIncoming -> IO Role
+create_role conn role = create_row conn roleTable role
 
 update_role :: Connection -> RoleId -> Role -> IO Role
 update_role conn role_id role = update_row conn roleTable role_id role
