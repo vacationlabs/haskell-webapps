@@ -6,7 +6,7 @@ import DataTypes
 type TenantTableW = TenantPoly
   (Maybe (Column PGInt4))
   (Maybe (Column PGTimestamptz)) -- createdAt
-  (Maybe (Column PGTimestamptz)) -- updatedAt
+  (Column PGTimestamptz) -- updatedAt
   (Column PGText)
   (Column PGText)
   (Column PGText)

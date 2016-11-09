@@ -20,12 +20,12 @@ import OpaleyeTypes
 
 create_row ::(
     HasCreatedat columnsW (Maybe (Column PGTimestamptz)),
-    HasUpdatedat columnsW (Maybe (Column PGTimestamptz)),
+    HasUpdatedat columnsW (Column PGTimestamptz),
     D.Default Constant incoming columnsW, D.Default QueryRunner returned row) 
     => Connection -> Table columnsW returned -> incoming -> IO row
 create_row conn table item = do
   current_time <- fmap pgUTCTime getCurrentTime
-  let itemPg = (constant item) & createdat .~ (Just current_time) & updatedat .~ (Just current_time)
+  let itemPg = (constant item) & createdat .~ (Just current_time) & updatedat .~ (current_time)
   fmap head $ runInsertManyReturning conn table [itemPg] (\x -> x)
 
 update_row :: (

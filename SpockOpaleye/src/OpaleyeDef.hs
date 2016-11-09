@@ -15,7 +15,7 @@ import qualified Data.Profunctor.Product.Default      as D
 import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
 import           Data.Text
 import           Data.Text.Encoding
-import           Data.Time                            (UTCTime, getCurrentTime)
+import           Data.Time                            
 import           Database.PostgreSQL.Simple           (Connection)
 import           Database.PostgreSQL.Simple.FromField
 import           Opaleye
@@ -32,7 +32,7 @@ tenantTable = Table "tenants" (pTenant
    Tenant {
      _tenantpolyId = (optional "id"),
      _tenantpolyCreatedat = (optional "created_at"),
-     _tenantpolyUpdatedat = (optional "updated_at"),
+     _tenantpolyUpdatedat = (required "updated_at"),
      _tenantpolyName = (required "name"),
      _tenantpolyFirstname = (required "first_name"),
      _tenantpolyLastname = (required "last_name"),
@@ -234,7 +234,17 @@ instance D.Default Constant Text (Column (Nullable PGText)) where
   def = Constant (toNullable.pgStrictText)
 
 instance D.Default Constant () (Maybe (Column PGTimestamptz)) where
-  def = Constant (\_ -> Nothing)
+  def = Constant (\() -> Nothing)
+
+instance D.Default Constant () (Column PGTimestamptz) where
+  def = Constant (\() -> pgUTCTime defaultutc)
+    where
+      defaultutc = UTCTime {
+        utctDay = ModifiedJulianDay {
+          toModifiedJulianDay = 0
+          }
+        , utctDayTime = secondsToDiffTime 0
+      }
 
 instance D.Default Constant UTCTime (Maybe (Column PGTimestamptz)) where
   def = Constant (\time -> Just $ pgUTCTime time)
