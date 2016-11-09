@@ -5,7 +5,6 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 
-
 module OpaleyeDef where
 
 import           Data.List.NonEmpty
@@ -52,7 +51,6 @@ type TenantTableR = TenantPoly
   (Column PGText)
 
 $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
-$(makeLensesWith abbreviatedFields ''TenantPoly)
 
 tenantTable :: Table TenantTableW TenantTableR
 tenantTable = Table "tenants" (pTenant
@@ -94,7 +92,6 @@ type UserTableR = UserPoly
   (Column PGText)
 
 $(makeAdaptorAndInstance "pUser" ''UserPoly)
-$(makeLensesWith abbreviatedFields ''UserPoly)
 
 userTable :: Table UserTableW UserTableR
 userTable = Table "users" (pUser
@@ -127,7 +124,6 @@ type RoleTableR = RolePoly
   (Column PGTimestamptz) -- updatedAt
 
 $(makeAdaptorAndInstance "pRole" ''RolePoly)
-$(makeLensesWith abbreviatedFields ''RolePoly)
 
 roleTable :: Table RoleTableW RoleTableR
 roleTable = Table "roles" (pRole Role {
@@ -308,32 +304,3 @@ instance D.Default Constant UTCTime (Maybe (Column PGTimestamptz)) where
 
 instance QueryRunnerColumnDefault PGTimestamptz (Maybe UTCTime) where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
-
-create_item :: (
-      HasCreatedat haskells (Maybe UTCTime)
-    , D.Default Constant haskells columnsW
-    , D.Default QueryRunner returned b)
-    => Connection -> Table columnsW returned -> haskells -> IO b
-create_item conn table item = do
-  current_time <- getCurrentTime
-  let cl = createdat .~ Just current_time
-  fmap Prelude.head $ runInsertManyReturning conn table [constant $ cl item] Prelude.id
-
-update_item :: (
-    HasUpdatedat haskells (Maybe UTCTime)
-    , D.Default Constant haskells columnsW
-    , D.Default Constant item_id (Column PGInt4)
-    , HasId haskells item_id
-    , HasId columnsR (Column PGInt4)
-    )
-    => Connection -> Table columnsW columnsR -> item_id -> haskells -> IO haskells
-update_item conn table it_id item = do
-  current_time <- getCurrentTime
-  let updated_item = (put_updated_timestamp current_time) item
-  runUpdate conn table (\_ -> constant updated_item) match_func
-  return updated_item
-  where
-    put_updated_timestamp :: (HasUpdatedat item (Maybe UTCTime)) => UTCTime -> item -> item
-    put_updated_timestamp timestamp  = updatedat .~ Just timestamp
-    match_func :: (HasId cmR (Column PGInt4)) => (cmR -> Column PGBool)
-    match_func item = (item ^. OpaleyeDef.id) .== (constant it_id)

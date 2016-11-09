@@ -25,8 +25,10 @@ import           DataTypes
 import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
+import ApiBase
 
 import           CryptoDef
+import Prelude hiding (id)
 
 create_user :: Connection -> UserIncoming -> IO User
 create_user conn user = do
@@ -44,13 +46,13 @@ deactivate_user :: Connection -> User -> IO User
 deactivate_user conn user = set_user_status conn user UserStatusInActive
 
 set_user_status :: Connection -> User -> UserStatus -> IO User
-set_user_status conn user new_status = update_user conn (user ^. OpaleyeDef.id) $ user & status .~ new_status
+set_user_status conn user new_status = update_user conn (user ^. id) $ user & status .~ new_status
 
 remove_user :: Connection -> User -> IO GHC.Int.Int64
 remove_user conn user_t =
   runDelete conn userTable match_function
     where
-    match_function user = (user ^. OpaleyeDef.id).== constant (user_t ^. OpaleyeDef.id)
+    match_function user = (user ^. id).== constant (user_t ^. id)
 
 read_users :: Connection -> IO [User]
 read_users conn = runQuery conn user_query
@@ -79,7 +81,7 @@ user_query = queryTable userTable
 user_query_by_id :: UserId -> Query UserTableR
 user_query_by_id t_id = proc () -> do
   user <- user_query -< ()
-  restrict -< (user ^. OpaleyeDef.id) .== (constant t_id)
+  restrict -< (user ^. id) .== (constant t_id)
   returnA -< user
 
 user_query_by_tenantid :: TenantId -> Query UserTableR

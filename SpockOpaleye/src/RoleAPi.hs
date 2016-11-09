@@ -20,6 +20,7 @@ import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
 
+import           ApiBase
 import           Control.Lens
 import           Prelude                    hiding (id)
 

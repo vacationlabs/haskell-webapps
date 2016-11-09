@@ -25,6 +25,7 @@ import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
 import           Prelude                    hiding (id)
+import           ApiBase
 import           RoleApi
 import           UserApi
 

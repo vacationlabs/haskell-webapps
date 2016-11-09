@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE FunctionalDependencies      #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 module DataTypes where
@@ -35,7 +37,6 @@ data TenantPoly key created_at updated_at name fname lname email phone status ow
   , _tenantpolyBackofficedomain :: b_domain
 } deriving (Show, Generic)
 
-makeFields ''TenantPoly
 
 type Tenant = TenantPoly TenantId (Maybe UTCTime) (Maybe UTCTime) Text Text Text Text Text TenantStatus (Maybe UserId) Text
 
@@ -59,8 +60,6 @@ data UserPoly key created_at updated_at tenant_id username password firstname la
   , _userpolyStatus    :: status
 }
 
-makeFields ''UserPoly
-
 type User = UserPoly UserId (Maybe UTCTime) (Maybe UTCTime) TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
 
 type UserIncoming = UserPoly () (Maybe UTCTime) (Maybe UTCTime) TenantId Text Text (Maybe Text) (Maybe Text) ()
@@ -83,4 +82,6 @@ data RolePoly key tenant_id name permission created_at updated_at  = Role {
 type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) (Maybe UTCTime) (Maybe UTCTime)
 type RoleIncoming = RolePoly () TenantId Text (NonEmpty Permission) (Maybe UTCTime) (Maybe UTCTime)
 
-makeFields ''RolePoly
+makeLensesWith abbreviatedFields ''RolePoly
+makeLensesWith abbreviatedFields ''TenantPoly
+makeLensesWith abbreviatedFields ''UserPoly
