@@ -4,7 +4,6 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE AllowAmbiguousTypes     #-}
 
 module ApiBase where
 
