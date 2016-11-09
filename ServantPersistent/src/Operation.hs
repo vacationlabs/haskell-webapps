@@ -25,9 +25,12 @@ import Types
 import DBTypes
 import Models
 
-data Permission = EditUser UserID
-                | EditTenant TenantID
-                | ViewUser UserID
+data Permission = EditUser UserId
+                | EditTenant TenantId
+                | ViewUser UserId
+                | AssignRole UserId
+                | EditProduct ProductId
+                | CreateProduct TenantId
                     deriving (Eq,Ord,Show)
 
 data PermissionError = Requires (Set Permission)
@@ -75,6 +78,14 @@ runOperation o mu =
               modifyM $ satisfyPermissions $
                 \case (EditTenant tid) -> return $ tid == (u ^. tenantID)
                       _ -> return False
+            EditUserRoles ->
+              modifyM $ satisfyPermissions $
+                \case (AssignRole uid) -> lift $ hasTenant uid (u ^. tenantID)
+                      _ -> return False
+            MakeProduct ->
+              modifyM $ satisfyPermissions $
+                \case (CreateProduct tid) -> return $ tid == (u ^. tenantID)
+                      _ -> return False
     s <- get
     if null s
        then return a
@@ -83,7 +94,7 @@ runOperation o mu =
 satisfyPermissions :: (Applicative f, Ord a) => (a -> f Bool) -> Set a -> f (Set a)
 satisfyPermissions f s = fromList <$> filterM (fmap not . f) (toList s)
 
-hasTenant :: (Monad m, MonadIO m) => UserID -> TenantID -> TransactionT m Bool
+hasTenant :: (Monad m, MonadIO m) => UserId -> TenantId -> TransactionT m Bool
 hasTenant uid tid = do
     mtid <- fmap _dBUserTenantID <$> DB.get uid
     case mtid of

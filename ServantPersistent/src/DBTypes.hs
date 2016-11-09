@@ -11,26 +11,25 @@ module DBTypes where
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Text
-
 import Data.Time.Clock
 import GHC.Generics
 import Control.Lens
 import Types
 import Price
 import Models
-
 import Database.Persist
 import Database.Persist.Sql
 import Data.Serialize
 import GHC.TypeLits
 
 
-type TenantID = Key DBTenant
 type Tenant = DBTenant
 type TenantOutput = DBTenant
-type UserID = Key DBUser
-type ProductID = Key DBProduct
-type RoleID = Key Role
+type TenantId = Key DBTenant
+type UserId = Key DBUser
+type ProductId = Key DBProduct
+type UserActivationId = Key DBUserActivation
+type TenantActivationId = Key DBTenantActivation
 
 
 data Product = Product { getProduct :: Entity DBProduct
@@ -59,18 +58,25 @@ data VariantInput =
              , viPrice :: Price
              }
 
-instance Serialize UserID where
+instance Serialize UserId where
   get = DBUserKey . SqlBackendKey <$> Data.Serialize.get
   put x = put (unSqlBackendKey $ unDBUserKey x)
 
-data Session = Session { sessionUserID :: UserID
+instance Serialize UTCTime where
+  get = read <$> Data.Serialize.get
+  put x = put (show x)
+
+
+data Session = Session { sessionUserID :: UserId
+                       , startTime :: UTCTime
                        } deriving (Show, Generic, Serialize, FromJSON , ToJSON)
 
-data DBError = TenantNotFound TenantID
-             | UserNotFound UserID 
-             | ProductNotFound ProductID
-             | RoleNotFound (Either RoleID Text)
+data DBError = TenantNotFound TenantId
+             | UserNotFound UserId
+             | ProductNotFound ProductId
+             | RoleNotFound (Either RoleId Text)
              | ViolatesTenantUniqueness (Unique Tenant)
+             | UserAlreadyActive UserId
                 deriving (Eq, Show)
 
 data UserCreationError = UserExists Text
@@ -79,28 +85,20 @@ data UserCreationError = UserExists Text
 data ActivationError = ActivationError
 
 
-data Activation =
-    Activation { activationTenantID :: TenantID
-               , activationTime :: UTCTime
-               } deriving (Generic)
-
-data TenantIdent =
+data TenantInput =
     TenantI { _name :: Text
             , _backofficeDomain :: Text
             } deriving (Generic)
-instance FromJSON TenantIdent where
+instance FromJSON TenantInput where
     parseJSON = genericParseJSON (defaultOptions { fieldLabelModifier = Prelude.drop 1})
-instance ToJSON TenantIdent where
+instance ToJSON TenantInput where
     toEncoding = genericToEncoding (defaultOptions { fieldLabelModifier = Prelude.drop 1})
     toJSON = genericToJSON (defaultOptions { fieldLabelModifier = Prelude.drop 1})
 
-instance HasName TenantIdent where
+instance HasName TenantInput where
     name = lens _name (\ti n -> ti { _name = n } )
-instance HasBackofficeDomain TenantIdent where
+instance HasBackofficeDomain TenantInput where
     backofficeDomain = lens _backofficeDomain (\ti bd -> ti { _backofficeDomain = bd } )
-
-type TenantInput = TenantIdent
-
 
 data UserType = Input
               | Regular
@@ -112,10 +110,10 @@ type family Omittable (state :: UserType) (s :: Symbol) a where
   Omittable Regular _ a = a
 
 class HasTenantID s where
-    tenantID :: Lens' s TenantID
+    tenantID :: Lens' s TenantId
 
 class HasUserID s where
-    userID :: Lens' s UserID
+    userID :: Lens' s UserId
 
 instance HasTenantID DBUser where
     tenantID = dBUserTenantID
@@ -126,11 +124,11 @@ data UserBase (userType :: UserType)=
           , _userEmail :: Text
           , _userPhone :: Text
           , _userUsername :: Text
-          , _userTenantID :: TenantID
+          , _userTenantID :: TenantId
           , _userPassword :: Omittable userType "password" Text
           , _userStatus :: Omittable userType "status" UserStatus
           , _userRole :: Omittable userType "role" Role
-          , _userUserID :: Omittable userType "userID" UserID
+          , _userUserID :: Omittable userType "userID" UserId
           } deriving (Generic)
 
 makeLenses ''UserBase
@@ -153,7 +151,7 @@ instance HasUserID (UserBase Regular) where
 deriving instance (Show (Omittable a "password" Text),
                    Show (Omittable a "status" UserStatus),
                    Show (Omittable a "role" Role),
-                   Show (Omittable a "userID" UserID))
+                   Show (Omittable a "userID" UserId))
                    => Show (UserBase a)
 
 type UserInput = UserBase Input

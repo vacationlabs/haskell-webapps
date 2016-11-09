@@ -11,15 +11,12 @@
 module Models
     where
 
-
 import           Data.Text
 import           Data.Time.Clock
 import           Database.Persist.Sql
 import           Database.Persist.TH
 import           Price
 import           Types
-
-
 
 share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
 DBTenant json
@@ -49,17 +46,13 @@ DBUser
 
 DBTenantActivation
     tenantID DBTenantId
-    key Text
     createdAt UTCTime
     UniqueTenantActivation tenantID
-    UniqueTenantKey key
 
 DBUserActivation
     userID DBUserId
-    key Text
     createdAt UTCTime
     UniqueUserActivation userID
-    UniqueUserKey key
 
 DBProduct
     name Text
@@ -72,6 +65,7 @@ DBProduct
     properties AppJSON
     urlSlug Text
     tenantID DBTenantId
+--    variantSkus [Text]
     createdAt UTCTime
     updatedAt UTCTime
     UniqueSlug urlSlug

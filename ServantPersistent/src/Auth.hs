@@ -50,22 +50,22 @@ cookieAuthHandler config@Config{..} = mkAuthHandler $ \request -> flip runReader
              Right _ -> return $ Left InactiveUser
 
 data LoginError = UsernameNotFound Text
-                | TenantInactive TenantID
+                | TenantInactive TenantId
                 | WrongPassword
 
-validateLogin :: LoginForm -> App (Either LoginError ())
+validateLogin :: LoginForm -> App (Either LoginError UserId)
 validateLogin Login{..} =
   runTransaction $ do
     muser <- getBy (UniqueUsername loginUsername)
     case muser of
       Nothing -> return $ Left $ UsernameNotFound loginUsername
-      Just Entity{entityVal=user} -> do
+      Just Entity{entityVal=user, entityKey=uid} -> do
                  mtenant <- get (view dBUserTenantID user)
                  case mtenant of
                    Nothing -> return $ Left $ TenantInactive (view dBUserTenantID user)
                    Just tenant -> case view dBTenantStatus tenant of
                                     ActiveT -> if loginPassword == user ^. dBUserPassword
-                                               then return $ Right ()
+                                               then return $ Right $ uid
                                                else return $ Left WrongPassword
                                     _ -> return $ Left $ TenantInactive (user ^. dBUserTenantID)
 

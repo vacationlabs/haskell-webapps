@@ -13,16 +13,17 @@ import           Auth
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.ByteString
+import           Data.Time
 import           DBTypes
-import           Domain.Tenant
 import           Domain.Product
+import           Domain.Tenant
 import           Environ
+import           Models
+import           Operation
+import           ProductQuery
 import           Servant
 import           Servant.Server.Experimental.Auth.Cookie
 import           Types
-import ProductQuery
-import Operation
-import Models
 
 
 type TestAPI = API
@@ -30,14 +31,14 @@ type TestAPI = API
 testAPI :: Proxy TestAPI
 testAPI = Proxy
 
-newTenant :: TenantInput -> App (Headers '[Header "location" String] TenantID)
+newTenant :: TenantInput -> App (Headers '[Header "location" String] TenantId)
 newTenant ti = do
     result <- runTransaction $ dbCreateTenant ti
     case result of
          Nothing -> throwError $ err400 { errBody = "Tenant already exists" }
-         Just tid -> return $ addHeader (show tid) tid
+         Just (tid, key) -> return $ addHeader (show tid) tid
 
-getTenant :: TenantID -> App TenantOutput
+getTenant :: TenantId -> App TenantOutput
 getTenant tid = do
     result <- runTransaction $ dbGetTenant tid
     case result of
@@ -49,10 +50,10 @@ newSession login = do
     Config{..} <- ask
     loginValid <- validateLogin login
     inDevel $ liftIO $ print login
-    let session = Session undefined
+    time <- liftIO getCurrentTime
     case loginValid of
       Left _ -> throwError $ err400 { errBody = "Invalid login." }
-      Right _ -> addSession authSettings randomSource serverKey session ()
+      Right uid -> addSession authSettings randomSource serverKey (Session uid time) ()
 
 testSessionHandler :: ServerT TestAPI App
 testSessionHandler = (newTenant :<|> getTenant) :<|> newSession :<|> productHandler
@@ -61,7 +62,7 @@ productHandler :: ServerT (ProtectEndpoints ProductAPI) App
 productHandler = productGetHandler
             :<|> productListHandler
 
-productGetHandler :: ProductID -> Either CookieError User -> App Product
+productGetHandler :: ProductId -> Either CookieError User -> App Product
 productGetHandler pid session = do
   case session of
        (Right user) -> do
@@ -76,14 +77,14 @@ handlePermissionError :: App (Either PermissionError a) -> App a
 handlePermissionError x = do
   a <- x
   case a of
-    (Left _) -> throwError err403
+    (Left _)  -> throwError err403
     (Right a) -> return a
 
 handleDBError :: App (Either DBError a) -> App a
 handleDBError x = do
   a <- x
   case a of
-    (Left _) -> throwError err404
+    (Left _)  -> throwError err404
     (Right a) -> return a
 
 

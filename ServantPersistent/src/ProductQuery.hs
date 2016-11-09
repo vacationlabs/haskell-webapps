@@ -15,13 +15,12 @@ import           Types
 
 data ProductFilter =
     ProductF { getProductFilter :: [Filter DBProduct]
-             , getVariantFilter :: [Filter DBVariant]
              , otherFilters     :: DBTenant -> All
              }
 
 instance Monoid ProductFilter where
-    mempty = ProductF [] [] mempty
-    (ProductF a b f) `mappend` (ProductF c d g) = ProductF (a++c) (b++d) (f <> g)
+    mempty = ProductF [] mempty
+    (ProductF a f) `mappend` (ProductF c g) = ProductF (a++c) (f <> g)
 
 data ProductView =
     ProductView { getProductFields :: DBProduct -> AppJSON
@@ -43,23 +42,25 @@ textSplit c s = (x, T.tail y)
 
 -- Query Format /products?filter=title:sometitle&filter=type:physical
 
+postgreAny s = "ANY (" ++ s ++ ")"
+
 instance FromHttpApiData ProductFilter where
     parseQueryParam s =
         case textSplit ':' s of
-            ("title",r) -> Right $ ProductF [DBProductName ==. r] [] mempty
-            ("sku"  ,r) -> Right $ ProductF [] [DBVariantSku ==. r] mempty
+            ("title",r) -> Right $ ProductF [DBProductName ==. r] mempty
+            --("sku"  ,r) -> Right $ ProductF [DBProductVariantSkus ==. postgreAny r] mempty
             ("createdAtMin"  ,r) -> do
                 t <- parseQueryParam r
-                return $ ProductF [DBProductCreatedAt >=. t] [] mempty
+                return $ ProductF [DBProductCreatedAt >=. t] mempty
             ("updatedAtMin"  ,r) -> do
                 t <- parseQueryParam r
-                return $ ProductF [DBProductUpdatedAt >=. t] [] mempty
+                return $ ProductF [DBProductUpdatedAt >=. t] mempty
             ("createdAtMax"  ,r) -> do
                 t <- parseQueryParam r
-                return $ ProductF [DBProductCreatedAt <=. t] [] mempty
+                return $ ProductF [DBProductCreatedAt <=. t] mempty
             ("updatedAtMax"  ,r) -> do
                 t <- parseQueryParam r
-                return $ ProductF [DBProductUpdatedAt <=. t] [] mempty
+                return $ ProductF [DBProductUpdatedAt <=. t] mempty
             _ -> Left "Couldn't parse product filters"
 
 makeViewProd :: ToJSON a => Text -> (DBProduct -> a) -> ProductView

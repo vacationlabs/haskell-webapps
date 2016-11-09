@@ -36,7 +36,9 @@ data CookieError = NotPresent
 data Capability = ViewUserDetails
                 | EditUserDetails
                 | EditUserRoles
-                | EditTenantDetails deriving (Read, Show)
+                | EditTenantDetails
+                | MakeProduct
+                  deriving (Read, Show)
 derivePersistField "Capability"
 
 

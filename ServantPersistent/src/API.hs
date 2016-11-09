@@ -16,8 +16,8 @@ type ActivationResponse = ()
 
 type TenantAPI = 
       "new" :> ReqBody '[JSON] TenantInput 
-                :> Post '[JSON] (Headers '[Header "location" String] TenantID)
- :<|> Capture "id" TenantID  :> Get '[JSON] TenantOutput
+                :> Post '[JSON] (Headers '[Header "location" String] TenantId)
+ :<|> Capture "id" TenantId  :> Get '[JSON] TenantOutput
 --      :<|> Capture "id" TenantID  :> "activate" :> ReqBody '[JSON] ActivationRequest :> Post '[JSON] ActivationResponse
 
 type SessionAPI = 
@@ -26,7 +26,7 @@ type SessionAPI =
 -- :<|> "destroy" :> ReqBody '[JSON] LoginForm :> Post '[JSON] (Headers '[Header "set-cookie" ByteString] ())
 
 type ProductAPI =
-      Capture "id" ProductID :> Get '[JSON] Product
+      Capture "id" ProductId :> Get '[JSON] Product
  :<|> QueryParams "filter" ProductFilter :> QueryParams "field" ProductView :> Get '[JSON] [Product]
 
 type API = "tenants"  :> TenantAPI

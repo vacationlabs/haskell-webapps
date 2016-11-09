@@ -15,7 +15,7 @@ import           Operation
 import           Types
 import           Updater
 
-dbCreateUser :: MonadIO m => UserInput -> TransactionT m (Either UserCreationError UserID)
+dbCreateUser :: MonadIO m => UserInput -> TransactionT m (Either UserCreationError (UserId, UserActivationId))
 dbCreateUser u = runExceptT $ do
     time <- liftIO getCurrentTime
     roleId <- lift $  either entityKey id
@@ -34,10 +34,12 @@ dbCreateUser u = runExceptT $ do
                      }
     result <- lift $ insertUnique dbu
     case result of
-         Just a  -> return a
          Nothing -> throwError $ UserExists (view username u)
+         Just uid -> do
+                key <- lift $ insert (DBUserActivation uid time)
+                return (uid, key)
 
-dbUpdateUser :: MonadIO m => UserID -> UserUpdater -> OperationT (TransactionT m) (Either DBError ())
+dbUpdateUser :: MonadIO m => UserId -> UserUpdater -> OperationT (TransactionT m) (Either DBError ())
 dbUpdateUser uid upd = requirePermission (EditUser uid) $ lift $ do
     oldUser' <- get uid
     case oldUser' of
@@ -45,7 +47,7 @@ dbUpdateUser uid upd = requirePermission (EditUser uid) $ lift $ do
          Just oldUser ->
            Right <$> (replace uid =<< applyUpdate upd oldUser)
 
-dbGetUser :: MonadIO m => UserID -> OperationT (TransactionT m) (Either DBError User)
+dbGetUser :: MonadIO m => UserId -> OperationT (TransactionT m) (Either DBError User)
 dbGetUser uid = requirePermission (ViewUser uid) $  lift $ runExceptT $ do
     dbu <- ExceptT $ maybe (Left $ UserNotFound uid)
                            Right
@@ -67,25 +69,25 @@ dbGetUser uid = requirePermission (ViewUser uid) $  lift $ runExceptT $ do
                   }
     return u
 
-dbActivateUser :: MonadIO m => Text -> TransactionT m (Either ActivationError ())
+dbActivateUser :: MonadIO m => DBUserActivationId -> TransactionT m (Either ActivationError ())
 dbActivateUser key = runExceptT $ do
-                       r <- lift $ getBy (UniqueUserKey key)
+                       r <- lift $ get key
                        time <- liftIO getCurrentTime
                        case r of
                          Nothing -> throwError ActivationError
-                         Just Entity{..} -> do
-                           let uid = view dBUserActivationUserID entityVal
+                         Just (DBUserActivation uid _) -> do
                            lift $ update uid [ DBUserStatus =. ActiveU
                                              , DBUserUpdatedAt =. time
                                              ]
-                           lift $ delete entityKey
+                           lift $ delete key
                        return ()
 
 dbUserAssignRole :: MonadIO m
                  => Text
-                 -> UserID
+                 -> UserId
                  -> OperationT (TransactionT m) (Either DBError ())
 dbUserAssignRole name uid =
+  requirePermission (AssignRole uid) $
   runExceptT $ do
     time <- liftIO getCurrentTime
     u <- ExceptT $ dbGetUser uid
