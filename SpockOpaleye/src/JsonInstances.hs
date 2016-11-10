@@ -46,7 +46,7 @@ instance ToJSON TenantStatus where
       tgModify "TenantStatusActive"   = "active"
       tgModify "TenantStatusInActive" = "inactive"
       tgModify "TenantStatusNew"      = "new"
-      tgModify _ = error "Unknown status name for tenant"
+      tgModify _                      = error "Unknown status name for tenant"
 
 instance ToJSON Tenant where
   toJSON = genericToJSON defaultOptions

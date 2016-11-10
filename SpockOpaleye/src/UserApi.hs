@@ -63,7 +63,7 @@ readUserById :: Connection -> UserId -> IO (Maybe User)
 readUserById conn id' = do
   r <- runQuery conn $ userQueryById id'
   return $ case r of
-    []     -> Nothing
+    []    -> Nothing
     (x:_) -> Just x
 
 addRoleToUser :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64

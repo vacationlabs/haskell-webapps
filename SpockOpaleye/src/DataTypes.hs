@@ -12,7 +12,7 @@ import           Control.Lens
 import           CryptoDef
 import           Data.List.NonEmpty
 import           Data.Text
-import           Data.Time                       (UTCTime)
+import           Data.Time          (UTCTime)
 import           GHC.Generics
 
 data ValidationResult = Valid | Invalid
