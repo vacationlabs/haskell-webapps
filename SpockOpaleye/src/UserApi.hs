@@ -14,13 +14,12 @@ module UserApi
   , updateUser
   , removeUser
   , activateUser
+  , deactivateUser
   ) where
 
 import           ApiBase
 import           Control.Arrow
 import           Control.Lens
-import           Data.Text
-import           Data.Time                  (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
@@ -61,11 +60,11 @@ readUsersForTenant :: Connection -> TenantId -> IO [User]
 readUsersForTenant conn tenantId = runQuery conn $ userQueryByTenantid tenantId
 
 readUserById :: Connection -> UserId -> IO (Maybe User)
-readUserById conn id = do
-  r <- runQuery conn $ userQueryById id
+readUserById conn id' = do
+  r <- runQuery conn $ userQueryById id'
   return $ case r of
     []     -> Nothing
-    (x:xs) -> Just x
+    (x:_) -> Just x
 
 addRoleToUser :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
 addRoleToUser conn userId roleId =

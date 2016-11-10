@@ -7,13 +7,11 @@
 module RoleApi
   ( createRole
   , removeRole
+  , updateRole
   , readRolesForTenant
   ) where
 
 import           Control.Arrow
-import           Data.List.NonEmpty
-import           Data.Text
-import           Data.Time                  (getCurrentTime)
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
@@ -32,11 +30,11 @@ updateRole conn role = updateRow conn roleTable role
 
 removeRole :: Connection -> Role -> IO GHC.Int.Int64
 removeRole conn role = do
-  runDelete conn userRolePivotTable (\(_, roleId) -> roleId .== constant (role ^. id))
+  _ <- runDelete conn userRolePivotTable (\(_, roleId) -> roleId .== constant (role ^. id))
   runDelete conn roleTable matchFunc
     where
     tId = role ^. id
-    matchFunc role = (role ^. id).== constant tId
+    matchFunc role' = (role' ^. id).== constant tId
 
 readRolesForTenant :: Connection -> TenantId -> IO [Role]
 readRolesForTenant conn tId = do

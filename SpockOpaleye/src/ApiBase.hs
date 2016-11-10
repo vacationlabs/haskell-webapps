@@ -13,7 +13,6 @@ import           Data.Time                       (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple
 import           DataTypes
 import           Opaleye
-import           OpaleyeDef
 import           Prelude                         hiding (id)
 
 createRow ::(
@@ -38,10 +37,10 @@ updateRow conn table item = do
   currentTime <- getCurrentTime
   let itId = item ^. id
   let updatedItem = (putUpdatedTimestamp currentTime) item
-  runUpdate conn table (\_ -> constant updatedItem) (matchFunc itId)
+  _ <- runUpdate conn table (\_ -> constant updatedItem) (matchFunc itId)
   return updatedItem
   where
     putUpdatedTimestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
     putUpdatedTimestamp timestamp  = updatedat .~ timestamp
     matchFunc :: (HasId cmR (Column PGInt4), D.Default Constant itemId (Column PGInt4)) => (itemId -> cmR -> Column PGBool)
-    matchFunc itId item = (item ^. id) .== (constant itId)
+    matchFunc itId item' = (item' ^. id) .== (constant itId)

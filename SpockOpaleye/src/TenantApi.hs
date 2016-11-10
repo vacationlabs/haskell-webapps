@@ -19,7 +19,6 @@ import           ApiBase
 import           Control.Arrow
 import           Control.Lens
 import           Data.Text
-import           Data.Time                  (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
@@ -47,8 +46,8 @@ updateTenant conn tenant = do
 
 removeTenant :: Connection -> Tenant -> IO GHC.Int.Int64
 removeTenant conn tenant = do
-  deactivateTenant conn tenant
-  updateTenant conn (tenant & ownerid .~ Nothing)
+  tenant_deac <- deactivateTenant conn tenant
+  _ <- updateTenant conn (tenant_deac & ownerid .~ Nothing)
   usersForTenant <- readUsersForTenant conn tid
   rolesForTenant <- readRolesForTenant conn tid
   mapM_ (removeRole conn) rolesForTenant
@@ -57,14 +56,14 @@ removeTenant conn tenant = do
   where
     tid = tenant ^. id
     matchFunc :: TenantTableR -> Column PGBool
-    matchFunc tenant  = (tenant ^. id) .== (constant tid)
+    matchFunc tenant'  = (tenant' ^. id) .== (constant tid)
 
 readTenants :: Connection -> IO [Tenant]
 readTenants conn = runQuery conn tenantQuery
 
 readTenantById :: Connection -> TenantId -> IO (Maybe Tenant)
-readTenantById conn id = do
-  r <- runQuery conn $ (tenantQueryById id)
+readTenantById conn tenantId = do
+  r <- runQuery conn $ (tenantQueryById tenantId)
   return $ case r of
     []     -> Nothing
     (x:_) -> Just x

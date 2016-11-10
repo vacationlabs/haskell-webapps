@@ -15,15 +15,12 @@ import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
 import           Data.Text
 import           Data.Text.Encoding
 import           Data.Time
-import           Database.PostgreSQL.Simple           (Connection)
 import           Database.PostgreSQL.Simple.FromField
 import           Opaleye
 
 import           Control.Lens
 import           Data.Vector
 import           DataTypes
-import           GHC.Int
-import Data.Profunctor
 
 readOnly :: String -> TableProperties () (Column a)
 readOnly = lmap (const Nothing) . optional
@@ -151,7 +148,7 @@ instance D.Default Constant TenantStatus (Maybe (Column PGText)) where
       def' TenantStatusNew      = Just $ pgStrictText "new"
 
 instance FromField TenantStatus where
-  fromField f mdata = return tStatus
+  fromField _ mdata = return tStatus
     where
       tStatus =
         case mdata of
@@ -172,7 +169,7 @@ instance D.Default Constant UserStatus (Maybe (Column PGText)) where
       def' UserStatusBlocked  = Just $ pgStrictText "blocked"
 
 instance FromField (UserStatus) where
-  fromField f mdata = return gender
+  fromField _ mdata = return gender
     where
       gender =
         case mdata of
@@ -200,7 +197,7 @@ instance QueryRunnerColumnDefault (PGArray PGText) (NonEmpty Permission) where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
 
 instance FromField Permission where
-  fromField f mdata = return $ makePermission mdata
+  fromField _ mdata = return $ makePermission mdata
     where
       makePermission (Just x) = toPermission $ decodeUtf8 x
       makePermission Nothing  = error "No data read from db"
@@ -213,10 +210,10 @@ toPermission "Delete" = Delete
 toPermission _        = error "Unrecognized permission"
 
 instance FromField [Permission] where
-  fromField field mdata =  (fmap toPermission) <$> Data.Vector.toList <$> fromField field mdata
+  fromField f mdata =  (fmap toPermission) <$> Data.Vector.toList <$> fromField f mdata
 
 instance FromField (NonEmpty Permission) where
-  fromField field mdata = (fromJust.nonEmpty) <$> (fromField field mdata)
+  fromField f mdata = (fromJust.nonEmpty) <$> (fromField f mdata)
 
 instance QueryRunnerColumnDefault PGText Permission where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
@@ -225,7 +222,7 @@ instance D.Default Constant (UserId) (Column PGInt4) where
   def = Constant def'
     where
       def' :: UserId -> (Column PGInt4)
-      def' (UserId id) = pgInt4 id
+      def' (UserId id') = pgInt4 id'
 
 instance D.Default Constant UserId () where
   def = Constant (\_ -> ())
@@ -234,11 +231,11 @@ instance D.Default Constant (UserId) (Column (Nullable PGInt4)) where
   def = Constant def'
     where
       def' :: UserId -> (Column (Nullable PGInt4))
-      def' (UserId id) = (toNullable.pgInt4) id
+      def' (UserId id') = (toNullable.pgInt4) id'
 
 instance FromField UserId where
-  fromField field mdata = do
-    x <- fromField field mdata
+  fromField f mdata = do
+    x <- fromField f mdata
     return $ UserId x
 
 instance QueryRunnerColumnDefault PGInt4 UserId where
@@ -249,14 +246,14 @@ instance D.Default Constant RoleId (Column PGInt4) where
   def = Constant def'
     where
       def' :: RoleId -> (Column PGInt4)
-      def' (RoleId id) = pgInt4 id
+      def' (RoleId id') = pgInt4 id'
 
 instance D.Default Constant RoleId () where
   def = Constant (\_ -> ())
 
 instance FromField RoleId where
-  fromField field mdata = do
-    x <- fromField field mdata
+  fromField f mdata = do
+    x <- fromField f mdata
     return $ RoleId x
 
 instance QueryRunnerColumnDefault PGInt4 RoleId where
@@ -267,14 +264,14 @@ instance D.Default Constant TenantId (Column PGInt4) where
   def = Constant def'
     where
       def' :: TenantId -> (Column PGInt4)
-      def' (TenantId id) = pgInt4 id
+      def' (TenantId id') = pgInt4 id'
 
 instance D.Default Constant TenantId () where
   def = Constant (\_ -> ())
 
 instance FromField TenantId where
-  fromField field mdata = do
-    x <- fromField field mdata
+  fromField f mdata = do
+    x <- fromField f mdata
     return $ TenantId x
 
 instance QueryRunnerColumnDefault PGInt4 TenantId where

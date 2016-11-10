@@ -11,12 +11,9 @@ module DataTypes where
 import           Control.Lens
 import           CryptoDef
 import           Data.List.NonEmpty
-import qualified Data.Profunctor.Product.Default as D
 import           Data.Text
 import           Data.Time                       (UTCTime)
-import           Data.Time                       (UTCTime, getCurrentTime)
 import           GHC.Generics
-import           Opaleye
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)
