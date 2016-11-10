@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module  Relations.Tenant where
 
@@ -8,11 +9,15 @@ import  Types.DB
 import  Database.Relational.Query
 import  Database.HDBC.Query.TH      (makeRecordPersistableDefault)
 
+import  Database.Record.Persistable (PersistableWidth)
+import  Database.Relational.Query.Monad.Trans.Assigning (Assignings)
+
+import  Data.Int
 
 allTenants :: Relation () Tenants
 allTenants = Tenant.tenants
 
-getTenant :: Relation Int32 Tenants
+getTenant :: Relation PKey Tenants
 getTenant = relation' . placeholder $ \tenId -> do
     a       <- query tenants
     wheres  $ a ! Tenant.id' .=. tenId
@@ -26,13 +31,10 @@ data TenantInsert = TenantInsert
     , iLastName     :: String
     , iPhone        :: String
     , iEmail        :: String
+    , iOwnerId      :: Maybe PKey
     , iBOD          :: String
     }
-
 $(makeRecordPersistableDefault ''TenantInsert)
-
-insertTenant :: Insert TenantInsert
-insertTenant = derivedInsert piTenant
 
 piTenant :: Pi Tenants TenantInsert
 piTenant = TenantInsert
@@ -41,11 +43,37 @@ piTenant = TenantInsert
     |*| Tenant.lastName'
     |*| Tenant.phone'
     |*| Tenant.email'
+    |*| Tenant.ownerId'
     |*| Tenant.backofficeDomain'
 
+insertTenant :: Insert TenantInsert
+insertTenant = derivedInsert piTenant
 
-updateTenant :: TimestampedUpdate Int32
-updateTenant = derivedUpdate $ \projection -> do
+instance HasTableName (Insert TenantInsert) where
+    getTableName = const Tenant.tableName
+{-
+data TenantUpdate = TenantUpdate
+    { uName         :: String
+    , uFirstName    :: Maybe String
+    , uLastName     :: Maybe String
+    , uPhone        :: Maybe String
+    , uEmail        :: Maybe String
+    , uBOD          :: Maybe String
+    , uStatus       :: Maybe Int32
+    , uOwnerId      :: Maybe (Maybe Int32)
+    }
+-}
+
+updName :: Monad m => Projection Flat String -> Assignings Tenants m ()
+updName = (Tenant.name' <-#)
+
+updStatus :: Monad m => Projection Flat Int32 -> Assignings Tenants m ()
+updStatus = (Tenant.status' <-#)
+
+updateTenant :: (PersistableWidth b, SqlProjectable p)
+    => (p b -> Assignings Tenants Restrict a) -> TimestampedUpdate b PKey
+updateTenant assigning = derivedUpdate $ \projection -> do
+    (phColumns, _)  <- placeholder assigning
     (phTStamp, _)   <- placeholder (\tStamp -> Tenant.updatedAt' <-# tStamp)
     (phTenId, _)    <- placeholder (\tenId -> wheres $ projection ! Tenant.id' .=. tenId)
-    return          $ phTStamp >< phTenId
+    return          $ phColumns >< phTStamp >< phTenId

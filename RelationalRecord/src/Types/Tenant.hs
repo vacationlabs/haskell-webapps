@@ -1,22 +1,20 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric, StandaloneDeriving #-}
 
-{-# LANGUAGE FlexibleContexts #-}
-
 module  Types.Tenant where
 
 import  Types.DefineTable
-import  Prelude hiding (id)
+import  Database.Relational.Query.Table     (name)
+import  Database.Relational.Query.Relation  (tableOf)
 
 import  GHC.Generics            (Generic)
 import  Data.Aeson              (ToJSON)
 
+
 $(defineTable "tenants")
 
-
-instance HasAuditMetadata Tenants where
-    getAuditMetadata t = (id t, "tenants")
-
+tableName :: String
+tableName = Database.Relational.Query.Table.name $ tableOf tenants
 
 deriving instance Generic Tenants
 instance ToJSON Tenants

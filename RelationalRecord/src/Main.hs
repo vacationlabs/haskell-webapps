@@ -2,35 +2,46 @@
 
 module Main where
 
-import DataSource
+import DataSource       (getDataSource)
+import DomainAPI
+import Relations.Tenant hiding (getTenant)
+import Relations.User   hiding (getUser)
+import Relations.Role   hiding (getRole)
 import DBInterface
-import Relations.Tenant
-import Relations.Role
 
-
-
-import Data.Aeson
+import Data.Aeson       (ToJSON)
+import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy.Char8 as BL
 
 
-createTenant :: TenantInsert
-createTenant = TenantInsert
-    "TestTenant" "Sylvain" "Duchamps" "sly@champsxxx.fr" "3980" "sy.champs.xxxxx.fr"
+someTenant :: TenantInsert
+someTenant = TenantInsert
+    "TestTenant" "Sylvain" "Duchamps" "sly@champsxxx.fr" "3980" Nothing "sy.chasmps.xxxx.fr"
+
+someUser :: UserInsert
+someUser = UserInsert
+    1 "testuser2" "testpass" (Just "tesss") (Just "usserrr")
+
+printJson :: ToJSON a => DBUniqueResult a -> IO ()
+printJson (Left err)  = print err
+printJson (Right val) = BL.putStrLn $
+    encodePretty' defConfig {confCompare = compare} val
 
 main :: IO ()
 main = do
     conn    <- getDataSource
 
-    dbUpdate conn updateTenant 1 >>= print
-    results <- dbQuery conn getTenant 1
-    mapM_ (BL.putStrLn . encode) results
-    --mapM_ print results
+    dbUpdate conn (updateTenant updName) 1 "lalala" >>= print
+
+    createUser conn someUser >>= print
+    createTenant conn someTenant >>= print
+    -- activateTenant conn 1 >>= print
+
+    getTenant conn 1 >>= printJson
+    getUser conn 1 >>= printJson
 
     dbDelete conn deleteRoleById 4 >>= print
 
-    results <- dbQuery conn allRoles ()
-    mapM_ print results
+    dbQuery conn allRoles () >>= print
 
-    dbInsert conn insertTenant createTenant >>= print
-    results <- dbQuery conn allTenants ()
-    print results
+    dbQuery conn allTenants () >>= print

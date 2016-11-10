@@ -12,13 +12,13 @@ import  Database.Relational.Query
 allRoles :: Relation () Roles
 allRoles = Role.roles
 
-getRole :: Relation Int32 Roles
+getRole :: Relation PKey Roles
 getRole = relation' . placeholder $ \rolId -> do
     a       <- query roles
     wheres  $ a ! Role.id' .=. rolId
     return  a
 
-deleteRoleById :: Delete Int32
+deleteRoleById :: Delete PKey
 deleteRoleById = derivedDelete $ \projection ->
     fst <$> placeholder (\rolId -> wheres $ projection ! Role.id' .=. rolId)
 

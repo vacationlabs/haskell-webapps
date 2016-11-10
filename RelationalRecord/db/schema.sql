@@ -40,7 +40,14 @@ create unique index idx_unique_tenants_backoffice_domain on tenants(lower(backof
 -- Users
 --
 
-create type user_status as enum('active', 'inactive', 'blocked');
+create table enum_user_status(
+    id serial primary key
+    ,name text not null
+);
+insert into enum_user_status (name) values ('inactive');                        /* id = 1 */
+insert into enum_user_status (name) values ('active');                          /* id = 2 */
+insert into enum_user_status (name) values ('blocked');                         /* id = 3 */
+
 create table users(
        id serial primary key
        ,created_at timestamp with time zone not null default current_timestamp
@@ -50,7 +57,7 @@ create table users(
        ,password text not null
        ,first_name text
        ,last_name text
-       ,status user_status not null default 'inactive'
+       ,status integer not null default 1 references enum_user_status(id)
 );
 
 create unique index idx_users_username on users(lower(username));
