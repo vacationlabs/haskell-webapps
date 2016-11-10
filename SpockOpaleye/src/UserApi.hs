@@ -5,15 +5,15 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module UserApi
-  ( create_user
-  , read_users
-  , read_user_by_id
-  , read_users_for_tenant
-  , add_role_to_user
-  , remove_role_from_user
-  , update_user
-  , remove_user
-  , activate_user
+  ( createUser
+  , readUsers
+  , readUserById
+  , readUsersForTenant
+  , addRoleToUser
+  , removeRoleFromUser
+  , updateUser
+  , removeUser
+  , activateUser
   ) where
 
 import           ApiBase
@@ -30,62 +30,62 @@ import           OpaleyeDef
 import           CryptoDef
 import           Prelude                    hiding (id)
 
-create_user :: Connection -> UserIncoming -> IO User
-create_user conn user = do
+createUser :: Connection -> UserIncoming -> IO User
+createUser conn user = do
   Just hash <- bcryptPassword $ user ^. password
-  let full_user = user { _userpolyPassword = hash }
-  create_row conn userTable full_user
+  let fullUser = user { _userpolyPassword = hash }
+  createRow conn userTable fullUser
 
-update_user :: Connection -> UserId -> User -> IO User
-update_user conn user_id user = update_row conn userTable user_id user
+updateUser :: Connection -> User -> IO User
+updateUser conn user = updateRow conn userTable user
 
-activate_user :: Connection -> User -> IO User
-activate_user conn user = set_user_status conn user UserStatusActive
+activateUser :: Connection -> User -> IO User
+activateUser conn user = setUserStatus conn user UserStatusActive
 
-deactivate_user :: Connection -> User -> IO User
-deactivate_user conn user = set_user_status conn user UserStatusInActive
+deactivateUser :: Connection -> User -> IO User
+deactivateUser conn user = setUserStatus conn user UserStatusInActive
 
-set_user_status :: Connection -> User -> UserStatus -> IO User
-set_user_status conn user new_status = update_user conn (user ^. id) $ user & status .~ new_status
+setUserStatus :: Connection -> User -> UserStatus -> IO User
+setUserStatus conn user newStatus = updateUser conn $ user & status .~ newStatus
 
-remove_user :: Connection -> User -> IO GHC.Int.Int64
-remove_user conn user_t =
-  runDelete conn userTable match_function
+removeUser :: Connection -> User -> IO GHC.Int.Int64
+removeUser conn rUser =
+  runDelete conn userTable matchFunction
     where
-    match_function user = (user ^. id).== constant (user_t ^. id)
+    matchFunction user = (user ^. id).== constant (rUser ^. id)
 
-read_users :: Connection -> IO [User]
-read_users conn = runQuery conn user_query
+readUsers :: Connection -> IO [User]
+readUsers conn = runQuery conn userQuery
 
-read_users_for_tenant :: Connection -> TenantId -> IO [User]
-read_users_for_tenant conn tenant_id = runQuery conn $ user_query_by_tenantid tenant_id
+readUsersForTenant :: Connection -> TenantId -> IO [User]
+readUsersForTenant conn tenantId = runQuery conn $ userQueryByTenantid tenantId
 
-read_user_by_id :: Connection -> UserId -> IO (Maybe User)
-read_user_by_id conn id = do
-  r <- runQuery conn $ user_query_by_id id
+readUserById :: Connection -> UserId -> IO (Maybe User)
+readUserById conn id = do
+  r <- runQuery conn $ userQueryById id
   return $ case r of
     []     -> Nothing
     (x:xs) -> Just x
 
-add_role_to_user :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
-add_role_to_user conn user_id role_id =
-  runInsertMany conn userRolePivotTable (return (constant user_id, constant role_id))
+addRoleToUser :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
+addRoleToUser conn userId roleId =
+  runInsertMany conn userRolePivotTable (return (constant userId, constant roleId))
 
-remove_role_from_user :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
-remove_role_from_user conn t_user_id t_role_id = runDelete conn userRolePivotTable
-    (\(user_id, role_id) -> (user_id .== constant t_user_id) .&& (role_id .== constant t_role_id))
+removeRoleFromUser :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
+removeRoleFromUser conn tUserId tRoleId = runDelete conn userRolePivotTable
+    (\(userId, roleId) -> (userId .== constant tUserId) .&& (roleId .== constant tRoleId))
 
-user_query :: Query UserTableR
-user_query = queryTable userTable
+userQuery :: Query UserTableR
+userQuery = queryTable userTable
 
-user_query_by_id :: UserId -> Query UserTableR
-user_query_by_id t_id = proc () -> do
-  user <- user_query -< ()
-  restrict -< (user ^. id) .== (constant t_id)
+userQueryById :: UserId -> Query UserTableR
+userQueryById tId = proc () -> do
+  user <- userQuery -< ()
+  restrict -< (user ^. id) .== (constant tId)
   returnA -< user
 
-user_query_by_tenantid :: TenantId -> Query UserTableR
-user_query_by_tenantid t_tenantid = proc () -> do
-  user <- user_query -< ()
-  restrict -< (user ^. tenantid) .== (constant t_tenantid)
+userQueryByTenantid :: TenantId -> Query UserTableR
+userQueryByTenantid tTenantid = proc () -> do
+  user <- userQuery -< ()
+  restrict -< (user ^. tenantid) .== (constant tTenantid)
   returnA -< user

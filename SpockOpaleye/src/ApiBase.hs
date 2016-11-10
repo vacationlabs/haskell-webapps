@@ -16,31 +16,32 @@ import           Opaleye
 import           OpaleyeDef
 import           Prelude                         hiding (id)
 
-create_row ::(
+createRow ::(
     HasCreatedat columnsW (Maybe (Column PGTimestamptz)),
     HasUpdatedat columnsW (Column PGTimestamptz),
     D.Default Constant incoming columnsW, D.Default QueryRunner returned row)
     => Connection -> Table columnsW returned -> incoming -> IO row
-create_row conn table item = do
-  current_time <- fmap pgUTCTime getCurrentTime
-  let itemPg = (constant item) & createdat .~ (Just current_time) & updatedat .~ (current_time)
+createRow conn table item = do
+  currentTime <- fmap pgUTCTime getCurrentTime
+  let itemPg = (constant item) & createdat .~ (Just currentTime) & updatedat .~ (currentTime)
   fmap head $ runInsertManyReturning conn table [itemPg] (\x -> x)
 
-update_row :: (
+updateRow :: (
     HasUpdatedat haskells UTCTime
     , D.Default Constant haskells columnsW
-    , D.Default Constant item_id (Column PGInt4)
-    , HasId haskells item_id
+    , D.Default Constant itemId (Column PGInt4)
+    , HasId haskells itemId
     , HasId columnsR (Column PGInt4)
     )
-    => Connection -> Table columnsW columnsR -> item_id -> haskells -> IO haskells
-update_row conn table it_id item = do
-  current_time <- getCurrentTime
-  let updated_item = (put_updated_timestamp current_time) item
-  runUpdate conn table (\_ -> constant updated_item) match_func
-  return updated_item
+    => Connection -> Table columnsW columnsR -> haskells -> IO haskells
+updateRow conn table item = do
+  currentTime <- getCurrentTime
+  let itId = item ^. id
+  let updatedItem = (putUpdatedTimestamp currentTime) item
+  runUpdate conn table (\_ -> constant updatedItem) (matchFunc itId)
+  return updatedItem
   where
-    put_updated_timestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
-    put_updated_timestamp timestamp  = updatedat .~ timestamp
-    match_func :: (HasId cmR (Column PGInt4)) => (cmR -> Column PGBool)
-    match_func item = (item ^. id) .== (constant it_id)
+    putUpdatedTimestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
+    putUpdatedTimestamp timestamp  = updatedat .~ timestamp
+    matchFunc :: (HasId cmR (Column PGInt4), D.Default Constant itemId (Column PGInt4)) => (itemId -> cmR -> Column PGBool)
+    matchFunc itId item = (item ^. id) .== (constant itId)

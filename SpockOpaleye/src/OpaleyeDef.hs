@@ -184,13 +184,13 @@ instance D.Default Constant (NonEmpty Permission) (Column (PGArray PGText)) wher
   def = Constant def'
     where
       def' :: (NonEmpty Permission) -> (Column (PGArray PGText))
-      def' (ph :| pl) = pgArray pgStrictText $ to_text <$> (ph : pl)
+      def' (ph :| pl) = pgArray pgStrictText $ toText <$> (ph : pl)
         where
-          to_text :: Permission -> Text
-          to_text Read   = "Read"
-          to_text Create = "Create"
-          to_text Update = "Update"
-          to_text Delete = "Delete"
+          toText :: Permission -> Text
+          toText Read   = "Read"
+          toText Create = "Create"
+          toText Update = "Update"
+          toText Delete = "Delete"
 
 instance QueryRunnerColumnDefault (PGArray PGText) (NonEmpty Permission) where
   queryRunnerColumnDefault = fieldQueryRunnerColumn

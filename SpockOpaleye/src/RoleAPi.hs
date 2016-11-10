@@ -5,9 +5,9 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module RoleApi
-  ( create_role
-  , remove_role
-  , read_roles_for_tenant
+  ( createRole
+  , removeRole
+  , readRolesForTenant
   ) where
 
 import           Control.Arrow
@@ -24,30 +24,30 @@ import           ApiBase
 import           Control.Lens
 import           Prelude                    hiding (id)
 
-create_role :: Connection -> RoleIncoming -> IO Role
-create_role conn role = create_row conn roleTable role
+createRole :: Connection -> RoleIncoming -> IO Role
+createRole conn role = createRow conn roleTable role
 
-update_role :: Connection -> RoleId -> Role -> IO Role
-update_role conn role_id role = update_row conn roleTable role_id role
+updateRole :: Connection -> Role -> IO Role
+updateRole conn role = updateRow conn roleTable role
 
-remove_role :: Connection -> Role -> IO GHC.Int.Int64
-remove_role conn role = do
-  runDelete conn userRolePivotTable (\(_, role_id) -> role_id .== constant (role ^. id))
-  runDelete conn roleTable match_func
+removeRole :: Connection -> Role -> IO GHC.Int.Int64
+removeRole conn role = do
+  runDelete conn userRolePivotTable (\(_, roleId) -> roleId .== constant (role ^. id))
+  runDelete conn roleTable matchFunc
     where
-    t_id = role ^. id
-    match_func role = (role ^. id).== constant t_id
+    tId = role ^. id
+    matchFunc role = (role ^. id).== constant tId
 
-read_roles_for_tenant :: Connection -> TenantId -> IO [Role]
-read_roles_for_tenant conn t_id = do
-  runQuery conn $ role_query_for_tenant t_id
+readRolesForTenant :: Connection -> TenantId -> IO [Role]
+readRolesForTenant conn tId = do
+  runQuery conn $ roleQueryForTenant tId
 
-role_query :: Query RoleTableR
-role_query = queryTable roleTable
+roleQuery :: Query RoleTableR
+roleQuery = queryTable roleTable
 
-role_query_for_tenant :: TenantId -> Query RoleTableR
-role_query_for_tenant t_tenantid =
+roleQueryForTenant :: TenantId -> Query RoleTableR
+roleQueryForTenant tTenantid =
   proc () ->
-  do role <- role_query -< ()
-     restrict -< (role ^. tenantid) .== (constant t_tenantid)
+  do role <- roleQuery -< ()
+     restrict -< (role ^. tenantid) .== (constant tTenantid)
      returnA -< role

@@ -20,12 +20,12 @@ instance FromJSON TenantId where
   parseJSON invalid      = typeMismatch "TenantId" invalid
 
 instance FromJSON TenantStatus where
-  parseJSON j@(String v) = t_status <$> (parseJSON j)
+  parseJSON j@(String v) = tStatus <$> (parseJSON j)
     where
-      t_status :: Text -> TenantStatus
-      t_status "active"   = TenantStatusActive
-      t_status "inactive" = TenantStatusInActive
-      t_status "new"      = TenantStatusNew
+      tStatus :: Text -> TenantStatus
+      tStatus "active"   = TenantStatusActive
+      tStatus "inactive" = TenantStatusInActive
+      tStatus "new"      = TenantStatusNew
   parseJSON invalid = typeMismatch "TenantStatus" invalid
 
 instance FromJSON TenantIncoming where
@@ -39,18 +39,18 @@ instance FromJSON TenantIncoming where
 
 instance ToJSON TenantStatus where
   toJSON = genericToJSON defaultOptions
-  toEncoding = genericToEncoding defaultOptions { constructorTagModifier = tg_modify }
+  toEncoding = genericToEncoding defaultOptions { constructorTagModifier = tgModify }
     where
-      tg_modify :: String -> String
-      tg_modify "TenantStatusActive"   = "active"
-      tg_modify "TenantStatusInActive" = "inactive"
-      tg_modify "TenantStatusNew"      = "new"
+      tgModify :: String -> String
+      tgModify "TenantStatusActive"   = "active"
+      tgModify "TenantStatusInActive" = "inactive"
+      tgModify "TenantStatusNew"      = "new"
 
 instance ToJSON Tenant where
   toJSON = genericToJSON defaultOptions
-  toEncoding = genericToEncoding defaultOptions { fieldLabelModifier = (fmap Data.Char.toLower).remove_prefix }
+  toEncoding = genericToEncoding defaultOptions { fieldLabelModifier = (fmap Data.Char.toLower).removePrefix }
     where
-      remove_prefix = Prelude.drop 11
+      removePrefix = Prelude.drop 11
 
 instance ToJSON UserId where
   toJSON = genericToJSON defaultOptions

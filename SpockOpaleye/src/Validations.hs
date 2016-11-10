@@ -26,4 +26,4 @@ validateIncomingTenant conn tenant = do
     validate_contact = and $ (>= 0) . T.length <$> [tenant ^. firstname, tenant ^. lastname, tenant ^. email, tenant ^. phone]
     validate_name = (T.length $ tenant ^. name) >= 3
     check_for_unique_bo_domain domain =
-      isNothing <$> read_tenant_by_backofficedomain conn domain
+      isNothing <$> readTenantByBackofficedomain conn domain

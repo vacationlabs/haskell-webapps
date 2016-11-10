@@ -33,13 +33,13 @@ main = do
 app :: SpockM Connection MySession MyAppState ()
 app = do
   post ("tenants/new") $
-    do maybe_tenant_incoming <- jsonBody
-       case maybe_tenant_incoming of
-         Just incoming_tenant -> do
-           result <- runQuery (\conn -> validateIncomingTenant conn incoming_tenant)
+    do maybeTenantIncoming <- jsonBody
+       case maybeTenantIncoming of
+         Just incomingTenant -> do
+           result <- runQuery (\conn -> validateIncomingTenant conn incomingTenant)
            case result of
              Valid -> do
-                  new_tenant <- runQuery (\conn -> create_tenant conn incoming_tenant)
-                  json new_tenant
+                  newTenant <- runQuery (\conn -> createTenant conn incomingTenant)
+                  json newTenant
              _ -> json $ T.pack "Validation fail"
          Nothing -> json $ T.pack "Unrecognized input"
