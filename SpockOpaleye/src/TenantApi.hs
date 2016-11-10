@@ -19,6 +19,7 @@ import           ApiBase
 import           Control.Arrow
 import           Control.Lens
 import           Data.Text
+import           Data.Maybe
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
@@ -63,17 +64,11 @@ readTenants conn = runQuery conn tenantQuery
 
 readTenantById :: Connection -> TenantId -> IO (Maybe Tenant)
 readTenantById conn tenantId = do
-  r <- runQuery conn $ (tenantQueryById tenantId)
-  return $ case r of
-    []    -> Nothing
-    (x:_) -> Just x
+  listToMaybe <$> (runQuery conn $ (tenantQueryById tenantId))
 
 readTenantByBackofficedomain :: Connection -> Text -> IO (Maybe Tenant)
 readTenantByBackofficedomain conn domain = do
-  r <- runQuery conn $ (tenantQueryByBackoffocedomain domain)
-  return $ case r of
-    []    -> Nothing
-    (x:_) -> Just x
+  listToMaybe <$> (runQuery conn $ (tenantQueryByBackoffocedomain domain))
 
 tenantQuery :: Opaleye.Query TenantTableR
 tenantQuery = queryTable tenantTable

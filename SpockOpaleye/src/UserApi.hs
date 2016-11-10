@@ -22,6 +22,7 @@ import           Control.Arrow
 import           Control.Lens
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
+import           Data.Maybe
 import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
@@ -61,10 +62,7 @@ readUsersForTenant conn tenantId = runQuery conn $ userQueryByTenantid tenantId
 
 readUserById :: Connection -> UserId -> IO (Maybe User)
 readUserById conn id' = do
-  r <- runQuery conn $ userQueryById id'
-  return $ case r of
-    []    -> Nothing
-    (x:_) -> Just x
+  listToMaybe <$> (runQuery conn $ userQueryById id')
 
 addRoleToUser :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
 addRoleToUser conn userId roleId =
