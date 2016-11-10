@@ -23,9 +23,13 @@ import           Control.Lens
 import           Data.Vector
 import           DataTypes
 import           GHC.Int
+import Data.Profunctor
+
+readOnly :: String -> TableProperties () (Column a)
+readOnly = lmap (const Nothing) . optional
 
 type TenantTableW = TenantPoly
-  (Maybe (Column PGInt4))
+  ()
   (Maybe (Column PGTimestamptz)) -- createdAt
   (Column PGTimestamptz) -- updatedAt
   (Column PGText)
@@ -51,7 +55,7 @@ type TenantTableR = TenantPoly
   (Column PGText)
 
 type UserTableW = UserPoly
-  (Maybe (Column PGInt4))
+  ()
   (Maybe (Column PGTimestamptz)) -- createdAt
   (Column PGTimestamptz) -- updatedAt
   (Column PGInt4)
@@ -73,7 +77,7 @@ type UserTableR = UserPoly
   (Column PGText)
 
 type RoleTableW = RolePoly
-  (Maybe (Column PGInt4))
+  ()
   (Column PGInt4)
   (Column PGText)
   (Column (PGArray PGText))
@@ -93,7 +97,7 @@ $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
 tenantTable :: Table TenantTableW TenantTableR
 tenantTable = Table "tenants" (pTenant
    Tenant {
-     _tenantpolyId = (optional "id"),
+     _tenantpolyId = (readOnly "id"),
      _tenantpolyCreatedat = (optional "created_at"),
      _tenantpolyUpdatedat = (required "updated_at"),
      _tenantpolyName = (required "name"),
@@ -112,7 +116,7 @@ $(makeAdaptorAndInstance "pUser" ''UserPoly)
 userTable :: Table UserTableW UserTableR
 userTable = Table "users" (pUser
   User {
-    _userpolyId = optional "id"
+    _userpolyId = (readOnly "id")
   , _userpolyCreatedat = (optional "created_at")
   , _userpolyUpdatedat = (required "updated_at")
   , _userpolyTenantid = required "tenant_id"
@@ -127,7 +131,7 @@ $(makeAdaptorAndInstance "pRole" ''RolePoly)
 
 roleTable :: Table RoleTableW RoleTableR
 roleTable = Table "roles" (pRole Role {
-  _rolepolyId = optional "id",
+  _rolepolyId = (readOnly "id"),
   _rolepolyTenantid = required "tenant_id",
   _rolepolyName = required "name",
   _rolepolyPermission = required "permissions",
@@ -223,17 +227,14 @@ instance D.Default Constant (UserId) (Column PGInt4) where
       def' :: UserId -> (Column PGInt4)
       def' (UserId id) = pgInt4 id
 
+instance D.Default Constant UserId () where
+  def = Constant (\_ -> ())
+
 instance D.Default Constant (UserId) (Column (Nullable PGInt4)) where
   def = Constant def'
     where
       def' :: UserId -> (Column (Nullable PGInt4))
       def' (UserId id) = (toNullable.pgInt4) id
-
-instance D.Default Constant (UserId) (Maybe (Column PGInt4)) where
-  def = Constant def'
-    where
-      def' :: UserId -> Maybe (Column PGInt4)
-      def' (UserId id) = Just $ pgInt4 id
 
 instance FromField UserId where
   fromField field mdata = do
@@ -250,11 +251,8 @@ instance D.Default Constant RoleId (Column PGInt4) where
       def' :: RoleId -> (Column PGInt4)
       def' (RoleId id) = pgInt4 id
 
-instance D.Default Constant RoleId (Maybe (Column PGInt4)) where
-  def = Constant def'
-    where
-      def' :: RoleId -> Maybe (Column PGInt4)
-      def' (RoleId id) = Just $ pgInt4 id
+instance D.Default Constant RoleId () where
+  def = Constant (\_ -> ())
 
 instance FromField RoleId where
   fromField field mdata = do
@@ -271,11 +269,8 @@ instance D.Default Constant TenantId (Column PGInt4) where
       def' :: TenantId -> (Column PGInt4)
       def' (TenantId id) = pgInt4 id
 
-instance D.Default Constant TenantId (Maybe (Column PGInt4)) where
-  def = Constant def'
-    where
-      def' :: TenantId -> Maybe (Column PGInt4)
-      def' (TenantId id) = Just $ pgInt4 id
+instance D.Default Constant TenantId () where
+  def = Constant (\_ -> ())
 
 instance FromField TenantId where
   fromField field mdata = do

@@ -27,6 +27,7 @@ library
                        Validations
   build-depends:       base >= 4.7 && < 5
                       ,product-profunctors
+                      ,profunctors
                       ,bytestring
                       ,opaleye
                       ,time

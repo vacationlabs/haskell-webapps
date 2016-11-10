@@ -67,14 +67,14 @@ readTenantById conn id = do
   r <- runQuery conn $ (tenantQueryById id)
   return $ case r of
     []     -> Nothing
-    (x:xs) -> Just x
+    (x:_) -> Just x
 
 readTenantByBackofficedomain :: Connection -> Text -> IO (Maybe Tenant)
 readTenantByBackofficedomain conn domain = do
   r <- runQuery conn $ (tenantQueryByBackoffocedomain domain)
   return $ case r of
     []     -> Nothing
-    (x:xs) -> Just x
+    (x:_) -> Just x
 
 tenantQuery :: Opaleye.Query TenantTableR
 tenantQuery = queryTable tenantTable
