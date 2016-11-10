@@ -1,0 +1,141 @@
+1. Writing ToJSON and FromJSON instances for Aeson
+
+While parsing json, the library, after reading the json string creates
+a 'Value' data. This 'Value' type is defined as 
+
+  data Value = Object !Object
+             | Array !Array
+             | String !Text
+             | Number !Scientific
+             | Bool !Bool
+             | Null
+
+The Object, Array, Text, Scientific etc are just type aliases made
+by haskell data types. For example, 
+
+   type Object = HashMap Text Value
+   type Array = Vector Value
+
+etc.
+
+So if you just want a 'Value' built from a json string, you can just do this
+
+  *Prelude>  decode "{\"name\": \"asdas\", \"marks\":[45, 32, 45, 23]}" :: Maybe Value 
+  Just (Object (fromList [("name",String "asdas"),("marks",Array [Number 45.0,Number 32.0,Number 45.0,Number 23.0])])) 
+
+But if you want to parse it directly to a user defined type, you have to implement 'FromJSON' instances
+for that particular user defined data type.
+
+This is an example from the Hackage page for aeson
+
+  {-# LANGUAGE OverloadedStrings #-}
+
+  data Coord = Coord { x :: Double, y :: Double }
+
+  instance FromJSON Coord where
+    parseJSON (Object v) = Coord <$> v .: "x" <*> v .: "y" 
+    parseJSON invalid    = typeMismatch "Coord" invalid
+
+In the above parseJSON function pattern match on (Object v) because
+we expect the 'Coord' data wrapped in an object. If we expect a piece
+of data to come in a json string, we will have to write the parser as
+
+  instance FromJSON UserId where
+    parseJSON (String v) = func -- A function of type (Vector Value -> Parser UserId)
+    parseJSON invalid    = typeMismatch "Coord" invalid
+
+In the above, you will notice that we have to make a function (Vector value  -> Parser UserId)
+suppose our UserID is defined as 
+
+  data UserID = UserID Int
+
+The type of the parseJSON function is 
+
+  parseJSON :: FromJSON a => Value -> Parser a
+
+  UserID :: Int -> UserID
+
+If we can get a (Parser Int), we can fmap 'UserID' constructor over it to get a (Parser UserID)
+
+  instance FromJSON UserId where
+    parseJSON j@(Number v) = UserId <$> (parseJSON j)
+    parseJSON invalid = typeMismatch "UserId" invalid
+
+This works becuse 'FromJSON' instances for Haskell datatypes comes bundled in.
+
+3. Tweaking JSON generation
+
+To convert a user defined data type to a Json string, you have to
+make the data type an instance of ToJSON. You can automatically
+easily create these instances generically
+
+  instance ToJSON UserId where
+    toJSON = genericToJSON defaultOptions
+    toEncoding = genericToEncoding defaultOptions
+
+But sometimes you will have to create json in a slightly
+different manner. For example, you might want to drop a prefix
+from the record fields. You can do this by creating a variant
+of the defaultOption value.
+
+Further reference
+
+https://hackage.haskell.org/package/aeson-1.0.2.1/docs/Data-Aeson-Types.html#v:defaultOptions
+
+2. Opaleye - Misciallaneous tips
+
+1. Use toNullable function while inserting  nullable columns.
+2. Use pg* functions like pgStrict text, pgInt4 to convert haskell
+data types to postgres data types (PGText, PGInt4 etc) and the 'constant'
+function for user defined data types. An instance of Data.Profunctor.Product.Default.Default should exist for these user defined data types.
+ 
+2. Opaleye - How to use a user defined data type while doing manipulation operations?
+
+To insert the user defined type 'a' converting it to one of
+postgresql's data type 'b' (PGText, PGInt4 etc), you need to make
+the data type 'Constant a (Column b)', an instance of typeclass 
+Data.Profunctor.Product.Default.Default
+
+Example: 
+
+here is a userdefined data type
+
+  data TenantStatus = TenantStatusActive | TenantStatusInActive | TenantStatusNew
+
+We want this to be inserted as text, so that would be PGText type in 
+opaleye's types. To do this, we have to make the type,
+Constant TenantStatusNew (Column PGText) an instance of 
+Data.Profunctor.Product.Default.Default, as follows.
+
+Btw, you also need the FlexibleInstances and MultiParamTypeClasses
+language extensions to make this work. so,
+
+    {-# LANGUAGE FlexibleInstances, MultiParamTypeClasses #-}
+
+    import Opaleye (Constant(Constant), PGText, Column, pgString)
+    import qualified Data.Profunctor.Product.Default as D
+
+    instance D.Default Constant TenantStatus (Column PGText) where
+      def = Constant def'
+        where 
+        def' :: TenantStatus -> (Column PGText)
+        def' TenantStatusInActive = pgString "inactive"
+        def' TenantStatusActive = pgString "active"
+        def' TenantStatusNew = pgString "new"
+
+Now you can insert a new row of Tenant as follows.
+
+    create_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
+    create_tenant conn Tenant {
+      tenant_id=id,
+      tenant_name = nm,
+      tenant_firstname = fn,
+      tenant_lastname = ln,
+      tenant_email = email,
+      tenant_phone = phone,
+      tenant_status = status,
+      tenant_ownerid = owner_id,
+      tenant_backofficedomain = bo_domain 
+    } = runInsertMany conn tenantTable $ (return (constant id, pgString nm, pgString fn,pgString ln, pgString email, pgString phone, constant status, Nothing,  pgString bo_domain))
+
+Look how we were able to use the status value directly in the function.

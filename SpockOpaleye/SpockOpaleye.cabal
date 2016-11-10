@@ -1,0 +1,66 @@
+name:                SpockOpaleye
+version:             0.1.0.0
+synopsis:            Initial project template from stack
+description:         Please see README.md
+homepage:            https://github.com/githubuser/SpockOpaleye#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Author name here
+maintainer:          example@example.com
+copyright:           2016 Author name here
+category:            Web
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Lib,
+                       TenantApi,
+                       UserApi,
+                       RoleApi,
+                       OpaleyeDef,
+                       CryptoDef,
+                       JsonInstances,
+                       Validations,
+                       DataTypes
+  build-depends:       base >= 4.7 && < 5
+                      ,product-profunctors
+                      ,bytestring
+                      ,opaleye
+                      ,postgresql-simple
+                      ,bcrypt
+                      ,text
+                      ,lens
+                      ,mtl
+                      ,Spock >=0.11
+                      ,aeson
+  default-language:    Haskell2010
+
+executable SpockOpaleye-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -fwarn-tabs -fwarn-unused-imports -fwarn-missing-signatures -fwarn-incomplete-patterns
+  build-depends:       base
+                     , postgresql-simple
+                     , SpockOpaleye
+                     , Spock >=0.11
+                     , mtl
+                     , lens
+                     , text
+                     , bcrypt
+                     , aeson
+  default-language:    Haskell2010
+
+test-suite SpockOpaleye-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , SpockOpaleye
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/githubuser/SpockOpaleye
