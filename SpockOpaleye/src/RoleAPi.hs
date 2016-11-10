@@ -19,7 +19,6 @@ import           DataTypes
 import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
-import           OpaleyeTypes
 
 import           ApiBase
 import           Control.Lens

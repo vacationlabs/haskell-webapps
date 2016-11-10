@@ -14,7 +14,6 @@ import           Database.PostgreSQL.Simple
 import           DataTypes
 import           Opaleye
 import           OpaleyeDef
-import           OpaleyeTypes
 import           Prelude                         hiding (id)
 
 create_row ::(

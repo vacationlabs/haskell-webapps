@@ -18,12 +18,75 @@ import           Data.Time
 import           Database.PostgreSQL.Simple           (Connection)
 import           Database.PostgreSQL.Simple.FromField
 import           Opaleye
-import           OpaleyeTypes
 
 import           Control.Lens
 import           Data.Vector
 import           DataTypes
 import           GHC.Int
+
+type TenantTableW = TenantPoly
+  (Maybe (Column PGInt4))
+  (Maybe (Column PGTimestamptz)) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
+  (Column PGText)
+  (Column PGText)
+  (Column PGText)
+  (Column PGText)
+  (Column PGText)
+  (Maybe (Column PGText))
+  (Maybe (Column (Nullable PGInt4)))
+  (Column PGText)
+
+type TenantTableR = TenantPoly
+  (Column PGInt4)
+  (Column PGTimestamptz) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
+  (Column PGText)
+  (Column PGText)
+  (Column PGText)
+  (Column PGText)
+  (Column PGText)
+  (Column PGText)
+  (Column (Nullable PGInt4))
+  (Column PGText)
+
+type UserTableW = UserPoly
+  (Maybe (Column PGInt4))
+  (Maybe (Column PGTimestamptz)) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
+  (Column PGInt4)
+  (Column PGText)
+  (Column PGBytea)
+  (Maybe (Column (Nullable PGText)))
+  (Maybe (Column (Nullable PGText)))
+  (Maybe (Column PGText))
+
+type UserTableR = UserPoly
+  (Column PGInt4)
+  (Column PGTimestamptz) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
+  (Column PGInt4)
+  (Column PGText)
+  (Column PGBytea)
+  (Column (Nullable PGText))
+  (Column (Nullable PGText))
+  (Column PGText)
+
+type RoleTableW = RolePoly
+  (Maybe (Column PGInt4))
+  (Column PGInt4)
+  (Column PGText)
+  (Column (PGArray PGText))
+  (Maybe (Column PGTimestamptz)) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
+
+type RoleTableR = RolePoly
+  (Column PGInt4)
+  (Column PGInt4)
+  (Column PGText)
+  (Column (PGArray PGText))
+  (Column PGTimestamptz) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
 
 $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
 

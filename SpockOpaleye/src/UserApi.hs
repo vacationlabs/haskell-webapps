@@ -26,7 +26,6 @@ import           DataTypes
 import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
-import           OpaleyeTypes
 
 import           CryptoDef
 import           Prelude                    hiding (id)
