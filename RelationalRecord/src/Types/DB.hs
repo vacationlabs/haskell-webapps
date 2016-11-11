@@ -1,8 +1,15 @@
 {-# LANGUAGE DeriveFoldable, LambdaCase, GADTs #-}
 
+{-|
+Module      :  Types.DB
+Copyright   :  (c) VacationLabs
+Maintainer  :  michaelkarg77@gmail.com
+
+Various DB-related helper types.
+-}
+
 module  Types.DB
-        ( HasTableName(..)
-        , DBResult(..)
+        ( DBResult(..)
         , TimestampedUpdate
         , DBWriteResult
         , DBUniqueResult
@@ -13,15 +20,12 @@ module  Types.DB
         ) where
 
 
-import  DataSource                  (HasPKey, PKey, mkDBErr)
+import  DataSource                  (PKey, DBTime, mkDBErr)
 
-import  Data.Time.LocalTime         (ZonedTime)
 import  Database.HDBC               (SqlError, IConnection)
 import  Database.Relational.Query   (Update)
 
 
-class HasTableName a where
-    getTableName :: a -> String
 
 -- a database connector that can carry tenant and/or user identity with it
 data DBConnector where
@@ -57,4 +61,6 @@ dbUniqueResult = \case
     _               -> Left $ mkDBErr "expected exactly one query result"
 
 
-type TimestampedUpdate a b = Update ((a, ZonedTime), b)
+-- type TimestampedUpdate a b = Update ((a, DBTime), b)
+
+type TimestampedUpdate = Update (DBTime, PKey)

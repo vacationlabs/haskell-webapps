@@ -6,6 +6,7 @@ module  DBInterface
         , dbInsert
         , dbUpdate
         , dbDelete
+        -- , dbUpdate2
         , module Types.DB
         ) where
 
@@ -36,13 +37,12 @@ handle doRollback = handleSql $ \err ->
 
 
 data AuditLogInsert = AuditLogInsert
-    { iTenantId             :: PKey
-    , iUserid               :: Maybe PKey
-    , iChangedBySystem      :: Bool
-    , iAuditableId          :: PKey
-    , iAutditableTableName  :: String
+    PKey            -- tenantId
+    (Maybe PKey)    -- userId
+    Bool            -- changedBySystem
+    PKey            -- auditableId
+    String          -- auditableTableName
     -- TODO
-    }
 $(makeRecordPersistableDefault ''AuditLogInsert)
 
 piAuditLog :: Pi AuditLogs AuditLogInsert
@@ -65,6 +65,7 @@ dbQuery (DBConnector _ _ conn) rel param = handle (return ()) $
         [r] -> ResJust r
         rs  -> ResMany rs
 
+
 dbDelete :: (IConnection conn, ToSql SqlValue p)
      => conn -> Delete p -> p -> IO (DBResult Integer)
 dbDelete conn dlt param = handle (rollback conn) $ do
@@ -72,26 +73,32 @@ dbDelete conn dlt param = handle (rollback conn) $ do
     commit  conn
     return  $ if num > 0 then ResJust num else ResEmpty
 
-dbInsert :: (ToSql SqlValue p, HasTableName (Insert p))
-     => DBConnector -> Insert p -> p -> IO (DBResult ())
-dbInsert DBConnector {dbTenantId = Nothing} _ _ = return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to insert into the DB"
-dbInsert (DBConnector (Just tenantPK) mUserId conn) ins param = handle (rollback conn) $ do
-    num     <- runInsert conn ins param
-    newId   <- pgLastVal conn
-    let
-        logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) newId (getTableName ins)
-    -- _       <- runInsert conn insertLogEntry logEntry
-    commit  conn
-    return  $ ResPKId newId
 
-dbUpdate :: (ToSql SqlValue p)
-     => DBConnector -> TimestampedUpdate p PKey -> PKey -> p -> IO (DBResult ())
-dbUpdate DBConnector {dbTenantId = Nothing} _ _ _ = return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to update the DB"
-dbUpdate (DBConnector (Just tenantPK) mUserId conn) upd k param = handle (rollback conn) $ do
-    tNow    <- getZonedTime
-    res     <- runUpdate conn upd ((param, tNow), k)
-    let
-        logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) k ""     -- TODO (getTableName upd)
-    -- _       <- runInsert conn insertLogEntry logEntry
-    commit  conn
-    return  $ ResPKId k
+dbInsert :: (ToSql SqlValue p)
+    => DBConnector -> String -> Insert p -> p -> IO (DBResult ())
+dbInsert DBConnector {dbTenantId = Nothing} _ _ _ =
+    return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to insert into the DB"
+dbInsert (DBConnector (Just tenantPK) mUserId conn) tName ins param =
+    handle (rollback conn) $ do
+        num     <- runInsert conn ins param
+        newId   <- lastInsertedPK conn
+        let
+            logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) newId tName
+        -- _       <- runInsert conn insertLogEntry logEntry
+        commit  conn
+        return  $ ResPKId newId
+
+
+dbUpdate :: DBConnector -> String -> TimestampedUpdate -> PKey -> IO (DBResult ())
+dbUpdate DBConnector {dbTenantId = Nothing} _ _ _ =
+    return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to update the DB"
+dbUpdate (DBConnector (Just tenantPK) mUserId conn) tName upd k =
+    handle (rollback conn) $ do
+        tNow    <- getZonedTime
+        res     <- runUpdate conn upd (tNow, k)
+        print upd
+        let
+            logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) k tName
+        -- _       <- runInsert conn insertLogEntry logEntry
+        commit  conn
+        return  $ ResPKId k

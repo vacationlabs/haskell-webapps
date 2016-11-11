@@ -9,6 +9,8 @@ import  Database.Relational.Query
 import  Database.HDBC.Query.TH      (makeRecordPersistableDefault)
 
 
+-- SELECTS
+
 allUsers :: Relation () Users
 allUsers = User.users
 
@@ -17,6 +19,9 @@ getUser = relation' . placeholder $ \usrId -> do
     a       <- query users
     wheres  $ a ! User.id' .=. usrId
     return  a
+
+
+-- INSERTS
 
 data UserInsert = UserInsert
     { iTenantId     :: PKey
@@ -35,9 +40,11 @@ piUser = UserInsert
     |*| User.firstName'
     |*| User.lastName'
 
-
 insertUser :: Insert UserInsert
 insertUser = derivedInsert piUser
 
-instance HasTableName (Insert UserInsert) where
-    getTableName = const User.tableName
+
+-- UPDATES
+
+
+-- DELETES

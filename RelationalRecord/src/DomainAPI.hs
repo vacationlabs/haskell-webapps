@@ -3,9 +3,10 @@ module  DomainAPI where
 
 import  DataSource
 import  DBInterface
-import  Types.Tenant                (Tenants)
-import  Types.User                  (Users)
-import  Types.Role                  (Roles)
+import  Types.Tenant                as Tenant (Tenants, tableName)
+import  Types.User                  as User (Users, tableName)
+import  Types.Role                  as Role (Roles, tableName)
+import  Types.UsersRoles            as UsersRoles (tableName)
 import  Relations.Tenant            as Tenant
 import  Relations.Role              as Role
 import  Relations.User              as User
@@ -20,7 +21,7 @@ getRole :: DBConnector -> PKey -> IO (DBUniqueResult Roles)
 getRole conn = dbQuery conn Role.getRole >=> return . dbUniqueResult
 
 assignRole :: DBConnector -> AssignRole -> IO DBWriteResult
-assignRole conn = dbInsert conn Role.assignRole >=> return . dbWriteResult
+assignRole conn = dbInsert conn UsersRoles.tableName Role.assignRole >=> return . dbWriteResult
 
 -- TODO    CreateRole, DeleteRole,  RemoveRole
 
@@ -29,7 +30,8 @@ assignRole conn = dbInsert conn Role.assignRole >=> return . dbWriteResult
 -- User
 
 createUser :: DBConnector -> UserInsert -> IO DBWriteResult
-createUser conn = dbInsert conn insertUser >=> return . dbWriteResult
+createUser conn =
+    dbInsert conn User.tableName insertUser >=> return . dbWriteResult
 
 getUser :: DBConnector -> PKey -> IO (DBUniqueResult Users)
 getUser conn = dbQuery conn User.getUser >=> return . dbUniqueResult
@@ -41,17 +43,23 @@ getUser conn = dbQuery conn User.getUser >=> return . dbUniqueResult
 -- Tenant
 
 createTenant :: DBConnector -> TenantInsert -> IO DBWriteResult
-createTenant conn = dbInsert conn insertTenant >=> return . dbWriteResult
+createTenant conn =
+    dbInsert conn Tenant.tableName insertTenant >=> return . dbWriteResult
 
 getTenant :: DBConnector -> PKey -> IO (DBUniqueResult Tenants)
-getTenant conn = dbQuery conn Tenant.getTenant >=> return . dbUniqueResult
+getTenant conn =
+    dbQuery conn Tenant.getTenant >=> return . dbUniqueResult
 
-activateTenant :: HasPKey k => DBConnector -> k -> PKey -> IO DBWriteResult
-activateTenant conn pkey ownerId =
-    dbWriteResult <$> dbUpdate conn (updateTenant Tenant.updStatus2) (getPKey pkey) (2, Just ownerId)
+activateTenant :: DBConnector -> PKey -> IO DBWriteResult
+activateTenant conn pkey =
+    updateTenant conn pkey tenantUpdate {uStatus = Just 2}
 
-deactivateTenant :: HasPKey k => DBConnector -> k -> IO DBWriteResult
+deactivateTenant :: DBConnector -> PKey -> IO DBWriteResult
 deactivateTenant conn pkey =
-    dbWriteResult <$> dbUpdate conn (updateTenant Tenant.updStatus) (getPKey pkey) 1
+    updateTenant conn pkey tenantUpdate {uStatus = Just 1}
 
--- TODO UpdateTenant
+updateTenant :: DBConnector -> PKey -> TenantUpdate -> IO DBWriteResult
+updateTenant conn pkey upd =
+    dbWriteResult <$> dbUpdate conn Tenant.tableName
+        (updateTenantVariadic upd)
+        pkey

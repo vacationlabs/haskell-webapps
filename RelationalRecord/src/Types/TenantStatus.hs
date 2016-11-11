@@ -2,7 +2,7 @@
 
 module  Types.TenantStatus where
 
-import  Types.DefineTable
+import  DefineTable
 import  Prelude hiding (id)
 
 

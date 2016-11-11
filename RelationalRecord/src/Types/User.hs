@@ -3,7 +3,7 @@
 
 module  Types.User where
 
-import  Types.DefineTable
+import  DefineTable
 import  Database.Relational.Query.Table     (name)
 import  Database.Relational.Query.Relation  (tableOf)
 

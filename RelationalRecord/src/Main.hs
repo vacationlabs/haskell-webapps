@@ -29,15 +29,18 @@ printJson (Left err)  = print err
 printJson (Right val) = BL.putStrLn $
     encodePretty' defConfig {confCompare = compare} val
 
+leT :: PKey
+leT = 2
+
 main :: IO ()
 main = do
     conn    <- getDataSource
     let conn' = DBConnector (Just 1) Nothing conn
-    dbUpdate conn' (updateTenant updName) 1 "lalala" >>= print
+    -- dbUpdate conn' (updateTenant updName) 1 "lalala" >>= print
 
     createUser conn' someUser >>= print
     createTenant conn' someTenant >>= print
-    activateTenant conn' (2 :: Int32) 1 >>= print
+    activateTenant conn' leT >>= print
     assignRole conn' (AssignRole 1 1) >>= print
 
     getTenant conn' 1 >>= printJson
@@ -48,3 +51,9 @@ main = do
     dbQuery conn' allRoles () >>= print
 
     dbQuery conn' allTenants () >>= print
+
+    updateTenant conn' 2 tenantUpdate {uName = Just "asd"}
+
+    updateTenant conn' 2 tenantUpdate {uPhone = Just "4578453453", uName = Just "asdkl"}
+
+    putStrLn "...done"

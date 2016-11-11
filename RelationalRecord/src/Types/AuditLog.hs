@@ -2,6 +2,6 @@
 
 module  Types.AuditLog where
 
-import  Types.DefineTable
+import  DefineTable
 
 $(defineTable "audit_logs")

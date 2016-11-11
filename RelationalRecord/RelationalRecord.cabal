@@ -20,8 +20,7 @@ flag Optimize
 executable RelationalRecord
     main-is:        Main.hs
     other-modules:  DataSource,
-                    Types.Tenant,
-                    Types.DefineTable
+                    DefineTable
     build-depends:  base >=4.9 && <5,
                     template-haskell,
                     relational-record >= 0.1.5.1,
