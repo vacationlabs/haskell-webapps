@@ -80,7 +80,8 @@ create table roles(
        id serial primary key
        ,tenant_id integer not null references tenants(id)
        ,name text not null
-       ,permissions text[] not null constraint at_least_one_permission check (array_length(permissions, 1)>0)
+       -- ,permissions text[] not null constraint at_least_one_permission check (array_length(permissions, 1)>0)
+       ,permissions text not null constraint at_least_one_permission check (char_length(permissions)>0)
        ,created_at timestamp with time zone not null default current_timestamp
        ,updated_at timestamp with time zone not null default current_timestamp
 );

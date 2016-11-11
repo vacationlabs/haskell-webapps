@@ -15,7 +15,7 @@ import  DataSource
 
 import  Database.HDBC                   (IConnection, SqlValue, handleSql, commit, rollback)
 
-import  Database.Relational.Query
+import  Database.Relational.Query       hiding (isNothing)
 
 import  Database.Record
 
@@ -26,6 +26,7 @@ import  Database.HDBC.Record.Insert     (runInsert)
 import  Database.HDBC.Query.TH          (makeRecordPersistableDefault)
 
 import  Data.Time.LocalTime             (getZonedTime)
+import  Data.Maybe
 
 
 
@@ -37,6 +38,7 @@ handle doRollback = handleSql $ \err ->
 data AuditLogInsert = AuditLogInsert
     { iTenantId             :: PKey
     , iUserid               :: Maybe PKey
+    , iChangedBySystem      :: Bool
     , iAuditableId          :: PKey
     , iAutditableTableName  :: String
     -- TODO
@@ -47,6 +49,7 @@ piAuditLog :: Pi AuditLogs AuditLogInsert
 piAuditLog = AuditLogInsert
     |$| AuditLog.tenantId'
     |*| AuditLog.userId'
+    |*| AuditLog.changedBySystem'
     |*| AuditLog.auditableId'
     |*| AuditLog.auditableTableName'
 
@@ -54,9 +57,9 @@ insertLogEntry :: Insert AuditLogInsert
 insertLogEntry = derivedInsert piAuditLog
 
 
-dbQuery :: (IConnection conn, FromSql SqlValue a, ToSql SqlValue p)
-       => conn -> Relation p a -> p -> IO (DBResult a)
-dbQuery conn rel param = handle (return ()) $
+dbQuery :: (FromSql SqlValue a, ToSql SqlValue p)
+       => DBConnector -> Relation p a -> p -> IO (DBResult a)
+dbQuery (DBConnector _ _ conn) rel param = handle (return ()) $
     runQuery conn (relationalQuery rel) param >>= return . \case
         []  -> ResEmpty
         [r] -> ResJust r
@@ -69,21 +72,26 @@ dbDelete conn dlt param = handle (rollback conn) $ do
     commit  conn
     return  $ if num > 0 then ResJust num else ResEmpty
 
-dbInsert :: (IConnection conn, ToSql SqlValue p, HasTableName (Insert p))
-     => conn -> Insert p -> p -> IO (DBResult ())
-dbInsert conn ins param = handle (rollback conn) $ do
+dbInsert :: (ToSql SqlValue p, HasTableName (Insert p))
+     => DBConnector -> Insert p -> p -> IO (DBResult ())
+dbInsert DBConnector {dbTenantId = Nothing} _ _ = return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to insert into the DB"
+dbInsert (DBConnector (Just tenantPK) mUserId conn) ins param = handle (rollback conn) $ do
     num     <- runInsert conn ins param
     newId   <- pgLastVal conn
-    let logEntry = AuditLogInsert 1 Nothing newId (getTableName ins)
+    let
+        logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) newId (getTableName ins)
     -- _       <- runInsert conn insertLogEntry logEntry
     commit  conn
-    return  $ if num > 0 then ResPKId newId else ResEmpty
+    return  $ ResPKId newId
 
-dbUpdate :: (IConnection conn, ToSql SqlValue p)
-     => conn -> TimestampedUpdate p PKey -> PKey -> p -> IO (DBResult Integer)
-dbUpdate conn upd k param = handle (rollback conn) $ do
+dbUpdate :: (ToSql SqlValue p)
+     => DBConnector -> TimestampedUpdate p PKey -> PKey -> p -> IO (DBResult ())
+dbUpdate DBConnector {dbTenantId = Nothing} _ _ _ = return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to update the DB"
+dbUpdate (DBConnector (Just tenantPK) mUserId conn) upd k param = handle (rollback conn) $ do
     tNow    <- getZonedTime
     res     <- runUpdate conn upd ((param, tNow), k)
-    -- TODO create auditlog insert
+    let
+        logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) k ""     -- TODO (getTableName upd)
+    -- _       <- runInsert conn insertLogEntry logEntry
     commit  conn
-    return  $ ResJust res
+    return  $ ResPKId k

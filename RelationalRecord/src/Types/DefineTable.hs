@@ -1,13 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Types.DefineTable
-    ( defineTable
-    , module Types.DB
-    ) where
+module  Types.DefineTable
+        ( defineTable
+        , module DataSource
+        ) where
 
 
 import  DataSource
-import  Types.DB
 
 import  Language.Haskell.TH             (Q, Dec)
 

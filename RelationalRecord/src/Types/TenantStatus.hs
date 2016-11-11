@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
-{-# LANGUAGE DeriveGeneric, StandaloneDeriving #-}
 
 module  Types.TenantStatus where
 
@@ -13,10 +12,14 @@ $(defineTable "enum_tenant_status")
 -- TODO
 -- This Haskell wrapper type is *not* type-safe, conversion might result
 -- in a runtime error :(
+
 -- Mapping of Postgres enums to Haskell with Relational Records
 -- still needs investigating.
 
-data TenantStatus = TenantInactive | TenantActive | TenantNew deriving Enum
+-- possible solution: build a custom TH action, select * from the
+-- above defined table, creating the datatype below
+
+data TenantStatus = Inactive | Active | New deriving Enum
 
 toTenantStatus :: EnumTenantStatus -> TenantStatus
 toTenantStatus = toEnum . fromIntegral . subtract 1 . id

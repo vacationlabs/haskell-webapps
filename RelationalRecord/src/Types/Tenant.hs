@@ -3,6 +3,7 @@
 
 module  Types.Tenant where
 
+import  Prelude                             hiding (id)
 import  Types.DefineTable
 import  Database.Relational.Query.Table     (name)
 import  Database.Relational.Query.Relation  (tableOf)
@@ -15,6 +16,9 @@ $(defineTable "tenants")
 
 tableName :: String
 tableName = Database.Relational.Query.Table.name $ tableOf tenants
+
+instance HasPKey Tenants where
+    getPKey = id
 
 deriving instance Generic Tenants
 instance ToJSON Tenants

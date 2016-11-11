@@ -12,8 +12,8 @@ insert into
 
 insert into
     roles (tenant_id, name, permissions)
-    values (1, 'good cop', '{"foo", "bar", "baz"})';
+    values (1, 'good cop', 'foo,bar,baz');
 
 insert into
     roles (tenant_id, name, permissions)
-    values (2, 'bad cop', '{"baz"}');
+    values (2, 'bad cop', 'baz');

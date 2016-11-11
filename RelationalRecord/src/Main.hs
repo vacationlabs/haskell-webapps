@@ -6,21 +6,23 @@ import DataSource       (getDataSource)
 import DomainAPI
 import Relations.Tenant hiding (getTenant)
 import Relations.User   hiding (getUser)
-import Relations.Role   hiding (getRole)
+import Relations.Role   hiding (getRole, assignRole)
 import DBInterface
 
 import Data.Aeson       (ToJSON)
 import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy.Char8 as BL
+import Data.Int
+
 
 
 someTenant :: TenantInsert
 someTenant = TenantInsert
-    "TestTenant" "Sylvain" "Duchamps" "sly@champsxxx.fr" "3980" Nothing "sy.chasmps.xxxx.fr"
+    "TestTenant" "Sylvain" "Duchamps" "sly@champsxxx.fr" "3980" Nothing "sy.chasms.xxxx.fr"
 
 someUser :: UserInsert
 someUser = UserInsert
-    1 "testuser2" "testpass" (Just "tesss") (Just "usserrr")
+    1 "testueser2" "testpass" (Just "tesss") (Just "usserrr")
 
 printJson :: ToJSON a => DBUniqueResult a -> IO ()
 printJson (Left err)  = print err
@@ -30,18 +32,19 @@ printJson (Right val) = BL.putStrLn $
 main :: IO ()
 main = do
     conn    <- getDataSource
+    let conn' = DBConnector (Just 1) Nothing conn
+    dbUpdate conn' (updateTenant updName) 1 "lalala" >>= print
 
-    dbUpdate conn (updateTenant updName) 1 "lalala" >>= print
+    createUser conn' someUser >>= print
+    createTenant conn' someTenant >>= print
+    activateTenant conn' (2 :: Int32) 1 >>= print
+    assignRole conn' (AssignRole 1 1) >>= print
 
-    createUser conn someUser >>= print
-    createTenant conn someTenant >>= print
-    -- activateTenant conn 1 >>= print
-
-    getTenant conn 1 >>= printJson
-    getUser conn 1 >>= printJson
+    getTenant conn' 1 >>= printJson
+    getUser conn' 1 >>= printJson
 
     dbDelete conn deleteRoleById 4 >>= print
 
-    dbQuery conn allRoles () >>= print
+    dbQuery conn' allRoles () >>= print
 
-    dbQuery conn allTenants () >>= print
+    dbQuery conn' allTenants () >>= print

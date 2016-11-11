@@ -1,45 +1,57 @@
 
 module  DomainAPI where
 
-
+import  DataSource
 import  DBInterface
 import  Types.Tenant                (Tenants)
 import  Types.User                  (Users)
+import  Types.Role                  (Roles)
 import  Relations.Tenant            as Tenant
-import  Relations.Role
+import  Relations.Role              as Role
 import  Relations.User              as User
 
-import  Database.HDBC               (IConnection)
 import  Control.Monad               ((>=>))
 
 
---    CreateRole, DeleteRole, AssignRole, RemoveRole, GetRole
+
+-- Role
+
+getRole :: DBConnector -> PKey -> IO (DBUniqueResult Roles)
+getRole conn = dbQuery conn Role.getRole >=> return . dbUniqueResult
+
+assignRole :: DBConnector -> AssignRole -> IO DBWriteResult
+assignRole conn = dbInsert conn Role.assignRole >=> return . dbWriteResult
+
+-- TODO    CreateRole, DeleteRole,  RemoveRole
+
+
 
 -- User
 
-createUser :: IConnection conn => conn -> UserInsert -> IO DBWriteResult
+createUser :: DBConnector -> UserInsert -> IO DBWriteResult
 createUser conn = dbInsert conn insertUser >=> return . dbWriteResult
 
-getUser :: IConnection conn => conn -> PKey -> IO (DBUniqueResult Users)
+getUser :: DBConnector -> PKey -> IO (DBUniqueResult Users)
 getUser conn = dbQuery conn User.getUser >=> return . dbUniqueResult
+
 -- TODO  UpdateUser, ActivateUser, DeactivateUser
 
 
 
 -- Tenant
 
-createTenant :: IConnection conn => conn -> TenantInsert -> IO DBWriteResult
+createTenant :: DBConnector -> TenantInsert -> IO DBWriteResult
 createTenant conn = dbInsert conn insertTenant >=> return . dbWriteResult
 
-getTenant :: IConnection conn => conn -> PKey -> IO (DBUniqueResult Tenants)
+getTenant :: DBConnector -> PKey -> IO (DBUniqueResult Tenants)
 getTenant conn = dbQuery conn Tenant.getTenant >=> return . dbUniqueResult
 
-activateTenant :: IConnection conn => conn -> PKey -> IO DBWriteResult
-activateTenant conn pkey =
-    dbWriteResult <$> dbUpdate conn (updateTenant Tenant.updStatus) pkey 2
+activateTenant :: HasPKey k => DBConnector -> k -> PKey -> IO DBWriteResult
+activateTenant conn pkey ownerId =
+    dbWriteResult <$> dbUpdate conn (updateTenant Tenant.updStatus2) (getPKey pkey) (2, Just ownerId)
 
-deactivateTenant :: IConnection conn => conn -> PKey -> IO DBWriteResult
+deactivateTenant :: HasPKey k => DBConnector -> k -> IO DBWriteResult
 deactivateTenant conn pkey =
-    dbWriteResult <$> dbUpdate conn (updateTenant Tenant.updStatus) pkey 1
+    dbWriteResult <$> dbUpdate conn (updateTenant Tenant.updStatus) (getPKey pkey) 1
 
 -- TODO UpdateTenant

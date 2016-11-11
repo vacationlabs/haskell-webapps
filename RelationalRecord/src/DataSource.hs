@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, PatternGuards #-}
+{-# LANGUAGE LambdaCase, PatternGuards, TypeSynonymInstances #-}
 
 module  DataSource where
 
@@ -8,6 +8,15 @@ import  Data.Int                    (Int32)
 
 
 type PKey = Int32
+
+class HasPKey a where
+    getPKey :: a -> Int32
+
+instance HasPKey PKey where
+    getPKey = id
+
+mkDBErr :: String -> SqlError
+mkDBErr = SqlError "" (-1)
 
 pgSchemaName :: String
 pgSchemaName = "public"

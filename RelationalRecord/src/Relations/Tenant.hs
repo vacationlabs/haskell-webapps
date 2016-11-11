@@ -70,6 +70,13 @@ updName = (Tenant.name' <-#)
 updStatus :: Monad m => Projection Flat Int32 -> Assignings Tenants m ()
 updStatus = (Tenant.status' <-#)
 
+
+updStatus2 :: Monad m => Projection Flat (Int32, Maybe PKey) -> Assignings Tenants m ()
+updStatus2 ph = do
+    Tenant.status'  <-# ph ! fst'
+    Tenant.ownerId' <-# ph ! snd'
+
+
 updateTenant :: (PersistableWidth b, SqlProjectable p)
     => (p b -> Assignings Tenants Restrict a) -> TimestampedUpdate b PKey
 updateTenant assigning = derivedUpdate $ \projection -> do
