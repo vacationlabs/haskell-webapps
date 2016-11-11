@@ -51,11 +51,23 @@ userValidation = UserShaped validateMail
                      then Nothing
                      else Just "Please insert a valid email address"
 
-validateUser :: User -> UserShaped Validation -> UserShaped Error
-validateUser u uv = validateUser' (toShape u) uv
+validateUserWith :: User -> UserShaped Validation -> UserShaped Error
+validateUserWith u uv = validateUser' (toShape u) uv
   where
     validateUser' :: UserShaped Info -> UserShaped Validation -> UserShaped Error
     validateUser' (UserShaped m) (UserShaped f) = UserShaped (f m)
+
+validateUser :: User -> UserShaped Error
+validateUser u = validateUserWith u userValidation
+
+validateUser' :: User -> Either (UserShaped Error) User
+validateUser' u = if validationResult == noUserError
+                 then Right u
+                 else Left validationResult
+  where validationResult = validateUserWith u userValidation
+
+noUserError :: UserShaped Error
+noUserError = UserShaped { userShapedMail = Nothing }
 
 isValidEmail :: Text -> Bool
 isValidEmail = Email.isValid . cs
