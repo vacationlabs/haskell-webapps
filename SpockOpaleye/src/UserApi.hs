@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module UserApi
-  ( 
-  readUsers
+  ( createUser
+  , readUsers
   , readUserById
   , readUsersForTenant
   , addRoleToUser
@@ -20,9 +20,10 @@ module UserApi
 import           ApiBase
 import           Control.Arrow
 import           Control.Lens
+import           Control.Monad.IO.Class
+import           Data.Maybe
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
-import           Data.Maybe
 import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
@@ -30,11 +31,11 @@ import           OpaleyeDef
 import           CryptoDef
 import           Prelude                    hiding (id)
 
---createUser :: Connection -> UserIncoming -> IO User
---createUser conn user = do
---  Just hash <- bcryptPassword $ user ^. password
---  let fullUser = user { _userpolyPassword = hash }
---  createRow conn userTable fullUser
+createUser :: Connection -> UserIncoming -> AuditM User
+createUser conn user = do
+  Just hash <- liftIO $ bcryptPassword $ user ^. password
+  let fullUser = user { _userpolyPassword = hash }
+  createRow conn userTable fullUser
 
 updateUser :: Connection -> User -> IO User
 updateUser conn user = updateRow conn userTable user

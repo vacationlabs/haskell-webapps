@@ -9,11 +9,16 @@
 module DataTypes where
 
 import           Control.Lens
+import           Control.Monad.Reader
+import           Control.Monad.Writer
 import           CryptoDef
 import           Data.List.NonEmpty
 import           Data.Text
-import           Data.Time          (UTCTime)
+import           Data.Time                  (UTCTime)
+import           Database.PostgreSQL.Simple
 import           GHC.Generics
+
+type AuditM a = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) IO) a
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)
@@ -60,7 +65,7 @@ data UserPoly key created_at updated_at tenant_id username password firstname la
   , _userpolyFirstname :: firstname
   , _userpolyLastname  :: lastname
   , _userpolyStatus    :: status
-}
+} deriving (Show)
 
 type User = UserPoly UserId UTCTime UTCTime TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
 

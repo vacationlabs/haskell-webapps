@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module TenantApi
-  ( 
-   readTenants
+  ( createTenant
+  , readTenants
   , readTenantById
   , readTenantByBackofficedomain
   , removeTenant
@@ -18,8 +18,10 @@ module TenantApi
 import           ApiBase
 import           Control.Arrow
 import           Control.Lens
-import           Data.Text
+import           Control.Monad.Reader
+import           Control.Monad.Writer
 import           Data.Maybe
+import           Data.Text
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
@@ -28,8 +30,6 @@ import           OpaleyeDef
 import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
-import Control.Monad.Writer
-import Control.Monad.Reader
 
 createTenant :: Connection -> TenantIncoming -> AuditM Tenant
 createTenant conn tenant = do

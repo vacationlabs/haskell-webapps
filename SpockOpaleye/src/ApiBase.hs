@@ -8,16 +8,16 @@
 module ApiBase where
 
 import           Control.Lens
+import           Control.Monad.IO.Class
+import           Control.Monad.Reader
+import           Control.Monad.Writer
 import qualified Data.Profunctor.Product.Default as D
 import           Data.Time                       (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple
 import           DataTypes
 import           Opaleye
 import           Prelude                         hiding (id)
-import Control.Monad.Writer
-import Control.Monad.Reader
 
-type AuditM a = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) IO) a
 
 auditLog :: String -> AuditM ()
 auditLog msg = tell msg

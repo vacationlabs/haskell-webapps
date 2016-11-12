@@ -11,6 +11,8 @@ import           Validations
 import           Web.Spock
 import           Web.Spock.Config
 
+import           Control.Monad.Reader
+import           Control.Monad.Writer
 import qualified Data.Text                  as T
 
 data MySession =
@@ -30,6 +32,12 @@ main = do
       DummyAppState
   runSpock 8080 (spock spockCfg app)
 
+runAuditM :: Connection -> AuditM a -> IO a
+runAuditM conn x = do
+  (item, log) <- runReaderT (runWriterT x) (conn, Nothing, Nothing)
+  return item
+
+
 app :: SpockM Connection MySession MyAppState ()
 app = do
   post ("tenants/new") $
@@ -38,6 +46,8 @@ app = do
          Just incomingTenant -> do
            result <- runQuery (\conn -> validateIncomingTenant conn incomingTenant)
            case result of
-             Valid -> json $ T.pack "Validation fail" 
+             Valid -> do
+                  newTenant <- runQuery (\conn -> runAuditM conn $ createTenant conn incomingTenant)
+                  json newTenant
              _ -> json $ T.pack "Validation fail"
          Nothing -> json $ T.pack "Unrecognized input"
