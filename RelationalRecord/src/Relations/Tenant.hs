@@ -10,7 +10,7 @@ import  Relations.DB
 import  Database.Relational.Query
 import  Database.HDBC.Query.TH      (makeRecordPersistableDefault)
 
-import  Data.Int (Int32)
+import  Data.Int                    (Int32)
 
 
 -- SELECTS

@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module  Relations.Role where
 
@@ -6,6 +7,7 @@ import  Types.Role          as Role
 import  Types.User          as User
 import  Types.UsersRoles    as UsersRoles
 import  Types.DB
+import  Relations.DB
 
 import  Database.Relational.Query
 import  Database.HDBC.Query.TH      (makeRecordPersistableDefault)
@@ -15,6 +17,9 @@ import  Database.HDBC.Query.TH      (makeRecordPersistableDefault)
 
 allRoles :: Relation () Roles
 allRoles = Role.roles
+
+allRoleAssignments :: Relation () UsersRoles
+allRoleAssignments = UsersRoles.usersRoles
 
 getRole :: Relation PKey Roles
 getRole = relation' . placeholder $ \rolId -> do
@@ -32,16 +37,60 @@ getRoles = relation' . placeholder $ \user -> do
     return  a
 
 
-data AssignRole = AssignRole {iUserId :: PKey, iRoleId :: PKey}
 
-$(makeRecordPersistableDefault ''AssignRole)
+-- INSERTS
 
-piAssignRole :: Pi UsersRoles AssignRole
-piAssignRole = AssignRole |$| UsersRoles.userId' |*| UsersRoles.roleId'
+data RoleAssignment = RoleAssignment
+    { iUserId :: PKey
+    , iRoleId :: PKey
+    }
+$(makeRecordPersistableDefault ''RoleAssignment)
 
+piAssignRole :: Pi UsersRoles RoleAssignment
+piAssignRole = RoleAssignment |$| UsersRoles.userId' |*| UsersRoles.roleId'
 
-assignRole :: Insert AssignRole
+assignRole :: Insert RoleAssignment
 assignRole = derivedInsert piAssignRole
+
+
+data RoleInsert = RoleInsert
+    { iTenantId     :: PKey
+    , iName         :: String
+    , iPermissions  :: String
+    }
+$(makeRecordPersistableDefault ''RoleInsert)
+
+piRoles :: Pi Roles RoleInsert
+piRoles = RoleInsert
+    |$| Role.tenantId'
+    |*| Role.name'
+    |*| Role.permissions'
+
+insertRole :: Insert RoleInsert
+insertRole = derivedInsert piRoles
+
+
+-- UPDATES
+
+data RoleUpdate = RoleUpdate
+    { uTenantId     :: Maybe PKey
+    , uName         :: Maybe String
+    , uPermissions  :: Maybe String
+    }
+
+roleUpdate :: RoleUpdate
+roleUpdate = RoleUpdate
+    Nothing Nothing Nothing
+
+updateRoleVariadic :: RoleUpdate -> TimestampedUpdate
+updateRoleVariadic RoleUpdate {..} = derivedUpdate $ \projection -> do
+    Role.tenantId'      <-#? uTenantId
+    Role.name'          <-#? uName
+    Role.permissions'   <-#? uPermissions
+
+    (phTStamp, _)   <- placeholder (\tStamp -> Role.updatedAt' <-# tStamp)
+    (phRolId, _)    <- placeholder (\rolId -> wheres $ projection ! Role.id' .=. rolId)
+    return          $ phTStamp >< phRolId
 
 
 -- DELETES
@@ -53,3 +102,10 @@ deleteRoleById = derivedDelete $ \projection ->
 deleteRoleByName :: Delete String
 deleteRoleByName = derivedDelete $ \projection ->
     fst <$> placeholder (\rolName -> wheres $ projection ! Role.name' .=. rolName)
+
+removeRole :: Delete RoleAssignment
+removeRole = derivedDelete $ \projection ->
+    fst <$> placeholder (\rAssign -> do
+        wheres $ projection ! UsersRoles.userId' .=. rAssign ! iUserId'
+        wheres $ projection ! UsersRoles.roleId' .=. rAssign ! iRoleId'
+        )

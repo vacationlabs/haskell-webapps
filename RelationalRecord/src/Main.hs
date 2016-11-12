@@ -4,16 +4,14 @@ module Main where
 
 import DataSource       (getDataSource)
 import DomainAPI
-import Relations.Tenant hiding (getTenant)
+import Relations.Tenant as Tenant hiding (getTenant)
 import Relations.User   hiding (getUser)
-import Relations.Role   hiding (getRole, assignRole)
+import Relations.Role   (RoleAssignment(..), allRoles, allRoleAssignments)
 import DBInterface
 
 import Data.Aeson       (ToJSON)
 import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy.Char8 as BL
-import Data.Int
-
 
 
 someTenant :: TenantInsert
@@ -24,13 +22,12 @@ someUser :: UserInsert
 someUser = UserInsert
     1 "testueser2" "testpass" (Just "tesss") (Just "usserrr")
 
+
 printJson :: ToJSON a => DBUniqueResult a -> IO ()
 printJson (Left err)  = print err
 printJson (Right val) = BL.putStrLn $
     encodePretty' defConfig {confCompare = compare} val
 
-leT :: PKey
-leT = 2
 
 main :: IO ()
 main = do
@@ -40,20 +37,23 @@ main = do
 
     createUser conn' someUser >>= print
     createTenant conn' someTenant >>= print
-    activateTenant conn' leT >>= print
-    assignRole conn' (AssignRole 1 1) >>= print
+    activateTenant conn' 2 >>= print
+    assignRole conn' (RoleAssignment 1 1) >>= print
 
     getTenant conn' 1 >>= printJson
     getUser conn' 1 >>= printJson
 
-    dbDelete conn deleteRoleById 4 >>= print
+    deleteRole conn' (Left 4) >>= print
 
     dbQuery conn' allRoles () >>= print
 
     dbQuery conn' allTenants () >>= print
 
-    updateTenant conn' 2 tenantUpdate {uName = Just "asd"}
+    _ <- updateTenant conn' 2 tenantUpdate {Tenant.uName = Just "asd"}
 
-    updateTenant conn' 2 tenantUpdate {uPhone = Just "4578453453", uName = Just "asdkl"}
+    _ <- updateTenant conn' 2 tenantUpdate {uPhone = Just "4578453453", Tenant.uName = Just "asdkl"}
+
+    _ <- removeRole conn' (RoleAssignment 1 1)
+    dbQuery conn' allRoleAssignments () >>= print
 
     putStrLn "...done"
