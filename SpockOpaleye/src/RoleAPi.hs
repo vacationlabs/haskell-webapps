@@ -25,7 +25,7 @@ import           Prelude                    hiding (id)
 createRole :: Connection -> RoleIncoming -> AuditM Role
 createRole conn role = createRow conn roleTable role
 
-updateRole :: Connection -> Role -> IO Role
+updateRole :: Connection -> Role -> AuditM Role
 updateRole conn role = updateRow conn roleTable role
 
 removeRole :: Connection -> Role -> IO GHC.Int.Int64

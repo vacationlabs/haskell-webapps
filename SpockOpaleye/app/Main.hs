@@ -34,7 +34,8 @@ main = do
 
 runAuditM :: Connection -> AuditM a -> IO a
 runAuditM conn x = do
-  (item, log) <- runReaderT (runWriterT x) (conn, Nothing, Nothing)
+  (item, lg) <- runReaderT (runWriterT x) (conn, Nothing, Nothing)
+  putStrLn lg
   return item
 
 

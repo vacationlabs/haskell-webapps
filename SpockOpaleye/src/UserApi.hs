@@ -37,16 +37,16 @@ createUser conn user = do
   let fullUser = user { _userpolyPassword = hash }
   createRow conn userTable fullUser
 
-updateUser :: Connection -> User -> IO User
+updateUser :: Connection -> User -> AuditM User
 updateUser conn user = updateRow conn userTable user
 
-activateUser :: Connection -> User -> IO User
+activateUser :: Connection -> User -> AuditM User
 activateUser conn user = setUserStatus conn user UserStatusActive
 
-deactivateUser :: Connection -> User -> IO User
+deactivateUser :: Connection -> User -> AuditM User
 deactivateUser conn user = setUserStatus conn user UserStatusInActive
 
-setUserStatus :: Connection -> User -> UserStatus -> IO User
+setUserStatus :: Connection -> User -> UserStatus -> AuditM User
 setUserStatus conn user newStatus = updateUser conn $ user & status .~ newStatus
 
 removeUser :: Connection -> User -> IO GHC.Int.Int64
