@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module UserApi
-  ( createUser
-  , readUsers
+  ( 
+  readUsers
   , readUserById
   , readUsersForTenant
   , addRoleToUser
@@ -30,11 +30,11 @@ import           OpaleyeDef
 import           CryptoDef
 import           Prelude                    hiding (id)
 
-createUser :: Connection -> UserIncoming -> IO User
-createUser conn user = do
-  Just hash <- bcryptPassword $ user ^. password
-  let fullUser = user { _userpolyPassword = hash }
-  createRow conn userTable fullUser
+--createUser :: Connection -> UserIncoming -> IO User
+--createUser conn user = do
+--  Just hash <- bcryptPassword $ user ^. password
+--  let fullUser = user { _userpolyPassword = hash }
+--  createRow conn userTable fullUser
 
 updateUser :: Connection -> User -> IO User
 updateUser conn user = updateRow conn userTable user

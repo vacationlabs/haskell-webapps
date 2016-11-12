@@ -38,8 +38,6 @@ app = do
          Just incomingTenant -> do
            result <- runQuery (\conn -> validateIncomingTenant conn incomingTenant)
            case result of
-             Valid -> do
-                  newTenant <- runQuery (\conn -> createTenant conn incomingTenant)
-                  json newTenant
+             Valid -> json $ T.pack "Validation fail" 
              _ -> json $ T.pack "Validation fail"
          Nothing -> json $ T.pack "Unrecognized input"

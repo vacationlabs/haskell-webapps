@@ -14,16 +14,26 @@ import           Database.PostgreSQL.Simple
 import           DataTypes
 import           Opaleye
 import           Prelude                         hiding (id)
+import Control.Monad.Writer
+import Control.Monad.Reader
+
+type AuditM a = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) IO) a
+
+auditLog :: String -> AuditM ()
+auditLog msg = tell msg
 
 createRow ::(
+    Show incoming,
     HasCreatedat columnsW (Maybe (Column PGTimestamptz)),
     HasUpdatedat columnsW (Column PGTimestamptz),
     D.Default Constant incoming columnsW, D.Default QueryRunner returned row)
-    => Connection -> Table columnsW returned -> incoming -> IO row
+    => Connection -> Table columnsW returned -> incoming -> AuditM row
 createRow conn table item = do
-  currentTime <- fmap pgUTCTime getCurrentTime
-  let itemPg = (constant item) & createdat .~ (Just currentTime) & updatedat .~ (currentTime)
-  fmap head $ runInsertManyReturning conn table [itemPg] (\x -> x)
+  auditLog $ "Create : " ++ (show item)
+  liftIO $ do
+    currentTime <- fmap pgUTCTime getCurrentTime
+    let itemPg = (constant item) & createdat .~ (Just currentTime) & updatedat .~ (currentTime)
+    fmap head $ runInsertManyReturning conn table [itemPg] (\x -> x)
 
 updateRow :: (
     HasUpdatedat haskells UTCTime

@@ -5,8 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module TenantApi
-  ( createTenant
-  , readTenants
+  ( 
+   readTenants
   , readTenantById
   , readTenantByBackofficedomain
   , removeTenant
@@ -28,9 +28,12 @@ import           OpaleyeDef
 import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
+import Control.Monad.Writer
+import Control.Monad.Reader
 
-createTenant :: Connection -> TenantIncoming -> IO Tenant
-createTenant conn tenant = createRow conn tenantTable tenant
+createTenant :: Connection -> TenantIncoming -> AuditM Tenant
+createTenant conn tenant = do
+  createRow conn tenantTable tenant
 
 activateTenant :: Connection -> Tenant -> IO Tenant
 activateTenant conn tenant = setTenantStatus conn tenant TenantStatusActive
