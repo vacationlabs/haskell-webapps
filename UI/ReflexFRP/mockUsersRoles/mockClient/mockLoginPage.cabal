@@ -28,6 +28,7 @@ executable mockClient
                      , dependent-map
                      , dependent-sum
                      , digestive-functors
+                     , template-haskell
   default-language:  Haskell2010
   if impl(ghcjs)
     ghc-options:    -dedupe

@@ -15,8 +15,7 @@ import Data.String.Conversions
 -- @ Core datatypes
 type Email = Text
 
-data User = User
-  { userMail :: Email
+data User = User { userMail :: Email
   } deriving (Show, Eq, Ord, Generic)
 
 -- @ Instances
@@ -57,11 +56,8 @@ validateUserWith u uv = validateUser' (toShape u) uv
     validateUser' :: UserShaped Info -> UserShaped Validation -> UserShaped Error
     validateUser' (UserShaped m) (UserShaped f) = UserShaped (f m)
 
-validateUser :: User -> UserShaped Error
-validateUser u = validateUserWith u userValidation
-
-validateUser' :: User -> Either (UserShaped Error) User
-validateUser' u = if validationResult == noUserError
+validateUser :: User -> Either (UserShaped Error) User
+validateUser u = if validationResult == noUserError
                  then Right u
                  else Left validationResult
   where validationResult = validateUserWith u userValidation

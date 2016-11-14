@@ -29,6 +29,5 @@ app (Overview serverState clientState) = do
 
 app (Edit serverState clientState (rolename, roleattrs)) = do
   n <- editPage rolename roleattrs
-  performEvent_ $ (liftIO $ putStrLn "ciao") <$ n
   let saveClient (Roles clientRoles) (rName, rAttr) = Roles $ insertMap rName rAttr clientRoles
   return $ leftmost [Overview serverState <$> saveClient clientState <$> n]

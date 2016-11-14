@@ -19,11 +19,14 @@ packages:
     git: https://github.com/imalsogreg/servant-reflex
     commit: cf0bce400cd194301e7b02e01cbc4139afd47d95
   extra-dep: true
+- location:
+    git: https://github.com/meditans/reflex-jsx
+    commit: b5e04a74f8b455404dd719429d5d229db8753a41
+  extra-dep: true
 
 extra-deps:
 - MemoTrie-0.6.7
 - ghcjs-dom-0.2.4.0
-- reflex-jsx-0.1.0.0
 - newtype-generics-0.4
 - ref-tf-0.4.0.1
 - webkitgtk3-javascriptcore-0.13.2.0
