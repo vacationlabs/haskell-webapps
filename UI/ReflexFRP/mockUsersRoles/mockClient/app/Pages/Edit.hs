@@ -99,8 +99,18 @@ form roleName roleAttrs = do
   return $ tagPromptlyDyn role saveEvent
 
 usersDynList :: MonadWidget t m => Set User -> Event t User -> m (Dynamic t (Set User))
-usersDynList users addAnotherUser = setFromList . map fst <$$> do
-  dynamicList renderUser snd (const never) addAnotherUser (setToList users)
+usersDynList users addAnotherUser = do
+  currentSet :: Dynamic t (Set User) <- setFromList . map fst <$$>
+    dynamicList renderUser snd (const never) addAnotherUser (setToList users)
+  let insertEvent = renderUser
+  undefined
+
+renderUser :: MonadWidget t m => Int -> User -> Event t User -> m (User, Event t ())
+renderUser _ u _ =
+  el "li" $ do
+    text (userMail u)
+    revokeUser <- link " (revoke)"
+    return (u, _link_clicked revokeUser)
 
 updateUsers :: MonadWidget t m => Set User -> m (Dynamic t (Set User))
 updateUsers users = do
@@ -129,7 +139,8 @@ updateUsers users = do
 
     userOrError <- updatedOnButton addButton (Left noUserError) (validateUser <$> rawUserDyn)
 
-    let (_,validatedUserEvent) = fanEither $ tagPromptlyDyn (validateUser <$> rawUserDyn) addButton
+    let validation = validateUserWith _what _what
+        (_,validatedUserEvent) = fanEither $ tagPromptlyDyn (validateUser <$> rawUserDyn) addButton
 
         maybeHiddenAttr = ffor userOrError $ \e ->
                             if isRight e || e == Left noUserError
@@ -161,13 +172,6 @@ isRight = either (const False) (const True)
 type Markup = forall t m a. (MonadWidget t m) => m a -> m a
 
 
-renderUser :: MonadWidget t m => Int -> User -> Event t User -> m (User, Event t ())
-renderUser _ u _ =
-  el "li" $ do
-    text (userMail u)
-    revokeUser <- link " (revoke)"
-    return (u, _link_clicked revokeUser)
-
 
 permissionCheckboxes :: MonadWidget t m => Text -> Set Permission -> [Permission] -> m (Dynamic t (Set Permission))
 permissionCheckboxes groupName permissions groupToDisplay =
@@ -189,15 +193,3 @@ permissionCheckboxes groupName permissions groupToDisplay =
             text (toUserLabel p)
             return $ bool (mempty :: Set Permission) (singletonSet p) <$> temp1
     return temp
-
-
-dangerDiv :: MonadWidget t m => m ()
-dangerDiv = do
-  elAttr "div" ("class"=:"alert alert-danger" <> "role"=:"alert") $ do
-    el "span" $ do
-      text "Please fix the errors highlighted in "
-      el "strong" $ text "red "
-      text "below:"
-    el "ul" $ do
-      el "li" $ text "Error not related to a specific field #1, eg. you must select at least one permission for this role"
-      el "li" $ text "Error not related to a specific field #2"
