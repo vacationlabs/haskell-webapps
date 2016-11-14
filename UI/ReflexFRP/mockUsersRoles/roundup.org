@@ -3,3 +3,63 @@
    https://github.com/dackerman/reflex-jsx/issues/3
 ** Extracting dynamic values from jsx quasiquoters
    https://github.com/dackerman/reflex-jsx/issues/2
+
+
+addAnotherUser :: MonadWidget t m => m (Event t User)
+addAnotherUser = do
+ newUser <- divClass "row" $
+   divClass "col-lg-6 col-md-8 col-sm-8 col-xs-12" $
+     divClass "input-group" $ do
+       divClass "input-group-addon" $ el "span" $ text "Add another user"
+       userInput <- textInput $ def & (textInputConfig_attributes .~ constDyn ("class"=:"form-control"))
+       let user = User <$> userInput ^. textInput_value
+       addUser <- divClass "input-group-btn" $ buttonClass "btn btn-default" "Add"
+       eventualError <- holdDyn noUserError (tagPromptlyDyn (validateUser <$> user) addUser)
+       return (tagPromptlyDyn user addUser)
+ elClass "span" "help-block" $ text "That doesn't look like a valid user. Does the user exist?"
+ return newUser
+
+addAnotherUser' :: MonadWidget t m => m (Event t User)
+addAnotherUser' = do
+ newUserEvent <- markup $ do
+   rec label
+       userInput <- view textInput_value <$> textbox
+       let inputDyn   = fmap (validateUser' . User) userInput
+           inputEvent = tagPromptlyDyn inputDyn addUser
+           (_, newUserEvent) = fanEither inputEvent
+       errorDyn <- holdDyn Nothing (either Just (const Nothing) <$> inputEvent)
+       addUser <- button
+   return newUserEvent
+ helpLabel
+ return newUserEvent
+ where
+   markup = nestedDivClasses ["row", "col-lg-6 col-md-8 col-sm-8 col-xs-12", "input-group"]
+   label     = text "Add another user"
+                 & divClass "input-group-addon" . el "span"
+   button    = buttonClass "btn btn-default" "Add"
+                 & divClass "input-group-btn"
+   textbox   = textInput $ def
+                 & textInputConfig_attributes .~ constDyn ("class"=:"form-control")
+   helpLabel = text "That doesn't look like a valid user. Does the user exist?"
+                 & elAttr "span" ("class"=:"help-block")
+
+addAnotherUser'' :: MonadWidget t m => m (Event t User)
+addAnotherUser'' = do
+  (rawInputDyn, addButton) <- [jsx|
+    <div class="row">
+        <div class="col-lg-6 col-md-8 col-sm-8 col-xs-12">
+            <div class="input-group">
+                <div class="input-group-addon"><span>Add another user</span></div>
+                {textInputClassValue "form-control"}
+                <div class="input-group-btn">
+                    {buttonClass "btn btn-default" "Add"}
+                </div>
+            </div>
+        </div>
+    </div>|]
+  let userDyn = User <$> rawInputDyn
+  eventualError <- updatedOnButton addButton noUserError (validateUser <$> userDyn)
+  let hidden = bool ("class"=:"help-block") ("class"=:"help-block hidden") . (== noUserError) <$> eventualError
+  elDynAttr "span" hidden $
+    text $ "That doesn't look like a valid user. Does the user exist?"
+  return $ tagPromptlyDyn userDyn addButton
