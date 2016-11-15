@@ -22,7 +22,7 @@ overview serverState clientState = el "body" $ do
       newRole <- buttonClass "btn btn-primary pull-right" "New Role"
       elClass "h1" "page-heading" $ text "Roles"
       change <- divClass "table-responsive" $ (tableSection serverState clientState)
-      return $ leftmost [change, Edit serverState clientState ("New role", emptyRoleAttributes) <$ newRole]
+      return $ leftmost [change, Edit serverState clientState ("", emptyRoleAttributes) <$ newRole]
 
 tableSection :: MonadWidget t m => Roles -> Roles -> m (Event t AppState)
 tableSection serverState clientState = elClass "table" "table" $ do
@@ -68,5 +68,5 @@ displayItem rolename _ u _ = el "li" $ do
 
 clickLabel :: MonadWidget t m => Text -> m (Event t ())
 clickLabel t = do
-  (e, _) <- elAttr' "a" ("href" =: "#") (text t)
+  (e, _) <- elAttr' "a" ("href" =: "") (text t)
   return $ domEvent Click e

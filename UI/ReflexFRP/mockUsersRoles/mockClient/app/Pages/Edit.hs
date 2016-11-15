@@ -38,7 +38,7 @@ saveButtonWidget :: MonadWidget t m => m (Event t ())
 saveButtonWidget = do
   [jsx| <div class="form-group">
             {buttonClass "btn btn-primary" "Save"}
-            <a href="#" class="cancel text-danger">cancel </a>
+            <a href="" class="cancel text-danger">cancel </a>
         </div> |]
 
 roleNameWidget :: MonadWidget t m => RoleName  -> m (Dynamic t RoleName)
@@ -51,11 +51,15 @@ roleNameWidget roleName = do
               & textInputConfig_attributes   .~ constDyn ("class"=:"form-control")}
             <span class="help-block">{dynText helpMsg}</span>
           </div>|]
-      let helpMsg = bool "Role name can't be blank" "" . (/="") <$> rawRoleName
-          maybeErrorAttr = ffor rawRoleName $ \e ->
-                              if e /= ""
-                              then ("class"=:"form-group")
-                              else ("class"=:"form-group has-error")
+      -- let validatedRoleName :: Dynamic t (Either Text RoleName)
+      --     validatedRoleName = ffor rawRoleName $ \r ->
+      --       bool (Left "Role name can't be blank") (Right r) (r /= "")
+      helpMsg <- heldSignal "" rawRoleName
+            (\p -> if p == "" then "Role name can't be blank" else "")
+      maybeErrorAttr <- heldSignal ("class"=:"form-group") rawRoleName
+          (\p -> if p == ""
+                 then ("class"=:"form-group has-error")
+                 else ("class"=:"form-group"))
   return rawRoleName
 
 
@@ -90,20 +94,29 @@ form roleName roleAttrs = do
                   {updateUsers (roleAttrs^.roleAssociatedUsers)}
                   {saveButtonWidget}
               </form>|]
-      let dangerText = bool "" "You must select at least one permission for this role"
-                             . (== mempty) <$> newRolePerms
-          dangerclass = bool ("class"=:"alert alert-danger"<>"hidden"=:"true")
-                             ("class"=:"alert alert-danger"<>"role"=:"alert")
-                             . (== mempty) <$> newRolePerms
-          role = liftA2 (,) newRoleName (RoleAttributes <$> newRolePerms <*> updatedUsers)
+
+      dangerText <- heldSignal "" newRolePerms
+          (\p -> if p == mempty
+                 then "You must select at least one permission for this role"
+                 else "")
+      dangerclass <- heldSignal ("class"=:"alert alert-danger"<>"hidden"=:"true") newRolePerms
+                     (\p -> if p == mempty
+                            then ("class"=:"alert alert-danger"<>"role"=:"alert")
+                            else ("class"=:"alert alert-danger"<>"hidden"=:"true"))
+      let role = liftA2 (,) newRoleName (RoleAttributes <$> newRolePerms <*> updatedUsers)
+
   return $ tagPromptlyDyn role saveEvent
+
+heldSignal :: MonadWidget t m => b -> Dynamic t a -> (a -> b) -> m (Dynamic t b)
+heldSignal initialState dyn f = holdDyn initialState (f <$> updated dyn)
 
 usersDynList :: MonadWidget t m => Set User -> Event t User -> m (Dynamic t (Set User))
 usersDynList users addAnotherUser = do
-  currentSet :: Dynamic t (Set User) <- setFromList . map fst <$$>
-    dynamicList renderUser snd (const never) addAnotherUser (setToList users)
-  let insertEvent = renderUser
-  undefined
+  setFromList . map fst <$$> dynamicList renderUser snd (const never) addAnotherUser (setToList users)
+  -- currentSet :: Dynamic t (Set User) <- setFromList . map fst <$$>
+  --   dynamicList renderUser snd (const never) addAnotherUser (setToList users)
+  -- -- let insertEvent = renderUser
+  -- undefined
 
 renderUser :: MonadWidget t m => Int -> User -> Event t User -> m (User, Event t ())
 renderUser _ u _ =
@@ -139,7 +152,7 @@ updateUsers users = do
 
     userOrError <- updatedOnButton addButton (Left noUserError) (validateUser <$> rawUserDyn)
 
-    let validation = validateUserWith _what _what
+    let validation = flip validateUserWith _what <$> rawUserDyn
         (_,validatedUserEvent) = fanEither $ tagPromptlyDyn (validateUser <$> rawUserDyn) addButton
 
         maybeHiddenAttr = ffor userOrError $ \e ->
