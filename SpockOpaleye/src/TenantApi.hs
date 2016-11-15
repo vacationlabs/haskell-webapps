@@ -30,24 +30,24 @@ import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
 
-createTenant :: Connection -> TenantIncoming -> AuditM Tenant
+createTenant :: Connection -> TenantIncoming -> AppM Tenant
 createTenant conn tenant = do
   createRow conn tenantTable tenant
 
-activateTenant :: Connection -> Tenant -> AuditM Tenant
+activateTenant :: Connection -> Tenant -> AppM Tenant
 activateTenant conn tenant = setTenantStatus conn tenant TenantStatusActive
 
-deactivateTenant :: Connection -> Tenant -> AuditM Tenant
+deactivateTenant :: Connection -> Tenant -> AppM Tenant
 deactivateTenant conn tenant = setTenantStatus conn tenant TenantStatusInActive
 
-setTenantStatus :: Connection -> Tenant -> TenantStatus -> AuditM Tenant
+setTenantStatus :: Connection -> Tenant -> TenantStatus -> AppM Tenant
 setTenantStatus conn tenant st = updateTenant conn (tenant & status .~ st)
 
-updateTenant :: Connection -> Tenant -> AuditM Tenant
+updateTenant :: Connection -> Tenant -> AppM Tenant
 updateTenant conn tenant = do
   updateRow conn tenantTable tenant
 
-removeTenant :: Connection -> Tenant -> AuditM GHC.Int.Int64
+removeTenant :: Connection -> Tenant -> AppM GHC.Int.Int64
 removeTenant conn tenant = do
   tenant_deac <- deactivateTenant conn tenant
   _ <- updateTenant conn (tenant_deac & ownerid .~ Nothing)

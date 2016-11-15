@@ -32,8 +32,8 @@ main = do
       DummyAppState
   runSpock 8080 (spock spockCfg app)
 
-runAuditM :: Connection -> AuditM a -> IO a
-runAuditM conn x = do
+runAppM :: Connection -> AppM a -> IO a
+runAppM conn x = do
   (item, lg) <- runReaderT (runWriterT x) (conn, Nothing, Nothing)
   putStrLn lg
   return item
@@ -48,7 +48,7 @@ app = do
            result <- runQuery (\conn -> validateIncomingTenant conn incomingTenant)
            case result of
              Valid -> do
-                  newTenant <- runQuery (\conn -> runAuditM conn $ createTenant conn incomingTenant)
+                  newTenant <- runQuery (\conn -> runAppM conn $ createTenant conn incomingTenant)
                   json newTenant
              _ -> json $ T.pack "Validation fail"
          Nothing -> json $ T.pack "Unrecognized input"

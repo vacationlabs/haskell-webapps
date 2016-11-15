@@ -18,7 +18,7 @@ import           Data.Time                  (UTCTime)
 import           Database.PostgreSQL.Simple
 import           GHC.Generics
 
-type AuditM a = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) IO) a
+type AppM a = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) IO) a
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)

@@ -31,22 +31,22 @@ import           OpaleyeDef
 import           CryptoDef
 import           Prelude                    hiding (id)
 
-createUser :: Connection -> UserIncoming -> AuditM User
+createUser :: Connection -> UserIncoming -> AppM User
 createUser conn user = do
   Just hash <- liftIO $ bcryptPassword $ user ^. password
   let fullUser = user { _userpolyPassword = hash }
   createRow conn userTable fullUser
 
-updateUser :: Connection -> User -> AuditM User
+updateUser :: Connection -> User -> AppM User
 updateUser conn user = updateRow conn userTable user
 
-activateUser :: Connection -> User -> AuditM User
+activateUser :: Connection -> User -> AppM User
 activateUser conn user = setUserStatus conn user UserStatusActive
 
-deactivateUser :: Connection -> User -> AuditM User
+deactivateUser :: Connection -> User -> AppM User
 deactivateUser conn user = setUserStatus conn user UserStatusInActive
 
-setUserStatus :: Connection -> User -> UserStatus -> AuditM User
+setUserStatus :: Connection -> User -> UserStatus -> AppM User
 setUserStatus conn user newStatus = updateUser conn $ user & status .~ newStatus
 
 removeUser :: Connection -> User -> IO GHC.Int.Int64

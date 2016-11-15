@@ -20,16 +20,16 @@ import           GHC.Int
 import           Prelude                         hiding (id)
 
 
-auditLog :: String -> AuditM ()
+auditLog :: String -> AppM ()
 auditLog = tell 
 
 createDbRows :: (Show columnsW, D.Default QueryRunner columnsR haskells) 
-    =>  Connection -> Table columnsW columnsR -> [columnsW] -> AuditM [haskells]
+    =>  Connection -> Table columnsW columnsR -> [columnsW] -> AppM [haskells]
 createDbRows conn table pgrows = do
   auditLog $ "Create : " ++ (show pgrows)
   liftIO $ runInsertManyReturning conn table pgrows (\x -> x)
 
-updateDbRow :: (Show columnsW, HasId columnsR (Column PGInt4)) => Connection -> Table columnsW columnsR -> Column PGInt4 -> columnsW -> AuditM columnsW
+updateDbRow :: (Show columnsW, HasId columnsR (Column PGInt4)) => Connection -> Table columnsW columnsR -> Column PGInt4 -> columnsW -> AppM columnsW
 updateDbRow conn table row_id item = do
   auditLog $ "Update :" ++ (show item)
   _ <- liftIO $ runUpdate conn table (\_ -> item) (matchFunc row_id) 
@@ -44,7 +44,7 @@ createRow ::(
     HasCreatedat columnsW (Maybe (Column PGTimestamptz)),
     HasUpdatedat columnsW (Column PGTimestamptz),
     D.Default Constant incoming columnsW, D.Default QueryRunner returned row)
-    => Connection -> Table columnsW returned -> incoming -> AuditM row
+    => Connection -> Table columnsW returned -> incoming -> AppM row
 createRow conn table item = do
   auditLog $ "Create : " ++ (show item)
   currentTime <- liftIO $ fmap pgUTCTime getCurrentTime
@@ -60,13 +60,13 @@ updateRow :: (
     , HasId haskells itemId
     , HasId columnsR (Column PGInt4)
     )
-    => Connection -> Table columnsW columnsR -> haskells -> AuditM haskells
+    => Connection -> Table columnsW columnsR -> haskells -> AppM haskells
 updateRow conn table item = do
   auditLog $ "Update : " ++ (show item)
   let itId = item ^. id
   currentTime <- liftIO getCurrentTime
   let updatedItem = (putUpdatedTimestamp currentTime) item
-  updateDbRow conn table (constant itId) (constant updatedItem) 
+  _ <- updateDbRow conn table (constant itId) (constant updatedItem) 
   return updatedItem
   where
     putUpdatedTimestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
@@ -79,7 +79,7 @@ removeRow :: (
     , D.Default Constant itemId (Column PGInt4)
     , HasId haskells itemId
     , HasId columnsR (Column PGInt4)
-    ) => Connection -> Table columnsW columnsR -> haskells -> AuditM GHC.Int.Int64
+    ) => Connection -> Table columnsW columnsR -> haskells -> AppM GHC.Int.Int64
 removeRow conn table item = do
   auditLog $ "Remove : " ++ (show item)
   liftIO $ do

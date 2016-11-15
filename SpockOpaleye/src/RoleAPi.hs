@@ -22,10 +22,10 @@ import           ApiBase
 import           Control.Lens
 import           Prelude                    hiding (id)
 
-createRole :: Connection -> RoleIncoming -> AuditM Role
+createRole :: Connection -> RoleIncoming -> AppM Role
 createRole conn role = createRow conn roleTable role
 
-updateRole :: Connection -> Role -> AuditM Role
+updateRole :: Connection -> Role -> AppM Role
 updateRole conn role = updateRow conn roleTable role
 
 removeRole :: Connection -> Role -> IO GHC.Int.Int64
