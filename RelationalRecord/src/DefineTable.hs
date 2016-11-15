@@ -37,6 +37,7 @@ defineTable tableName =
   where
     withAdditionalTypes driver =
         driver { typeMap =
-            [ ("jsonb", [t| ByteString |])
+            [ ("jsonb", [t| ByteString |])                                      -- FIXME should work, but doesn't!
             , ("text", [t| Text |])
-            ] ++ typeMap driver}        -- FIXME should work, but doesn't!
+            ] ++ typeMap driver
+            }
