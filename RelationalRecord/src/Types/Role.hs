@@ -6,6 +6,7 @@ module  Types.Role where
 import  DefineTable
 import  Database.Relational.Query.Table     as T (name)
 import  Database.Relational.Query.Relation  (tableOf)
+import  Data.Text                           (Text, pack)
 
 import  GHC.Generics            (Generic)
 import  Data.Aeson              (ToJSON)
@@ -13,8 +14,8 @@ import  Data.Aeson              (ToJSON)
 
 $(defineTable "roles")
 
-tableName :: String
-tableName = T.name $ tableOf roles
+tableName :: Text
+tableName = pack $ T.name $ tableOf roles
 
 deriving instance Generic Roles
 instance ToJSON Roles

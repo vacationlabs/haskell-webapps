@@ -46,7 +46,7 @@ updateRole conn pkey upd =
         (updateRoleVariadic upd)
         pkey
 
-deleteRole :: DBConnector -> Either PKey String -> IO DBWriteResult
+deleteRole :: DBConnector -> Either PKey Text -> IO DBWriteResult
 deleteRole conn eFilter =
     dbWriteResult <$> case eFilter of
         Left pkey   -> dbDelete conn deleteRoleById pkey

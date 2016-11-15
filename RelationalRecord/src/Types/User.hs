@@ -4,8 +4,9 @@
 module  Types.User where
 
 import  DefineTable
-import  Database.Relational.Query.Table     (name)
+import  Database.Relational.Query.Table     as T (name)
 import  Database.Relational.Query.Relation  (tableOf)
+import  Data.Text                           (Text, pack)
 
 import  GHC.Generics            (Generic)
 import  Data.Aeson              (ToJSON)
@@ -13,8 +14,8 @@ import  Data.Aeson              (ToJSON)
 
 $(defineTable "users")
 
-tableName :: String
-tableName = Database.Relational.Query.Table.name $ tableOf users
+tableName :: Text
+tableName = pack $ T.name $ tableOf users
 
 deriving instance Generic Users
 instance ToJSON Users

@@ -17,6 +17,7 @@ module  Types.DB
         , dbWriteResult
         , dbUniqueResult
         , module DataSource
+        , module Data.Text
         ) where
 
 
@@ -24,6 +25,7 @@ import  DataSource                  (PKey, DBTime, mkDBErr)
 
 import  Database.HDBC               (SqlError, IConnection)
 import  Database.Relational.Query   (Update)
+import  Data.Text                   (Text)
 
 
 

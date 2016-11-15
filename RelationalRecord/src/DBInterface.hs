@@ -37,6 +37,7 @@ import  Database.HDBC.Query.TH          (makeRecordPersistableDefault)
 
 import  Data.Time.LocalTime             (getZonedTime)
 import  Data.Maybe
+import  Data.Text                       (pack)
 
 
 
@@ -50,8 +51,8 @@ data AuditLogInsert = AuditLogInsert
     (Maybe PKey)    -- userId
     Bool            -- changedBySystem
     PKey            -- auditableId
-    String          -- auditableTableName
-    String          -- Summary
+    Text            -- auditableTableName
+    Text            -- Summary
     -- ByteString   -- TODO changes
 $(makeRecordPersistableDefault ''AuditLogInsert)
 
@@ -90,7 +91,7 @@ dbDelete (DBConnector _ _ conn) dlt param =
 
 
 dbInsert :: (ToSql SqlValue p)
-    => DBConnector -> String -> Insert p -> p -> IO (DBResult ())
+    => DBConnector -> Text -> Insert p -> p -> IO (DBResult ())
 dbInsert DBConnector {dbTenantId = Nothing} _ _ _ =
     return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to insert into the DB"
 dbInsert (DBConnector (Just tenantPK) mUserId conn) tName ins param =
@@ -98,13 +99,13 @@ dbInsert (DBConnector (Just tenantPK) mUserId conn) tName ins param =
         _       <- runInsert conn ins param
         newId   <- lastInsertedPK conn
         let
-            logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) newId tName (show ins)
+            logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) newId tName (pack . show $ ins)
         _       <- runInsert conn insertLogEntry logEntry
         commit  conn
         return  $ ResPKId newId
 
 
-dbUpdate :: DBConnector -> String -> TimestampedUpdate -> PKey -> IO (DBResult ())
+dbUpdate :: DBConnector -> Text -> TimestampedUpdate -> PKey -> IO (DBResult ())
 dbUpdate DBConnector {dbTenantId = Nothing} _ _ _ =
     return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to update the DB"
 dbUpdate (DBConnector (Just tenantPK) mUserId conn) tName upd k =
@@ -112,7 +113,7 @@ dbUpdate (DBConnector (Just tenantPK) mUserId conn) tName upd k =
         tNow    <- getZonedTime
         _       <- runUpdate conn upd (tNow, k)
         let
-            logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) k tName (show upd)
+            logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) k tName (pack . show $ upd)
         _       <- runInsert conn insertLogEntry logEntry
         commit  conn
         return  $ ResPKId k

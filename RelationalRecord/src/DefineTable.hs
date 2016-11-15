@@ -24,6 +24,7 @@ import  Database.HDBC.Schema.PostgreSQL     (driverPostgreSQL)
 import  Database.HDBC.Schema.Driver         (typeMap)
 import  Database.Relational.Query.Component (Config(..), defaultConfig)
 import  Data.ByteString                     (ByteString)
+import  Data.Text                           (Text)
 
 
 defineTable :: String -> Q [Dec]
@@ -35,4 +36,7 @@ defineTable tableName =
         [''Show]
   where
     withAdditionalTypes driver =
-        driver {typeMap = ("jsonb", [t| ByteString |]) : typeMap driver}        -- FIXME should work, but doesn't!
+        driver { typeMap =
+            [ ("jsonb", [t| ByteString |])
+            , ("text", [t| Text |])
+            ] ++ typeMap driver}        -- FIXME should work, but doesn't!

@@ -31,13 +31,13 @@ getTenant = relation' . placeholder $ \tenId -> do
 -- INSERTS
 
 data TenantInsert = TenantInsert
-    { iName         :: String
-    , iFirstName    :: String
-    , iLastName     :: String
-    , iPhone        :: String
-    , iEmail        :: String
+    { iName         :: Text
+    , iFirstName    :: Text
+    , iLastName     :: Text
+    , iPhone        :: Text
+    , iEmail        :: Text
     , iOwnerId      :: Maybe PKey
-    , iBOD          :: String
+    , iBOD          :: Text
     }
 $(makeRecordPersistableDefault ''TenantInsert)
 
@@ -58,12 +58,12 @@ insertTenant = derivedInsert piTenant
 -- UPDATES
 
 data TenantUpdate = TenantUpdate
-    { uName         :: VariadicArg String
-    , uFirstName    :: VariadicArg String
-    , uLastName     :: VariadicArg String
-    , uPhone        :: VariadicArg String
-    , uEmail        :: VariadicArg String
-    , uBOD          :: VariadicArg String
+    { uName         :: VariadicArg Text
+    , uFirstName    :: VariadicArg Text
+    , uLastName     :: VariadicArg Text
+    , uPhone        :: VariadicArg Text
+    , uEmail        :: VariadicArg Text
+    , uBOD          :: VariadicArg Text
     , uStatus       :: VariadicArg Int32
     , uOwnerId      :: VariadicArg (Maybe Int32)
     }

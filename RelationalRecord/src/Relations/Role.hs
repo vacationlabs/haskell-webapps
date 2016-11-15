@@ -59,8 +59,8 @@ assignRole = derivedInsert piAssignRole
 
 data RoleInsert = RoleInsert
     { iTenantId     :: PKey
-    , iName         :: String
-    , iPermissions  :: String
+    , iName         :: Text
+    , iPermissions  :: Text
     }
 $(makeRecordPersistableDefault ''RoleInsert)
 
@@ -78,8 +78,8 @@ insertRole = derivedInsert piRoles
 
 data RoleUpdate = RoleUpdate
     { uTenantId     :: VariadicArg PKey
-    , uName         :: VariadicArg String
-    , uPermissions  :: VariadicArg String
+    , uName         :: VariadicArg Text
+    , uPermissions  :: VariadicArg Text
     }
     deriving (Generic, Default)
 
@@ -100,7 +100,7 @@ deleteRoleById :: Delete PKey
 deleteRoleById = derivedDelete $ \projection ->
     fst <$> placeholder (\rolId -> wheres $ projection ! Role.id' .=. rolId)
 
-deleteRoleByName :: Delete String
+deleteRoleByName :: Delete Text
 deleteRoleByName = derivedDelete $ \projection ->
     fst <$> placeholder (\rolName -> wheres $ projection ! Role.name' .=. rolName)
 

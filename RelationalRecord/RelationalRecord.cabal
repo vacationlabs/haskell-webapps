@@ -32,6 +32,7 @@ executable RelationalRecord
                     HDBC-postgresql,
                     aeson >= 1.0.2,
                     aeson-pretty >= 0.8.2,
+                    text,
                     data-default,
                     bytestring,
                     time

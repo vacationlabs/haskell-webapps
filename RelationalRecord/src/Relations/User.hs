@@ -32,10 +32,10 @@ getUser = relation' . placeholder $ \usrId -> do
 
 data UserInsert = UserInsert
     { iTenantId     :: PKey
-    , iUsername     :: String
-    , iPassword     :: String
-    , iFirstName    :: Maybe String
-    , iLastName     :: Maybe String
+    , iUsername     :: Text
+    , iPassword     :: Text
+    , iFirstName    :: Maybe Text
+    , iLastName     :: Maybe Text
     }
 $(makeRecordPersistableDefault ''UserInsert)
 
@@ -55,10 +55,10 @@ insertUser = derivedInsert piUser
 
 data UserUpdate = UserUpdate
     { uTenantId     :: VariadicArg PKey
-    , uUsername     :: VariadicArg String
-    , uPassword     :: VariadicArg String
-    , uFirstName    :: VariadicArg (Maybe String)
-    , uLastName     :: VariadicArg (Maybe String)
+    , uUsername     :: VariadicArg Text
+    , uPassword     :: VariadicArg Text
+    , uFirstName    :: VariadicArg (Maybe Text)
+    , uLastName     :: VariadicArg (Maybe Text)
     , uStatus       :: VariadicArg Int32
     }
     deriving (Generic, Default)
