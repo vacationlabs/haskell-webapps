@@ -16,12 +16,20 @@ data Config = Config { rolesTVar :: TVar Roles }
 server :: Config -> Server MockApi
 server config
        = enter (runReaderTNat config) removeUser
+    :<|> enter (runReaderTNat config) addRole
     :<|> enter (runReaderTNat config) showRoles
     :<|> serveAssets
     :<|> serveJS
   where
     serveAssets = serveDirectory "../mockClient/assets"
     serveJS     = serveDirectory "../mockClient/js/"
+
+addRole :: (MonadReader Config m, MonadIO m) => RoleName -> RoleAttributes -> m NoContent
+addRole rolename roleAttributes = do
+  Config { rolesTVar = roles } <- ask
+  liftIO $ atomically $ modifyTVar' roles
+    (_Wrapped' . at rolename .~ Just roleAttributes)
+  return NoContent
 
 showRoles :: (MonadReader Config m, MonadIO m) => m Roles
 showRoles = do

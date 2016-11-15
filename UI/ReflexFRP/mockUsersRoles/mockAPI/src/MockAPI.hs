@@ -18,6 +18,7 @@ import MockAPI.User
 import MockAPI.Shaped
 
 type MockApi = "delete" :> Capture "role" RoleName :> Capture "user" User :> Delete '[JSON] NoContent
+          :<|> "add" :> Capture "role" RoleName :> ReqBody '[JSON] RoleAttributes :> Put '[JSON] NoContent
           :<|> "roles" :> Get '[JSON] Roles
           :<|> "assets" :> Raw
           :<|> Raw

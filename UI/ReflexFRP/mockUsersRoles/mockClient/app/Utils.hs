@@ -57,13 +57,23 @@ url = BaseFullUrl Http "localhost" 8081 ""
 apiClients :: forall t m. (MonadWidget t m) => _
 apiClients = client (Proxy @MockApi) (Proxy @m) (constDyn url)
 
-deleteUser :: (MonadWidget t m) => Dynamic t (Either Text Text)
-                                -> Dynamic t (Either Text User)
-                                -> Event t ()
-                                -> m (Event t (ReqResult NoContent))
-showRoles  :: (MonadWidget t m) => Event t ()
-                                -> m (Event t (ReqResult Roles))
-(deleteUser :<|> showRoles :<|> _) = apiClients
+deleteUser :: (MonadWidget t m)
+           => Dynamic t (Either Text Text)
+           -> Dynamic t (Either Text User)
+           -> Event t ()
+           -> m (Event t (ReqResult NoContent))
+
+addRole :: (MonadWidget t m)
+        => Dynamic t (Either Text Text)
+        -> Dynamic t (Either Text RoleAttributes)
+        -> Event t ()
+        -> m (Event t (ReqResult NoContent))
+
+showRoles :: (MonadWidget t m)
+          => Event t ()
+          -> m (Event t (ReqResult Roles))
+
+(deleteUser :<|> addRole :<|> showRoles :<|> _) = apiClients
 
 
 ---------------------------- Risposte del server
