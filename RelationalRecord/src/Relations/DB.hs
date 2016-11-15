@@ -1,25 +1,30 @@
+{-# LANGUAGE LambdaCase #-}
 
 {-|
 Module      :  Relations.DB
 Copyright   :  (c) VacationLabs
 Maintainer  :  michaelkarg77@gmail.com
 
-Helper definition for variadic updates of some data type.
+Helper definitions for variadic updates of some data type.
 -}
 
 module  Relations.DB where
 
 import  Database.Relational.Query                       (ShowConstantTermsSQL, (<-#), value)
 import  Database.Relational.Query.Monad.Trans.Assigning (AssignTarget, Assignings)
-
-import  Data.Maybe
-import  Control.Monad   (when)
+import  Data.Default
 
 
--- add an assigning to the target iff the attribute is 'Just _'
+data VariadicArg a = None | NewVal a
+
+instance Default (VariadicArg a) where
+    def = None
+
+-- add an assigning to the target iff the variadic attribute provides a new value
 (<-#?) :: (ShowConstantTermsSQL v, Monad m)
-    => AssignTarget r v -> Maybe v -> Assignings r m ()
-(<-#?) proj attr =
-    when (isJust attr) $ proj <-# value (fromJust attr)
+    => AssignTarget r v -> VariadicArg v -> Assignings r m ()
+(<-#?) proj = \case
+    None        -> return ()
+    NewVal val  -> proj <-# value val
 
 infix 4 <-#?

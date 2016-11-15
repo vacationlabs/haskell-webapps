@@ -7,8 +7,10 @@ import DomainAPI
 import Relations.Tenant as Tenant hiding (getTenant)
 import Relations.User   hiding (getUser)
 import Relations.Role   (RoleAssignment(..), allRoles, allRoleAssignments)
+import Relations.DB
 import DBInterface
 
+import Data.Default     (def)
 import Data.Aeson       (ToJSON)
 import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy.Char8 as BL
@@ -33,7 +35,6 @@ main :: IO ()
 main = do
     conn    <- getDataSource
     let conn' = DBConnector (Just 1) Nothing conn
-    -- dbUpdate conn' (updateTenant updName) 1 "lalala" >>= print
 
     createUser conn' someUser >>= print
     createTenant conn' someTenant >>= print
@@ -49,9 +50,9 @@ main = do
 
     dbQuery conn' allTenants () >>= print
 
-    _ <- updateTenant conn' 2 tenantUpdate {Tenant.uName = Just "asd"}
+    _ <- updateTenant conn' 2 def {Tenant.uName = NewVal "asd"}
 
-    _ <- updateTenant conn' 2 tenantUpdate {uPhone = Just "4578453453", Tenant.uName = Just "asdkl"}
+    _ <- updateTenant conn' 2 def {uPhone = NewVal "4578453453", Tenant.uName = NewVal "asdkl"}
 
     _ <- removeRole conn' (RoleAssignment 1 1)
     dbQuery conn' allRoleAssignments () >>= print

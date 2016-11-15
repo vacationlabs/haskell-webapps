@@ -23,8 +23,10 @@ import  Types.UsersRoles            as UsersRoles (tableName)
 import  Relations.Tenant            as Tenant
 import  Relations.Role              as Role
 import  Relations.User              as User
+import  Relations.DB
 
 import  Control.Monad               ((>=>))
+import  Data.Default                (def)
 
 
 
@@ -71,11 +73,11 @@ getUser conn =
 
 activateUser :: DBConnector -> PKey -> IO DBWriteResult
 activateUser conn pkey =
-    updateUser conn pkey userUpdate {User.uStatus = Just 2}
+    updateUser conn pkey def {User.uStatus = NewVal 2}
 
 deactivateUser :: DBConnector -> PKey -> IO DBWriteResult
 deactivateUser conn pkey =
-    updateUser conn pkey userUpdate {User.uStatus = Just 1}
+    updateUser conn pkey def {User.uStatus = NewVal 1}
 
 updateUser :: DBConnector -> PKey -> UserUpdate -> IO DBWriteResult
 updateUser conn pkey upd =
@@ -96,11 +98,11 @@ getTenant conn =
 
 activateTenant :: DBConnector -> PKey -> IO DBWriteResult
 activateTenant conn pkey =
-    updateTenant conn pkey tenantUpdate {Tenant.uStatus = Just 2}
+    updateTenant conn pkey def {Tenant.uStatus = NewVal 2}
 
 deactivateTenant :: DBConnector -> PKey -> IO DBWriteResult
 deactivateTenant conn pkey =
-    updateTenant conn pkey tenantUpdate {Tenant.uStatus = Just 1}
+    updateTenant conn pkey def {Tenant.uStatus = NewVal 1}
 
 updateTenant :: DBConnector -> PKey -> TenantUpdate -> IO DBWriteResult
 updateTenant conn pkey upd =

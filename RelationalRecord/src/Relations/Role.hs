@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, DeriveGeneric, DeriveAnyClass #-}
 
 module  Relations.Role where
 
@@ -11,6 +11,10 @@ import  Relations.DB
 
 import  Database.Relational.Query
 import  Database.HDBC.Query.TH      (makeRecordPersistableDefault)
+
+import  GHC.Generics                (Generic)
+import  Data.Default
+
 
 
 -- SELECTS
@@ -73,14 +77,11 @@ insertRole = derivedInsert piRoles
 -- UPDATES
 
 data RoleUpdate = RoleUpdate
-    { uTenantId     :: Maybe PKey
-    , uName         :: Maybe String
-    , uPermissions  :: Maybe String
+    { uTenantId     :: VariadicArg PKey
+    , uName         :: VariadicArg String
+    , uPermissions  :: VariadicArg String
     }
-
-roleUpdate :: RoleUpdate
-roleUpdate = RoleUpdate
-    Nothing Nothing Nothing
+    deriving (Generic, Default)
 
 updateRoleVariadic :: RoleUpdate -> TimestampedUpdate
 updateRoleVariadic RoleUpdate {..} = derivedUpdate $ \projection -> do

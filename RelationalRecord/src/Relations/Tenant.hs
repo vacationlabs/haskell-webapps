@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, DeriveGeneric, DeriveAnyClass #-}
 
 module  Relations.Tenant where
 
@@ -11,6 +11,9 @@ import  Database.Relational.Query
 import  Database.HDBC.Query.TH      (makeRecordPersistableDefault)
 
 import  Data.Int                    (Int32)
+import  GHC.Generics                (Generic)
+import  Data.Default
+
 
 
 -- SELECTS
@@ -55,19 +58,16 @@ insertTenant = derivedInsert piTenant
 -- UPDATES
 
 data TenantUpdate = TenantUpdate
-    { uName         :: Maybe String
-    , uFirstName    :: Maybe String
-    , uLastName     :: Maybe String
-    , uPhone        :: Maybe String
-    , uEmail        :: Maybe String
-    , uBOD          :: Maybe String
-    , uStatus       :: Maybe Int32
-    , uOwnerId      :: Maybe (Maybe Int32)
+    { uName         :: VariadicArg String
+    , uFirstName    :: VariadicArg String
+    , uLastName     :: VariadicArg String
+    , uPhone        :: VariadicArg String
+    , uEmail        :: VariadicArg String
+    , uBOD          :: VariadicArg String
+    , uStatus       :: VariadicArg Int32
+    , uOwnerId      :: VariadicArg (Maybe Int32)
     }
-
-tenantUpdate :: TenantUpdate
-tenantUpdate = TenantUpdate
-    Nothing Nothing Nothing Nothing Nothing Nothing Nothing Nothing
+    deriving (Generic, Default)
 
 updateTenantVariadic :: TenantUpdate -> TimestampedUpdate
 updateTenantVariadic TenantUpdate {..} = derivedUpdate $ \projection -> do

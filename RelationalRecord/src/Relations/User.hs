@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards, DeriveGeneric, DeriveAnyClass #-}
 
 module  Relations.User where
 
@@ -11,6 +11,8 @@ import  Database.Relational.Query
 import  Database.HDBC.Query.TH      (makeRecordPersistableDefault)
 
 import  Data.Int                    (Int32)
+import  GHC.Generics                (Generic)
+import  Data.Default
 
 
 
@@ -52,17 +54,14 @@ insertUser = derivedInsert piUser
 -- UPDATES
 
 data UserUpdate = UserUpdate
-    { uTenantId     :: Maybe PKey
-    , uUsername     :: Maybe String
-    , uPassword     :: Maybe String
-    , uFirstName    :: Maybe (Maybe String)
-    , uLastName     :: Maybe (Maybe String)
-    , uStatus       :: Maybe Int32
+    { uTenantId     :: VariadicArg PKey
+    , uUsername     :: VariadicArg String
+    , uPassword     :: VariadicArg String
+    , uFirstName    :: VariadicArg (Maybe String)
+    , uLastName     :: VariadicArg (Maybe String)
+    , uStatus       :: VariadicArg Int32
     }
-
-userUpdate :: UserUpdate
-userUpdate = UserUpdate
-    Nothing Nothing Nothing Nothing Nothing Nothing
+    deriving (Generic, Default)
 
 updateUserVariadic :: UserUpdate -> TimestampedUpdate
 updateUserVariadic UserUpdate {..} = derivedUpdate $ \projection -> do
@@ -76,5 +75,6 @@ updateUserVariadic UserUpdate {..} = derivedUpdate $ \projection -> do
     (phTStamp, _)   <- placeholder (\tStamp -> User.updatedAt' <-# tStamp)
     (phUsrId, _)    <- placeholder (\usrId -> wheres $ projection ! User.id' .=. usrId)
     return          $ phTStamp >< phUsrId
+
 
 -- DELETES
