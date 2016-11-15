@@ -39,6 +39,7 @@ library
                       ,vector
                       ,Spock >=0.11
                       ,aeson
+                      ,template-haskell
   default-language:    Haskell2010
 
 executable SpockOpaleye-exe

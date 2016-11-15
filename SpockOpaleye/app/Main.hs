@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Main where
 
@@ -14,6 +15,11 @@ import           Web.Spock.Config
 import           Control.Monad.Reader
 import           Control.Monad.Writer
 import qualified Data.Text                  as T
+import           TH 
+import           Data.Time                  (UTCTime)
+import           Data.List.NonEmpty
+
+makeAudtableLenses [t| RolePoly RoleId TenantId T.Text (NonEmpty Permission) UTCTime UTCTime |]
 
 data MySession =
   EmptySession
