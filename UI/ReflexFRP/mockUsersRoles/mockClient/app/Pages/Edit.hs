@@ -98,10 +98,13 @@ form roleName roleAttrs = do
                   {saveButtonWidget}
               </form>|]
 
-      dangerText <- heldSignalWithTrigger "" rolePermsWithError saveEvent (either id (const ""))
+      dangerText <-
+        heldSignalWithTrigger
+          ""
+          rolePermsWithError
+          saveEvent
+          (either id (const ""))
 
-                 -- then "You must select at least one permission for this role"
-                 -- else "")
       dangerclass <-
         heldSignalWithTrigger
           ("class"=:"alert alert-danger"<>"hidden"=:"true")
@@ -109,14 +112,14 @@ form roleName roleAttrs = do
           saveEvent
           (either (const $ "class"=:"alert alert-danger"<>"role"=:"alert")
                   (const $ "class"=:"alert alert-danger"<>"hidden"=:"true"))
-      -- let role = liftA2 (,) newRoleName (RoleAttributes <$> newRolePerms <*> updatedUsers)
-      egress <- do
+
+      nameAndAttributes <- do
         let infoOrError = allRights <$> roleNameWithError
                                     <*> rolePermsWithError
                                     <*> (Right <$> updatedUsers)
         return . snd . fanEither $ tagPromptlyDyn infoOrError saveEvent
 
-  return $ egress -- tagPromptlyDyn role saveEvent
+  return $ nameAndAttributes
 
 allRights :: Either e1 RoleName
           -> Either e2 (Set Permission)
