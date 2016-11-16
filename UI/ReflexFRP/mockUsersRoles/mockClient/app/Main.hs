@@ -10,6 +10,8 @@ import Pages.Overview
 import Pages.Edit
 import Utils
 
+import Reflex.Dom.Contrib.Router
+
 main :: IO ()
 main = mainWidget $ do
   rec rendererAndSwitch <- domMorph app currentState
@@ -20,11 +22,14 @@ app :: MonadWidget t m => AppState -> m (Event t AppState)
 app BootApp = do
   text "Collecting roles..."
   e <- getPostBuild
+  setUrl ("wait" <$ e)
   roles <- parseR <$$> showRoles e
   return $ leftmost [ (\r -> Overview r r) <$> pick Success roles
                     , const BootApp        <$> pick Failure roles]
 
 app (Overview serverState clientState) = do
+  e <- getPostBuild
+  setUrl ("allRoles" <$ e)
   overview serverState clientState
 
 app (Edit serverState clientState (rolename, roleattrs)) = do

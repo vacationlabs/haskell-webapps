@@ -38,14 +38,13 @@ editPage roleName roleAttrs = do
             sitePosition ["Account Settings", "Roles", "Edit role: " <> roleName]
             form roleName roleAttrs
 
--- saveButtonWidget :: (DomBuilderSpace m ~ GhcjsDomSpace, MonadWidget t m) => Dynamic t (RoleName, RoleAttributes) -> m (Event t _)
 saveButtonWidget :: MonadWidget t m
                  => Dynamic t (Either Text RoleName)
                  -> Dynamic t (Either Text RoleAttributes)
                  -> m (Event t (ReqResult NoContent))
 saveButtonWidget roleName roleAttrs = do
   [jsx| <div class="form-group">
-            {simpleApiButton "Save" ("class"=:"btn btn-primary") (addRole roleName roleAttrs)}
+            {apiButton "Save" ("class"=:"btn btn-primary") (addRole roleName roleAttrs)}
             <a href="" class="cancel text-danger">cancel </a>
         </div> |]
 
@@ -59,7 +58,7 @@ roleNameWidget roleName additionalTrigger = do
               & textInputConfig_attributes   .~ constDyn ("class"=:"form-control")}
             <span class="help-block">{dynText helpMsg}</span>
           </div>|]
-      let -- validatedRoleName :: Dynamic t (Either Text RoleName)
+      let
           validatedRoleName = ffor rawRoleName $ \r ->
             bool (Left "Role name can't be blank") (Right r) (r /= "")
       helpMsg <- heldSignalWithTrigger "" rawRoleName additionalTrigger
@@ -157,10 +156,6 @@ heldSignalWithTrigger initialState dyn additionalTrigger f =
 usersDynList :: MonadWidget t m => Set User -> Event t User -> m (Dynamic t (Set User))
 usersDynList users addAnotherUser = do
   setFromList . map fst <$$> dynamicList renderUser snd (const never) addAnotherUser (setToList users)
-  -- currentSet :: Dynamic t (Set User) <- setFromList . map fst <$$>
-  --   dynamicList renderUser snd (const never) addAnotherUser (setToList users)
-  -- -- let insertEvent = renderUser
-  -- undefined
 
 renderUser :: MonadWidget t m => Int -> User -> Event t User -> m (User, Event t ())
 renderUser _ u _ =
@@ -196,7 +191,7 @@ updateUsers users = do
 
     userOrError <- updatedOnButton addButton (Left noUserError) (validateUser <$> rawUserDyn)
 
-    let -- validation = flip validateUserWith _what <$> rawUserDyn
+    let
         (_,validatedUserEvent) = fanEither $ tagPromptlyDyn (validateUser <$> rawUserDyn) addButton
 
         maybeHiddenAttr = ffor userOrError $ \e ->
