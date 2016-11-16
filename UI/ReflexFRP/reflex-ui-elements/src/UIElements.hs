@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
-module UIElements (apiButton, apiButton', simpleApiButton, disabledEnabledButton) where
+module UIElements (apiButton) where
 
 import Reflex
 import Reflex.Dom
@@ -21,14 +21,35 @@ apiButton ::
   -> (Event t () -> m (Event t a)) -- ^ Function transforming a click in an event a la servant-reflex
   -> m (Event t a)                 -- ^ The result value of the api call
 apiButton label initialAttr f = do
-  rec (e, _) <- element "button" conf (text label)
-      let click = domEvent Click e
-      apiResponse <- f (() <$ click)
+  rec
       let conf = def & elementConfig_initialAttributes .~ initialAttr
                      & elementConfig_modifyAttributes  .~ mergeWith (\_ b -> b)
                            [ const disabled <$> click
                            , const enabled  <$> apiResponse ]
+      (e, _) <- element "button" conf (text label)
+      let click = domEvent Click e
+      apiResponse <- f (() <$ click)
   return apiResponse
+ where
+  disabled = fmap Just initialAttr <> "disabled" =: Just "true"
+  enabled  = fmap Just initialAttr <> "disabled" =: Nothing
+
+apiButtonBart ::
+  (DomBuilder t m, MonadFix m)
+  => Text                          -- ^ Text of the button
+  -> Map AttributeName Text        -- ^ Initial attributes for the button
+  -> (Event t (), Event t b)
+  -> (Event t () -> m (Event t a)) -- ^ Function transforming a click in an event a la servant-reflex
+  -> m (Event t (), Event t a)                 -- ^ The result value of the api call
+apiButtonBart label initialAttr (disable, response) f = do
+  let conf = def & elementConfig_initialAttributes .~ initialAttr
+                 & elementConfig_modifyAttributes  .~ mergeWith (\_ b -> b)
+                        [ const disabled <$> disable
+                        , const enabled  <$> response ]
+  (e, _) <- element "button" conf (text label)
+  let click = domEvent Click e
+  apiResponse <- f (() <$ click)
+  return (click, apiResponse)
  where
   disabled = fmap Just initialAttr <> "disabled" =: Just "true"
   enabled  = fmap Just initialAttr <> "disabled" =: Nothing
@@ -54,12 +75,13 @@ apiButton' ::
   -> Event t ()
   -> m (Event t ())                 -- ^ The result value of the api call
 apiButton' label initialAttr start end = do
-  rec (e, _) <- element "button" conf (text label)
-      let click = domEvent Click e
+  rec
       let conf = def & elementConfig_initialAttributes .~ initialAttr
                      & elementConfig_modifyAttributes  .~ mergeWith (\_ b -> b)
                            [ const disabled <$> start
                            , const enabled  <$> end ]
+      (e, _) <- element "button" conf (text label)
+      let click = domEvent Click e
   return click
  where
   disabled = fmap Just initialAttr <> "disabled" =: Just "true"
