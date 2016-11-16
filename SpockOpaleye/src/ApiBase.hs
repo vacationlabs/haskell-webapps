@@ -71,8 +71,6 @@ updateRow conn table item = do
   where
     putUpdatedTimestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
     putUpdatedTimestamp timestamp  = updatedat .~ timestamp
-    matchFunc :: (HasId cmR (Column PGInt4), D.Default Constant itemId (Column PGInt4)) => (itemId -> cmR -> Column PGBool)
-    matchFunc itId item' = (item' ^. id) .== (constant itId)
 
 removeRow :: (
       Show haskells

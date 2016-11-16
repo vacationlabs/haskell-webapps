@@ -16,7 +16,6 @@ import           Web.Spock.Config
 
 import           Control.Monad.Reader
 import           Control.Monad.Writer
-import           Data.List.NonEmpty
 import qualified Data.Text                  as T
 import           Data.Time
 import           Prelude                    hiding (id)
@@ -25,6 +24,7 @@ import           TH
 --makeAudtableLenses [t| RolePoly RoleId TenantId T.Text (NonEmpty Permission) UTCTime UTCTime |]
 makeAudtableLenses ''Role
 makeAudtableLenses ''Tenant
+makeAudtableLenses ''User
 
 data MySession =
   EmptySession

@@ -56,6 +56,7 @@ executable SpockOpaleye-exe
                      , bcrypt
                      , vector
                      , aeson
+                     , unordered-containers
   default-language:    Haskell2010
 
 test-suite SpockOpaleye-test
