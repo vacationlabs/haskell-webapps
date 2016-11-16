@@ -3,6 +3,7 @@ resolver: lts-7.2
 packages:
 - location: '.'
 - location: ../mockAPI
+- location: ../../reflex-ui-elements
 - location:
     git: https://github.com/meditans/reflex
     commit: bac2e0e56e9ba3e8265dbff853a059978ef01efb

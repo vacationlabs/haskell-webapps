@@ -5,19 +5,21 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
-module UIElements (apiButton, disabledEnabledButton) where
+module UIElements (apiButton, apiButton', simpleApiButton, disabledEnabledButton) where
 
 import Reflex
 import Reflex.Dom
 import Data.Text
 import Data.Monoid
 import Data.Map (Map)
+import Control.Monad.Fix
 
-apiButton :: MonadWidget t m
-          => Text                          -- ^ Text of the button
-          -> Map AttributeName Text        -- ^ Initial attributes for the button
-          -> (Event t () -> m (Event t r)) -- ^ Function transforming a click in an event a la servant-reflex
-          -> m (Event t r)                 -- ^ The result value of the api call
+apiButton ::
+  (DomBuilder t m, MonadFix m)
+  => Text                          -- ^ Text of the button
+  -> Map AttributeName Text        -- ^ Initial attributes for the button
+  -> (Event t () -> m (Event t a)) -- ^ Function transforming a click in an event a la servant-reflex
+  -> m (Event t a)                 -- ^ The result value of the api call
 apiButton label initialAttr f = do
   rec (e, _) <- element "button" conf (text label)
       let click = domEvent Click e
@@ -27,6 +29,38 @@ apiButton label initialAttr f = do
                            [ const disabled <$> click
                            , const enabled  <$> apiResponse ]
   return apiResponse
+ where
+  disabled = fmap Just initialAttr <> "disabled" =: Just "true"
+  enabled  = fmap Just initialAttr <> "disabled" =: Nothing
+
+simpleApiButton ::
+  (DomBuilder t m, MonadFix m)
+  => Text                          -- ^ Text of the button
+  -> Map AttributeName Text        -- ^ Initial attributes for the button
+  -> (Event t () -> m (Event t a)) -- ^ Function transforming a click in an event a la servant-reflex
+  -> m (Event t a)                 -- ^ The result value of the api call
+simpleApiButton label initialAttr f = do
+  let conf = def & elementConfig_initialAttributes .~ initialAttr
+  (e, _) <- element "button" conf (text label)
+  let click = domEvent Click e
+  apiResponse <- f (() <$ click)
+  return apiResponse
+
+apiButton' ::
+  (DomBuilder t m, MonadFix m)
+  => Text                          -- ^ Text of the button
+  -> Map AttributeName Text        -- ^ Initial attributes for the button
+  -> Event t ()
+  -> Event t ()
+  -> m (Event t ())                 -- ^ The result value of the api call
+apiButton' label initialAttr start end = do
+  rec (e, _) <- element "button" conf (text label)
+      let click = domEvent Click e
+      let conf = def & elementConfig_initialAttributes .~ initialAttr
+                     & elementConfig_modifyAttributes  .~ mergeWith (\_ b -> b)
+                           [ const disabled <$> start
+                           , const enabled  <$> end ]
+  return click
  where
   disabled = fmap Just initialAttr <> "disabled" =: Just "true"
   enabled  = fmap Just initialAttr <> "disabled" =: Nothing

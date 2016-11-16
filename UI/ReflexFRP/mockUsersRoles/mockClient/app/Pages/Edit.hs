@@ -4,7 +4,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
@@ -18,9 +17,14 @@ import MockAPI
 import Pages.Common
 import Utils
 
+import Servant.API.ContentTypes
+import Servant.Reflex
+
+import UIElements
 import ReflexJsx
 
 import Reflex.Dom.Contrib.Widgets.DynamicList
+
 
 editPage :: MonadWidget t m => RoleName -> RoleAttributes -> m (Event t (RoleName, RoleAttributes))
 editPage roleName roleAttrs = do
@@ -34,10 +38,14 @@ editPage roleName roleAttrs = do
             sitePosition ["Account Settings", "Roles", "Edit role: " <> roleName]
             form roleName roleAttrs
 
-saveButtonWidget :: MonadWidget t m => m (Event t ())
-saveButtonWidget = do
+-- saveButtonWidget :: (DomBuilderSpace m ~ GhcjsDomSpace, MonadWidget t m) => Dynamic t (RoleName, RoleAttributes) -> m (Event t _)
+saveButtonWidget :: MonadWidget t m
+                 => Dynamic t (Either Text RoleName)
+                 -> Dynamic t (Either Text RoleAttributes)
+                 -> m (Event t (ReqResult NoContent))
+saveButtonWidget roleName roleAttrs = do
   [jsx| <div class="form-group">
-            {buttonClass "btn btn-primary" "Save"}
+            {simpleApiButton "Save" ("class"=:"btn btn-primary") (addRole roleName roleAttrs)}
             <a href="" class="cancel text-danger">cancel </a>
         </div> |]
 
@@ -81,7 +89,8 @@ rolePermsWidget roleAttrs = do
 
 form :: MonadWidget t m => RoleName -> RoleAttributes -> m (Event t (RoleName, RoleAttributes))
 form roleName roleAttrs = do
-  rec _ <- [jsx| <div {...dangerclass}>
+  rec
+      _ <- [jsx| <div {...dangerclass}>
                      <span>Please fix the errors highlighted in <strong>red</strong> below:</span>
                         <ul>
                             <li>
@@ -92,10 +101,10 @@ form roleName roleAttrs = do
 
       (roleNameWithError, rolePermsWithError, updatedUsers, saveEvent) <-
         [jsx| <form>
-                  {roleNameWidget roleName saveEvent}
+                  {roleNameWidget roleName (() <$ saveEvent)}
                   {rolePermsWidget roleAttrs}
                   {updateUsers (roleAttrs^.roleAssociatedUsers)}
-                  {saveButtonWidget}
+                  {saveButtonWidget roleNameWithError attributesWithError}
               </form>|]
 
       dangerText <-
@@ -113,20 +122,28 @@ form roleName roleAttrs = do
           (either (const $ "class"=:"alert alert-danger"<>"role"=:"alert")
                   (const $ "class"=:"alert alert-danger"<>"hidden"=:"true"))
 
+      let attributesWithError = (\ps us -> RoleAttributes <$> ps <*> us)
+                            <$> rolePermsWithError
+                            <*> fmap Right updatedUsers
+
       nameAndAttributes <- do
-        let infoOrError = allRights <$> roleNameWithError
-                                    <*> rolePermsWithError
-                                    <*> (Right <$> updatedUsers)
+        let infoOrError = (\rn as -> (,) <$> rn <*> as)
+                      <$> roleNameWithError
+                      <*> attributesWithError
         return . snd . fanEither $ tagPromptlyDyn infoOrError saveEvent
 
-  return $ nameAndAttributes
+  return nameAndAttributes
+
+isReqSuccess :: ReqResult a -> Bool
+isReqSuccess (ResponseSuccess _ _) = True
+isReqSuccess _                     = False
 
 allRights :: Either e1 RoleName
           -> Either e2 (Set Permission)
           -> Either e3 (Set User)
-          -> Either () (RoleName, RoleAttributes)
+          -> Either Text (RoleName, RoleAttributes)
 allRights (Right a) (Right b) (Right c) = Right (a, RoleAttributes b c)
-allRights _ _ _ = Left ()
+allRights _ _ _ = Left "You did not enter a user in the form"
 
 heldSignal :: MonadWidget t m => b -> Dynamic t a -> (a -> b) -> m (Dynamic t b)
 heldSignal initialState dyn f = holdDyn initialState (f <$> updated dyn)
@@ -208,10 +225,7 @@ textInputClassValue c = view textInput_value <$>
 
 isRight = either (const False) (const True)
 
-
 type Markup = forall t m a. (MonadWidget t m) => m a -> m a
-
-
 
 permissionCheckboxes :: MonadWidget t m => Text -> Set Permission -> [Permission] -> m (Dynamic t (Set Permission))
 permissionCheckboxes groupName permissions groupToDisplay =
