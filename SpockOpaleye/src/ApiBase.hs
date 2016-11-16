@@ -49,7 +49,7 @@ createRow conn table item = do
   auditLog $ "Create : " ++ (show item)
   currentTime <- liftIO $ fmap pgUTCTime getCurrentTime
   let itemPg = (constant item) & createdat .~ (Just currentTime) & updatedat .~ (currentTime)
-  fmap head $ createDbRows conn table [itemPg] 
+  fmap (head) $ createDbRows conn table [itemPg] 
 
 updateRow :: (
     Show columnsW

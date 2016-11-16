@@ -17,7 +17,8 @@ import           Data.Text
 import           Data.Time                  (UTCTime)
 import           Database.PostgreSQL.Simple
 import           GHC.Generics
-import           Data.Aeson (Value)
+import           Data.Aeson (Value(..))
+import qualified Data.HashMap.Strict as HM
 
 type AppM a = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) IO) a
 
@@ -91,6 +92,13 @@ type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) UTCTime UTCTime
 type RoleIncoming = RolePoly () TenantId Text (NonEmpty Permission) () ()
 
 data AuditM a = AuditM { _data:: a, _log:: Value }  deriving (Show)
+
+auditM :: a -> AuditM a
+auditM a = AuditM {_data = a, _log = Object HM.empty}
+
+type TenantA = AuditM Tenant
+type RoleA = AuditM Role
+type UserA = AuditM User
 
 makeLensesWith abbreviatedFields ''RolePoly
 makeLensesWith abbreviatedFields ''TenantPoly
