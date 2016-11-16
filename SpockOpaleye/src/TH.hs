@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances #-}
 module TH where
 
 import Control.Lens
@@ -15,23 +16,40 @@ getTypeSegs r = error $ show r
 typeToName :: Type -> Name
 typeToName (ConT n)  = n
 
-makeAudtableLenses :: TypeQ -> Q [Dec]
+getType :: Name -> TypeQ
+getType tn = do
+  info <- reify tn
+  case info of
+    TyConI (TySynD _ _ tpe) -> return tpe
+    _ -> error "Not a type syn"
+    
+makeAudtableLenses :: Name -> Q [Dec]
 makeAudtableLenses tq= do
-    a <- tq
+    a <- getType tq
     let type_segs = reverse $ getTypeSegs a
     let n = typeToName $ head type_segs
+    let record_name = nameBase n
     field_names <- getRecordFields n
     type_params <- getTypeParams n
-    concat <$> (sequence $ (mkFunc n type_params type_segs) <$> ((\(x, y) -> (nameBase x, y)) <$> field_names))
+    concat <$> (sequence $ (mkFunc record_name a type_params type_segs) <$> ((\(x, y) -> (nameBase x, y)) <$> field_names))
     where
-      mkFunc :: Name -> [Name] -> [Type] -> (String, Type) -> Q [Dec]
-      mkFunc n type_params type_segs (field, typ) = do
+      mkFunc :: String -> Type -> [Name] -> [Type] -> (String, Type) -> Q [Dec]
+      mkFunc rec_name t_type type_params type_segs (field, typ) = do
         let resolved_type = resolve_type typ type_params type_segs
-        fname <- newName (drop 1 $ (toLower <$> field) ++ "A")
-        t <- [t|Lens' (AuditM $(tq)) $(return resolved_type)|]
+        let fname_rt = (drop (1+(length rec_name)) $ (toLower <$> field))
+        Just fname_ap <- lookupValueName fname_rt
+        t <- [t|Lens' (AuditM $(return t_type)) $(return resolved_type)|]
         exp <- mkFunc2 field
-        return [SigD fname t, FunD fname $ [Clause [] (NormalB exp) []] ]
+        do
+          let tc = "Has" ++ (uc_first fname_rt)
+          maybe_c <- lookupTypeName tc
+          case maybe_c of
+            Just c_name -> do
+              aud_t <- [t| AuditM $(return t_type) |]
+              return $ [InstanceD Nothing [] (AppT (AppT (ConT c_name) aud_t) resolved_type)  [FunD (fname_ap) $ [Clause [] (NormalB exp) []] ]]
+            _ -> error $ "Typeclass " ++ tc ++ " not found"
         where
+          uc_first (x:xs) = (toUpper x):xs
           resolve_type :: Type -> [Name] -> [Type] -> Type
           resolve_type t@(ConT _) _ _ = t
           resolve_type (VarT n) tp ts = case (elemIndex n tp) of

@@ -1,5 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 module Main where
 
@@ -14,12 +16,15 @@ import           Web.Spock.Config
 
 import           Control.Monad.Reader
 import           Control.Monad.Writer
-import qualified Data.Text                  as T
-import           TH 
-import           Data.Time                  (UTCTime)
 import           Data.List.NonEmpty
+import qualified Data.Text                  as T
+import           Data.Time
+import           Prelude                    hiding (id)
+import           TH
 
-makeAudtableLenses [t| RolePoly RoleId TenantId T.Text (NonEmpty Permission) UTCTime UTCTime |]
+--makeAudtableLenses [t| RolePoly RoleId TenantId T.Text (NonEmpty Permission) UTCTime UTCTime |]
+makeAudtableLenses ''Role
+makeAudtableLenses ''Tenant
 
 data MySession =
   EmptySession
@@ -43,6 +48,16 @@ runAppM conn x = do
   (item, lg) <- runReaderT (runWriterT x) (conn, Nothing, Nothing)
   putStrLn lg
   return item
+
+getTestTenant :: Tenant
+getTestTenant = Tenant (TenantId 1) tz tz "tjhon" "John" "Jacob" "john@gmail.com" "2342424" TenantStatusNew Nothing "Bo domain"
+  where
+      tz = UTCTime {
+        utctDay = ModifiedJulianDay {
+          toModifiedJulianDay = 0
+          }
+        , utctDayTime = secondsToDiffTime 0
+      }
 
 
 app :: SpockM Connection MySession MyAppState ()
