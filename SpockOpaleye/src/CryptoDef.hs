@@ -14,6 +14,7 @@ import           Data.Text
 import           Data.Text.Encoding
 import           Database.PostgreSQL.Simple.FromField
 import           Opaleye
+import           Data.Aeson (ToJSON(..), Value(..))
 
 newtype BcryptPassword =
   BcryptPassword ByteString
@@ -38,3 +39,6 @@ instance FromField BcryptPassword where
 
 instance QueryRunnerColumnDefault PGBytea BcryptPassword where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+instance ToJSON BcryptPassword where
+  toJSON x = String ""

@@ -5,6 +5,7 @@
 
 module Main where
 
+import           Data.Aeson                 (ToJSON (..), Value (..))
 import           Database.PostgreSQL.Simple
 import           DataTypes
 import           JsonInstances              ()

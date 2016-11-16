@@ -9,6 +9,7 @@ import           Data.Aeson.Types
 import           Data.Char
 import           Data.Text
 import           DataTypes
+import           CryptoDef
 
 instance FromJSON UserId where
   parseJSON j@(Number _) = UserId <$> (parseJSON j)
@@ -61,3 +62,12 @@ instance ToJSON UserId where
 instance ToJSON TenantId where
   toJSON = genericToJSON defaultOptions
   toEncoding = genericToEncoding defaultOptions
+
+instance ToJSON UserStatus where
+  toJSON x = String $ Data.Text.pack $ show x
+
+instance ToJSON RoleId where
+  toJSON (RoleId x) = toJSON x
+
+instance ToJSON Permission where
+  toJSON x = toJSON $ show x

@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
 module TH where
 
@@ -8,8 +9,10 @@ import Data.Char
 import Data.List (elemIndex)
 import DataTypes
 import Data.Vector (fromList)
+import qualified Data.HashMap.Strict as HM
+import Data.Text (pack)
 
-import Data.Aeson (Value(..))
+import Data.Aeson (Value(..), ToJSON(..))
 
 getTypeSegs :: Type -> [Type]
 getTypeSegs a@(ConT _) = [a]
@@ -35,14 +38,14 @@ makeAudtableLenses tq= do
     let record_name = nameBase n
     field_names <- getRecordFields n
     type_params <- getTypeParams n
-    concat <$> (sequence $ (mkFunc record_name a type_params type_segs) <$> ((\(x, y) -> (nameBase x, y)) <$> field_names))
+    concat <$> (sequence $ (mkInstanceDef record_name a type_params type_segs) <$> ((\(x, y) -> (nameBase x, y)) <$> field_names))
     where
-      mkFunc :: String -> Type -> [Name] -> [Type] -> (String, Type) -> Q [Dec]
-      mkFunc rec_name t_type type_params type_segs (field, typ) = do
+      mkInstanceDef :: String -> Type -> [Name] -> [Type] -> (String, Type) -> Q [Dec]
+      mkInstanceDef rec_name t_type type_params type_segs (field, typ) = do
         let resolved_type = resolve_type typ type_params type_segs
         let fname_rt = (drop (1+(length rec_name)) $ (toLower <$> field))
         Just fname_ap <- lookupValueName fname_rt
-        expr <- mkFunc2 field
+        expr <- mkInstanceFunction field
         do
           let tc = "Has" ++ (uc_first fname_rt)
           maybe_c <- lookupTypeName tc
@@ -60,7 +63,6 @@ makeAudtableLenses tq= do
             Just idx -> (ts !! (idx + 1))
             _ -> error "Unknown type variable"
           resolve_type _ _ _ = error "Should be a type variable or a concrete type"
-
 
 getTypeParams :: Name -> Q [Name]
 getTypeParams t_name = do
@@ -81,18 +83,24 @@ getRecordFields t_name = do
   where
     ext (a, _, t) = (a, t)
 
-make_log :: String -> String -> String -> Value
-make_log _ _ _ = Array $ fromList [] 
+makeLog :: (ToJSON a) => Value -> String -> a -> a -> Value
+makeLog current_log field_name old new = case current_log of
+  Object v -> Object $ HM.insert field_name_txt (getLog old new) v
+  where
+    field_name_txt = pack field_name
+    getLog ::  (ToJSON v) => v -> v -> Value
+    getLog old new = Object $ HM.insert "old" (toJSON old) $ HM.insert "new" (toJSON new) $ HM.empty
 
-mkFunc2 :: String -> Q Exp
-mkFunc2 nam = do
+mkInstanceFunction :: String -> Q Exp
+mkInstanceFunction nam = do
   Just _field_name <- lookupValueName nam
+  -- TODO remove dependency on "DataTypes" module name or don't hard code it in.
   fn <- lookupValueName $ "DataTypes." ++ (transformName nam)
   case fn of
     Just field_name -> do
       [| lens ($(return  $ VarE _field_name)._data) (\r v -> r {
           _data = _data r & ($(return $ VarE field_name) .~ v),
-          _log = make_log nam (show (_data r ^. $(return $ VarE field_name))) (show v) 
+          _log = makeLog (_log r) nam (_data r ^. $(return $ VarE field_name)) v 
         }) |]
     _ -> error $ "field accessor not found for " ++ nam
   where
