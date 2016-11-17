@@ -21,12 +21,22 @@ import           GHC.Generics
 import           Data.Aeson (Value(..))
 import qualified Data.HashMap.Strict as HM
 
-type AppM a = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) IO) a
+type AppM a = WriterT String (ReaderT (Connection, Maybe (Auditable Tenant), Maybe (Auditable User)) IO) a
 
 getConnection :: AppM Connection
 getConnection = do
   (conn, _, _) <- R.ask
   return conn
+
+getCurrentTenant :: AppM (Maybe (Auditable Tenant))
+getCurrentTenant = do
+  (_, tenant, _) <- R.ask
+  return tenant
+
+getCurrentUser :: AppM (Maybe (Auditable User))
+getCurrentUser = do
+  (_, _, user) <- R.ask
+  return user
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)

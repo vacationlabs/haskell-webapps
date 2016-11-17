@@ -139,6 +139,38 @@ roleTable = Table "roles" (pRole Role {
 userRolePivotTable :: Table (Column PGInt4, Column PGInt4) (Column PGInt4, Column PGInt4)
 userRolePivotTable = Table "users_roles" (p2 (required "user_id", required "role_id"))
 
+auditTable :: Table (
+    ()
+  , Column PGInt4
+  , Maybe (Column (Nullable PGInt4))
+  , Maybe (Column PGBool)
+  , Column PGInt4
+  , Column PGText
+  , Column PGText
+  , Column PGJsonb
+  , Maybe (Column PGTimestamptz))
+  (
+    Column PGInt4
+  , Column PGInt4
+  , Column (Nullable PGInt4)
+  , Column PGBool
+  , Column PGInt4
+  , Column PGText
+  , Column PGText
+  , Column PGJsonb
+  , Column PGTimestamptz)
+auditTable = Table "audit" (p9 (
+      readOnly "id"
+    , required "tenant_id"
+    , optional "user_id"
+    , optional "changed_by_system"
+    , required "auditable_id"
+    , required "auditable_table_name"
+    , required "summary"
+    , required "changes"
+    , optional "created_at"
+  ))
+
 instance D.Default Constant TenantStatus (Maybe (Column PGText)) where
   def = Constant def'
     where

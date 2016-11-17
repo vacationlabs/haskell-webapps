@@ -15,9 +15,12 @@ import qualified Data.Profunctor.Product.Default as D
 import           Data.Time                       (UTCTime, getCurrentTime)
 import           DataTypes
 import           Opaleye
+import           OpaleyeDef
+import qualified Data.Text as T
 import           GHC.Int
 import           Prelude                         hiding (id)
 import           TH
+import           Data.Aeson (Value(..))
 import           JsonInstances ()
 
 makeAudtableLenses ''Role
@@ -97,12 +100,37 @@ updateAuditableRow table audti = do
   let itId = audti ^. id
   currentTime <- liftIO getCurrentTime
   let updatedItem = (putUpdatedTimestamp currentTime) audti
-  let Auditable { _data = item, _log = _} = updatedItem
+  let Auditable { _data = item, _log = _log} = updatedItem
   _ <- updateDbRow table (constant itId) (constant item) 
+  insertIntoLog table itId "" _log
   return audti
   where
     putUpdatedTimestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
     putUpdatedTimestamp timestamp  = updatedat .~ timestamp
+
+insertIntoLog :: (
+    D.Default Constant item_id (Column PGInt4)
+    ) => Table a b -> item_id -> T.Text -> Value -> AppM ()
+insertIntoLog table auditable_id summary changes = do
+  case table of
+    Table table_name _ -> do
+      Just tenant <- getCurrentTenant
+      Just user <- getCurrentUser
+      conn <- getConnection
+      let tenant_id = tenant ^. id
+      let user_id = user ^. id
+      _ <- liftIO $ runInsertMany conn auditTable [(
+        (),
+        constant tenant_id,
+        Just $ constant user_id,
+        Just $ pgBool False,
+        constant auditable_id,
+        pgStrictText $ T.pack table_name,
+        pgStrictText $ summary,
+        constant changes,
+        Nothing)]
+      return ()
+    _ -> error "Unsupported Table constructor"
 
 removeRow :: (
       Show haskells
