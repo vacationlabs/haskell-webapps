@@ -9,8 +9,9 @@
 module DataTypes where
 
 import           Control.Lens
-import           Control.Monad.Reader
-import           Control.Monad.Writer
+import qualified Control.Monad.Reader as R
+import           Control.Monad.Trans.Reader
+import           Control.Monad.Trans.Writer
 import           CryptoDef
 import           Data.List.NonEmpty
 import           Data.Text
@@ -21,6 +22,11 @@ import           Data.Aeson (Value(..))
 import qualified Data.HashMap.Strict as HM
 
 type AppM a = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) IO) a
+
+getConnection :: AppM Connection
+getConnection = do
+  (conn, _, _) <- R.ask
+  return conn
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)

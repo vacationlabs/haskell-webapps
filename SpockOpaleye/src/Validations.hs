@@ -11,12 +11,11 @@ module Validations where
 import           Control.Lens
 import           Data.Maybe
 import qualified Data.Text                  as T
-import           Database.PostgreSQL.Simple
 import           DataTypes
 import           TenantApi
 
-validateIncomingTenant :: Connection -> TenantIncoming -> IO ValidationResult
-validateIncomingTenant conn tenant = do
+validateIncomingTenant :: TenantIncoming -> AppM ValidationResult
+validateIncomingTenant tenant = do
   unique_bod <- check_for_unique_bo_domain (tenant ^. backofficedomain)
   return $
     if and [unique_bod, validate_name, validate_contact]
@@ -25,5 +24,5 @@ validateIncomingTenant conn tenant = do
   where
     validate_contact = and $ (>= 0) . T.length <$> [tenant ^. firstname, tenant ^. lastname, tenant ^. email, tenant ^. phone]
     validate_name = (T.length $ tenant ^. name) >= 3
-    check_for_unique_bo_domain domain =
-      isNothing <$> readTenantByBackofficedomain conn domain
+    check_for_unique_bo_domain :: T.Text -> AppM Bool
+    check_for_unique_bo_domain domain = isNothing <$> readTenantByBackofficedomain domain

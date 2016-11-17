@@ -5,7 +5,6 @@
 
 module Main where
 
-import           Data.Aeson                 (ToJSON (..), Value (..))
 import           Database.PostgreSQL.Simple
 import           DataTypes
 import           JsonInstances              ()
@@ -44,8 +43,8 @@ main = do
       DummyAppState
   runSpock 8080 (spock spockCfg app)
 
-runAppM :: Connection -> AppM a -> IO a
-runAppM conn x = do
+runAppM :: AppM a -> Connection -> IO a
+runAppM x conn = do
   (item, lg) <- runReaderT (runWriterT x) (conn, Nothing, Nothing)
   putStrLn lg
   return item
@@ -67,10 +66,10 @@ app = do
     do maybeTenantIncoming <- jsonBody
        case maybeTenantIncoming of
          Just incomingTenant -> do
-           result <- runQuery (\conn -> validateIncomingTenant conn incomingTenant)
+           result <- runQuery $ runAppM $ validateIncomingTenant incomingTenant
            case result of
              Valid -> do
-                  newTenant <- runQuery (\conn -> runAppM conn $ createTenant conn incomingTenant)
+                  newTenant <- runQuery $ runAppM $ createTenant incomingTenant
                   json newTenant
              _ -> json $ T.pack "Validation fail"
          Nothing -> json $ T.pack "Unrecognized input"

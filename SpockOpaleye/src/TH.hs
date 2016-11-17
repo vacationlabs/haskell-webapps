@@ -8,7 +8,6 @@ import Language.Haskell.TH
 import Data.Char
 import Data.List (elemIndex)
 import DataTypes
-import Data.Vector (fromList)
 import qualified Data.HashMap.Strict as HM
 import Data.Text (pack)
 
@@ -86,10 +85,11 @@ getRecordFields t_name = do
 makeLog :: (ToJSON a) => Value -> String -> a -> a -> Value
 makeLog current_log field_name old new = case current_log of
   Object v -> Object $ HM.insert field_name_txt (getLog old new) v
+  _ -> error "Unexpected value in the log field"
   where
     field_name_txt = pack field_name
     getLog ::  (ToJSON v) => v -> v -> Value
-    getLog old new = Object $ HM.insert "old" (toJSON old) $ HM.insert "new" (toJSON new) $ HM.empty
+    getLog old' new' = Object $ HM.insert "old" (toJSON old') $ HM.insert "new" (toJSON new') $ HM.empty
 
 mkInstanceFunction :: String -> Q Exp
 mkInstanceFunction nam = do

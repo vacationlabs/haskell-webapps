@@ -12,7 +12,6 @@ module RoleApi
   ) where
 
 import           Control.Arrow
-import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
 import           Opaleye
@@ -22,23 +21,23 @@ import           ApiBase
 import           Control.Lens
 import           Prelude                    hiding (id)
 
-createRole :: Connection -> RoleIncoming -> AppM Role
-createRole conn role = createRow conn roleTable role
+createRole :: RoleIncoming -> AppM Role
+createRole role = createRow roleTable role
 
-updateRole :: Connection -> Role -> AppM Role
-updateRole conn role = updateRow conn roleTable role
+updateRole :: Role -> AppM Role
+updateRole role = updateRow roleTable role
 
-removeRole :: Connection -> Role -> IO GHC.Int.Int64
-removeRole conn role = do
-  _ <- runDelete conn userRolePivotTable (\(_, roleId) -> roleId .== constant (role ^. id))
-  runDelete conn roleTable matchFunc
+removeRole :: Role -> AppM GHC.Int.Int64
+removeRole role = do
+  _ <- removeRawDbRows userRolePivotTable (\(_, roleId) -> roleId .== constant (role ^. id))
+  removeRawDbRows roleTable matchFunc
     where
     tId = role ^. id
     matchFunc role' = (role' ^. id).== constant tId
 
-readRolesForTenant :: Connection -> TenantId -> IO [Role]
-readRolesForTenant conn tId = do
-  runQuery conn $ roleQueryForTenant tId
+readRolesForTenant :: TenantId -> AppM [Role]
+readRolesForTenant tId = do
+  readRow $ roleQueryForTenant tId
 
 roleQuery :: Query RoleTableR
 roleQuery = queryTable roleTable

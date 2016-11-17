@@ -9,7 +9,6 @@ import           Data.Aeson.Types
 import           Data.Char
 import           Data.Text
 import           DataTypes
-import           CryptoDef
 
 instance FromJSON UserId where
   parseJSON j@(Number _) = UserId <$> (parseJSON j)
