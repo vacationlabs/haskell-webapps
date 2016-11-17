@@ -29,24 +29,24 @@ import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
 
-createTenant :: TenantIncoming -> AppM Tenant
+createTenant :: TenantIncoming -> AppM (Auditable Tenant)
 createTenant tenant = do
-  createRow tenantTable tenant
+  auditable <$> createRow tenantTable tenant
 
-activateTenant :: Tenant -> AppM Tenant
+activateTenant :: (Auditable Tenant) -> AppM (Auditable Tenant)
 activateTenant tenant = setTenantStatus tenant TenantStatusActive
 
-deactivateTenant :: Tenant -> AppM Tenant
+deactivateTenant :: (Auditable Tenant) -> AppM (Auditable Tenant)
 deactivateTenant tenant = setTenantStatus tenant TenantStatusInActive
 
-setTenantStatus :: Tenant -> TenantStatus -> AppM Tenant
+setTenantStatus :: (Auditable Tenant) -> TenantStatus -> AppM (Auditable Tenant)
 setTenantStatus tenant st = updateTenant (tenant & status .~ st)
 
-updateTenant :: Tenant -> AppM Tenant
+updateTenant :: (Auditable Tenant) -> AppM (Auditable Tenant)
 updateTenant tenant = do
-  updateRow tenantTable tenant
+  updateAuditableRow tenantTable tenant
 
-removeTenant :: Tenant -> AppM GHC.Int.Int64
+removeTenant :: Auditable Tenant -> AppM GHC.Int.Int64
 removeTenant tenant = do
   tenant_deac <- deactivateTenant tenant
   _ <- updateTenant (tenant_deac & ownerid .~ Nothing)
@@ -60,16 +60,16 @@ removeTenant tenant = do
     matchFunc :: TenantTableR -> Column PGBool
     matchFunc tenant'  = (tenant' ^. id) .== (constant tid)
 
-readTenants :: AppM [Tenant]
-readTenants = readRow tenantQuery
+readTenants :: AppM [Auditable Tenant]
+readTenants = wrapAuditable $ readRow tenantQuery
 
-readTenantById :: TenantId -> AppM (Maybe Tenant)
+readTenantById :: TenantId -> AppM (Maybe (Auditable Tenant))
 readTenantById tenantId = do
-  listToMaybe <$> (readRow (tenantQueryById tenantId))
+  wrapAuditable $ listToMaybe <$> (readRow (tenantQueryById tenantId))
 
-readTenantByBackofficedomain :: Text -> AppM (Maybe Tenant)
+readTenantByBackofficedomain :: Text -> AppM (Maybe (Auditable Tenant))
 readTenantByBackofficedomain domain = do
-  listToMaybe <$> (readRow (tenantQueryByBackoffocedomain domain))
+  wrapAuditable $ listToMaybe <$> (readRow (tenantQueryByBackoffocedomain domain))
 
 tenantQuery :: Opaleye.Query TenantTableR
 tenantQuery = queryTable tenantTable

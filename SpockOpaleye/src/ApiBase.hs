@@ -17,7 +17,12 @@ import           DataTypes
 import           Opaleye
 import           GHC.Int
 import           Prelude                         hiding (id)
+import           TH
+import           JsonInstances ()
 
+makeAudtableLenses ''Role
+makeAudtableLenses ''Tenant
+makeAudtableLenses ''User
 
 auditLog :: String -> AppM ()
 auditLog = tell 
@@ -78,6 +83,27 @@ updateRow table item = do
     putUpdatedTimestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
     putUpdatedTimestamp timestamp  = updatedat .~ timestamp
 
+updateAuditableRow :: (
+    Show columnsW
+    , HasUpdatedat (Auditable haskells) UTCTime
+    , D.Default Constant haskells columnsW
+    , D.Default Constant itemId (Column PGInt4)
+    , HasId (Auditable haskells) itemId
+    , HasId columnsR (Column PGInt4)
+    )
+    => Table columnsW columnsR -> Auditable haskells -> AppM (Auditable haskells)
+updateAuditableRow table audti = do
+  --auditLog $ "Update : " ++ (show item)
+  let itId = audti ^. id
+  currentTime <- liftIO getCurrentTime
+  let updatedItem = (putUpdatedTimestamp currentTime) audti
+  let Auditable { _data = item, _log = _} = updatedItem
+  _ <- updateDbRow table (constant itId) (constant item) 
+  return audti
+  where
+    putUpdatedTimestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
+    putUpdatedTimestamp timestamp  = updatedat .~ timestamp
+
 removeRow :: (
       Show haskells
     , D.Default Constant itemId (Column PGInt4)
@@ -101,4 +127,3 @@ readRow :: (D.Default QueryRunner columnsR haskells) =>
 readRow query' = do
   conn <- getConnection
   liftIO $ runQuery conn query'
-

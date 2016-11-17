@@ -97,14 +97,17 @@ data RolePoly key tenant_id name permission created_at updated_at  = Role {
 type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) UTCTime UTCTime
 type RoleIncoming = RolePoly () TenantId Text (NonEmpty Permission) () ()
 
-data AuditM a = AuditM { _data:: a, _log:: Value }  deriving (Show)
+data Auditable a = Auditable { _data:: a, _log:: Value }  deriving (Show)
 
-auditM :: a -> AuditM a
-auditM a = AuditM {_data = a, _log = Object HM.empty}
+auditable :: a -> Auditable a
+auditable a = Auditable {_data = a, _log = Object HM.empty}
 
-type TenantA = AuditM Tenant
-type RoleA = AuditM Role
-type UserA = AuditM User
+type TenantA = Auditable Tenant
+type RoleA = Auditable Role
+type UserA = Auditable User
+
+wrapAuditable :: (Functor a, Functor b) => a (b c) -> a (b (Auditable c))
+wrapAuditable a = (fmap auditable) <$> a
 
 makeLensesWith abbreviatedFields ''RolePoly
 makeLensesWith abbreviatedFields ''TenantPoly

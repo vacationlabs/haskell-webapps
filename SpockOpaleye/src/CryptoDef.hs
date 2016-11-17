@@ -41,4 +41,4 @@ instance QueryRunnerColumnDefault PGBytea BcryptPassword where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
 
 instance ToJSON BcryptPassword where
-  toJSON x = String ""
+  toJSON _ = String ""

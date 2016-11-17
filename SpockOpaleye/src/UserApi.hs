@@ -30,36 +30,36 @@ import           OpaleyeDef
 import           CryptoDef
 import           Prelude                    hiding (id)
 
-createUser :: UserIncoming -> AppM User
+createUser :: UserIncoming -> AppM (Auditable User)
 createUser user = do
   Just hash <- liftIO $ bcryptPassword $ user ^. password
   let fullUser = user { _userpolyPassword = hash }
-  createRow userTable fullUser
+  auditable <$> (createRow userTable fullUser)
 
-updateUser :: User -> AppM User
-updateUser user = updateRow userTable user
+updateUser :: Auditable User -> AppM (Auditable User)
+updateUser user = updateAuditableRow userTable user
 
-activateUser :: User -> AppM User
+activateUser :: Auditable User -> AppM (Auditable User)
 activateUser user = setUserStatus user UserStatusActive
 
-deactivateUser :: User -> AppM User
+deactivateUser :: Auditable User -> AppM (Auditable User)
 deactivateUser user = setUserStatus user UserStatusInActive
 
-setUserStatus :: User -> UserStatus -> AppM User
+setUserStatus :: Auditable User -> UserStatus -> AppM (Auditable User)
 setUserStatus user newStatus = updateUser $ user & status .~ newStatus
 
-removeUser :: User -> AppM GHC.Int.Int64
-removeUser rUser = removeRow userTable rUser
+removeUser :: Auditable User -> AppM GHC.Int.Int64
+removeUser Auditable { _data = rUser} = removeRow userTable rUser
 
-readUsers :: AppM [User]
-readUsers = readRow userQuery
+readUsers :: AppM [Auditable User]
+readUsers = wrapAuditable $ readRow userQuery
 
-readUsersForTenant :: TenantId -> AppM [User]
-readUsersForTenant tenantId = readRow $ userQueryByTenantid tenantId
+readUsersForTenant :: TenantId -> AppM [Auditable User]
+readUsersForTenant tenantId = wrapAuditable $ readRow $ userQueryByTenantid tenantId
 
-readUserById :: UserId -> AppM (Maybe User)
+readUserById :: UserId -> AppM (Maybe (Auditable User))
 readUserById id' = do
-  listToMaybe <$> (readRow $ userQueryById id')
+  wrapAuditable $ listToMaybe <$> (readRow $ userQueryById id')
 
 addRoleToUser :: UserId -> RoleId -> AppM [(UserId, RoleId)]
 addRoleToUser userId roleId =

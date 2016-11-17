@@ -50,7 +50,7 @@ makeAudtableLenses tq= do
           maybe_c <- lookupTypeName tc
           case maybe_c of
             Just c_name -> do
-              aud_t <- [t| AuditM $(return t_type) |]
+              aud_t <- [t| Auditable $(return t_type) |]
               return $ [InstanceD Nothing [] (AppT (AppT (ConT c_name) aud_t) resolved_type)  [FunD (fname_ap) $ [Clause [] (NormalB expr) []] ]]
             _ -> error $ "Typeclass " ++ tc ++ " not found"
         where

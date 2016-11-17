@@ -10,6 +10,9 @@ import           Data.Char
 import           Data.Text
 import           DataTypes
 
+instance (FromJSON a) => FromJSON (Auditable a) where
+  parseJSON j = auditable <$> (parseJSON j)
+  
 instance FromJSON UserId where
   parseJSON j@(Number _) = UserId <$> (parseJSON j)
   parseJSON invalid      = typeMismatch "UserId" invalid
@@ -70,3 +73,6 @@ instance ToJSON RoleId where
 
 instance ToJSON Permission where
   toJSON x = toJSON $ show x
+
+instance (ToJSON a) => ToJSON (Auditable a) where
+  toJSON Auditable {_data = x} = toJSON x

@@ -21,23 +21,23 @@ import           ApiBase
 import           Control.Lens
 import           Prelude                    hiding (id)
 
-createRole :: RoleIncoming -> AppM Role
-createRole role = createRow roleTable role
+createRole :: RoleIncoming -> AppM (Auditable Role)
+createRole role = auditable <$> createRow roleTable role
 
 updateRole :: Role -> AppM Role
 updateRole role = updateRow roleTable role
 
-removeRole :: Role -> AppM GHC.Int.Int64
-removeRole role = do
+removeRole :: Auditable Role -> AppM GHC.Int.Int64
+removeRole Auditable {_data = role} = do
   _ <- removeRawDbRows userRolePivotTable (\(_, roleId) -> roleId .== constant (role ^. id))
   removeRawDbRows roleTable matchFunc
     where
     tId = role ^. id
     matchFunc role' = (role' ^. id).== constant tId
 
-readRolesForTenant :: TenantId -> AppM [Role]
+readRolesForTenant :: TenantId -> AppM [Auditable Role]
 readRolesForTenant tId = do
-  readRow $ roleQueryForTenant tId
+  wrapAuditable $ readRow $ roleQueryForTenant tId
 
 roleQuery :: Query RoleTableR
 roleQuery = queryTable roleTable

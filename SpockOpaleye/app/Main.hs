@@ -4,7 +4,6 @@
 {-# LANGUAGE TemplateHaskell       #-}
 
 module Main where
-
 import           Database.PostgreSQL.Simple
 import           DataTypes
 import           JsonInstances              ()
@@ -19,12 +18,6 @@ import           Control.Monad.Writer
 import qualified Data.Text                  as T
 import           Data.Time
 import           Prelude                    hiding (id)
-import           TH
-
---makeAudtableLenses [t| RolePoly RoleId TenantId T.Text (NonEmpty Permission) UTCTime UTCTime |]
-makeAudtableLenses ''Role
-makeAudtableLenses ''Tenant
-makeAudtableLenses ''User
 
 data MySession =
   EmptySession
