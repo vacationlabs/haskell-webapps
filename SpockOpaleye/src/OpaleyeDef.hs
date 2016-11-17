@@ -159,7 +159,7 @@ auditTable :: Table (
   , Column PGText
   , Column PGJsonb
   , Column PGTimestamptz)
-auditTable = Table "audit" (p9 (
+auditTable = Table "audit_logs" (p9 (
       readOnly "id"
     , required "tenant_id"
     , optional "user_id"
