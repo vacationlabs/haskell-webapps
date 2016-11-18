@@ -12,6 +12,9 @@ executable mockServer
                      , lens
                      , mockAPI
                      , servant-server
+                     , servant-router
                      , wai-extra
                      , warp
+                     , blaze-html
+                     , servant-blaze
   default-language:    Haskell2010

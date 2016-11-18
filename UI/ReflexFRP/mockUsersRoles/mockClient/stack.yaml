@@ -24,6 +24,15 @@ packages:
     git: https://github.com/meditans/reflex-jsx
     commit: b5e04a74f8b455404dd719429d5d229db8753a41
   extra-dep: true
+- location:
+    git: https://github.com/meditans/servant-router
+    commit: 64d69d7c3ac8cb1057a0e568da110869aec17de0
+  extra-dep: true
+
+# - location:
+#     git: https://github.com/paolino/servant-router
+#     commit: f3d18b5960d93b66ca3dbb0760caca0f18dfc01f
+#   extra-dep: true
 
 extra-deps:
 - MemoTrie-0.6.7

@@ -23,4 +23,7 @@ library
                      , digestive-functors
                      , email-validate
                      , string-conversions >= 0.4
+                     , servant-router
+                     , servant-blaze
+                     , blaze-html
   default-language:    Haskell2010

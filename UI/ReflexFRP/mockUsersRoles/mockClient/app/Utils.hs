@@ -24,6 +24,11 @@ data AppState = BootApp
               | Overview ServerState ClientState
               | Edit ServerState ClientState (RoleName, RoleAttributes)
 
+textLink :: AppState -> Text
+textLink (Overview _ _) = "overview"
+textLink (Edit _ _ (roleName,_)) = "edit/" <> roleName
+textLink BootApp = "Non ci dovrebbe essere"
+
 -------------- These four functions are being used after a discussion with Paolo -------------
 type Morph t m a = Dynamic t (m a) -> m (Event t a)
 
@@ -96,6 +101,11 @@ parseR :: ReqResult a -> DMap.DMap (ServerResponse a) Identity
 parseR (ResponseSuccess a _) = DMap.singleton Success (Identity a)
 parseR (ResponseFailure t _) = DMap.singleton Failure (Identity $ "Response failure: " <> t)
 parseR (RequestFailure t)    = DMap.singleton Failure (Identity $ "Request failure: "  <> t)
+
+parseR' :: ReqResult a -> Either Text a
+parseR' (ResponseSuccess a _) = Right a
+parseR' (ResponseFailure t _) = Left $ "Response failure: " <> t
+parseR' (RequestFailure t)    = Left $ "Request failure: "  <> t
 
 (<$$>) :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
 (<$$>) = fmap . fmap

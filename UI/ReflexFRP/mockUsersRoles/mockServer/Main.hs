@@ -1,15 +1,40 @@
 {-# LANGUAGE DataKinds, FlexibleContexts, NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings, TypeApplications, TypeOperators #-}
-
+{-# LANGUAGE PartialTypeSignatures #-}
+{-# OPTIONS_GHC -fdefer-typed-holes #-}
 module Main where
 
 import MockAPI
 import Servant
+import Servant.Router
 import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.Gzip
 
-import ClassyPrelude
+import ClassyPrelude hiding (Handler, head, span)
 import Control.Lens
+
+import Text.Blaze.Html4.Transitional (Html, head, docTypeHtml, body, script, (!), title, meta, link)
+import Text.Blaze.Html4.Transitional.Attributes hiding (title)
+import Servant.HTML.Blaze
+
+navigationServer :: Server NavigationServer
+navigationServer =
+  constHandler
+    (Proxy @Navigation)
+    (Proxy @Handler) initialPage
+
+initialPage :: Html
+initialPage = docTypeHtml $ do
+    head $ do
+        meta ! charset "utf-8"
+        meta ! name "viewport" ! content "width=device-width, initial-scale=1.0"
+        title "ui-mockups"
+        link ! rel "stylesheet" ! href "assets/bootstrap/css/bootstrap.min.css"
+        link ! rel "stylesheet" ! href "assets/fonts/ionicons.min.css"
+        link ! rel "stylesheet" ! href "assets/css/Login-Form-Clean.css"
+        script ! language "javascript" ! src "all.min.js" $ mempty
+        link ! rel "stylesheet" ! href "assets/css/styles.min.css"
+    body mempty
 
 data Config = Config { rolesTVar :: TVar Roles }
 
@@ -23,6 +48,9 @@ server config
   where
     serveAssets = serveDirectory "../mockClient/assets"
     serveJS     = serveDirectory "../mockClient/js/"
+
+wholeServer :: Config -> Server WholeApi
+wholeServer config = navigationServer :<|> server config
 
 addRole :: (MonadReader Config m, MonadIO m) => RoleName -> RoleAttributes -> m NoContent
 addRole rolename roleAttributes = do
@@ -47,7 +75,7 @@ main :: IO ()
 main = do
   state <- atomically $ newTVar exRoles
   let config = Config state
-  run 8081 (gzip gzipSettings $ serve (Proxy @MockApi) (server config))
+  run 8081 (gzip gzipSettings $ serve (Proxy @WholeApi) (wholeServer config))
   where
     gzipSettings = def { gzipFiles = GzipCompress }
 
@@ -63,7 +91,7 @@ allPermissions = concat [ map PP [minBound .. maxBound]
                         , map UP [minBound .. maxBound]
                         ]
 
-accountAdministrator = singletonMap "Account administrator" (RoleAttributes roles users)
+accountAdministrator = singletonMap "AccountAdministrator" (RoleAttributes roles users)
   where
     roles = setFromList allPermissions
     users = setFromList [ User "admin@mydomain.com"

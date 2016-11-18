@@ -13,5 +13,6 @@ cp assets/html/index.html js/index.html
 # Minifying all.js file using the closure compiler, and removing unnecessary files
 cd js
 # ccjs all.js --debug --compilation_level=ADVANCED_OPTIMIZATIONS > all.min.js
-ccjs all.js > all.min.js
+cp all.js all.min.js
+# ccjs all.js > all.min.js
 rm all.js out.stats runmain.js lib.js out.js rts.js

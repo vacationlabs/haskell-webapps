@@ -30,6 +30,8 @@ executable mockClient
                      , digestive-functors
                      , template-haskell
                      , reflex-ui-elements
+                     , servant-router
+
   default-language:  Haskell2010
   if impl(ghcjs)
     ghc-options:    -dedupe
