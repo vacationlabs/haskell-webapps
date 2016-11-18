@@ -4,6 +4,9 @@
 -- modified to circumvent postgres enums and arrays
 
 
+create type test_enum as enum('inactive', 'active', 'new');
+
+
 create table enum_tenant_status(
     id serial primary key
     ,name text not null

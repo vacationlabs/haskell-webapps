@@ -16,6 +16,7 @@ module  DefineTable
 
 
 import  DataSource
+import  Types.Enums
 
 import  Language.Haskell.TH                 (Q, Dec)
 
@@ -24,12 +25,10 @@ import  Database.HDBC.Schema.PostgreSQL     (driverPostgreSQL)
 import  Database.HDBC.Schema.Driver         (typeMap)
 import  Database.Relational.Query.Component (Config(..), defaultConfig)
 import  Data.ByteString                     (ByteString)
-import  Data.Text                           (Text, empty)
-import  Data.Default
+
+import  Data.Text                           (Text)
 
 
-instance Default Text where
-    def = empty
 
 defineTable :: String -> Q [Dec]
 defineTable tableName =
@@ -41,7 +40,35 @@ defineTable tableName =
   where
     withAdditionalTypes driver =
         driver { typeMap =
-            [ ("jsonb", [t| ByteString |])                                      -- FIXME should work, but doesn't!
+            [ ("jsonb", [t| ByteString |])                                      -- FIXME see Note below
             , ("text", [t| Text |])
+            , ("test_enum", [t| TestEnum |])                                    -- FIXME see Note below
             ] ++ typeMap driver
             }
+
+
+-- NOTE
+{-
+This is the relation used by the HRR driver to get postgres type info;
+those will be the types considered for a generating a corresponding
+attribute in the derived Haskell type.
+(in pseudo-code, taken from module Database.Relational.Schema.PostgreSQL):
+
+(select * from pg_type)
+    wheres $ att ! Attr.atttypid'    .=. typ ! Type.oid'
+    wheres $ typ ! Type.typtype'     .=. value 'b'  -- 'b': base type only
+
+    wheres $ typ ! Type.typcategory' `in'` values [ 'B' -- Boolean types
+                                                  , 'D' -- Date/time types
+                                                  , 'I' -- Network Address types
+                                                  , 'N' -- Numeric types
+                                                  , 'S' -- String types
+                                                  , 'T' -- typespan types
+                                                  ]
+
+We can see, JSONB is not amongst them as it is of category 'U' (user-defined).
+Also, enums are not considered for mapping, they're of category 'E'.
+
+Conlusion: The HRR library has to be patched accordingly for HRR to even consider
+generating a datatype derivation for those categories in Haskell.
+-}
