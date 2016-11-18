@@ -117,7 +117,8 @@ create table audit_logs(
        ,auditable_id integer not null
        ,auditable_table_name text not null
        ,summary text not null
-       ,changes jsonb default 'null'::jsonb                                      -- TODO not null
+       -- ,changes jsonb default 'null'::jsonb not null
+       ,changes text default '{}' not null
        ,created_at timestamp with time zone not null default current_timestamp
        constraint ensure_user_id check ((user_id is not null and not changed_by_system) or (user_id is null and changed_by_system))
 );

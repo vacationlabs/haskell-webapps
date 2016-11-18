@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances, FlexibleContexts #-}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase, OverloadedStrings #-}
 
 {-|
 Module      :  DBInterface
@@ -16,6 +16,7 @@ module  DBInterface
         , dbInsert
         , dbUpdate
         , dbDelete
+        , AuditInfo (..)
         , module Types.DB
         ) where
 
@@ -24,7 +25,7 @@ import  Types.DB
 import  DataSource
 import  Helpers.JSONDiff
 
-import  Database.HDBC                   (SqlValue, handleSql, commit, rollback)
+import  Database.HDBC                   (SqlValue, handleSql, throwSqlError, commit, rollback)
 
 import  Database.Relational.Query       hiding (isNothing)
 
@@ -36,15 +37,21 @@ import  Database.HDBC.Record.Update     (runUpdate)
 import  Database.HDBC.Record.Insert     (runInsert)
 import  Database.HDBC.Query.TH          (makeRecordPersistableDefault)
 
+import  Data.Aeson                      (encode, ToJSON(..))
 import  Data.Time.LocalTime             (getZonedTime)
 import  Data.Maybe
 import  Data.Text                       (pack)
 
 
-
-handle :: IO () -> IO (DBResult a) -> IO (DBResult a)
-handle doRollback = handleSql $ \err ->
-    doRollback >> return (ResDBErr err)
+-- the information a DB action needs to create an audit log entry
+-- NB the retrieval action parameter is a workaround for HRR's missing feature
+--      INSERT INTO ... RETURNING *;
+--      (cf. https://github.com/khibino/haskell-relational-record/issues/44)
+--      sadly meaning, we need to make an extra trip to the DB.
+data AuditInfo a = AuditInfo
+    Text            -- table name
+    Text            -- summary
+    (Maybe (DBConnector -> PKey -> IO (DBUniqueResult a)))                      -- db action to retrieve a record
 
 
 data AuditLogInsert = AuditLogInsert
@@ -53,8 +60,8 @@ data AuditLogInsert = AuditLogInsert
     Bool            -- changedBySystem
     PKey            -- auditableId
     Text            -- auditableTableName
-    Text            -- Summary
-    -- ByteString   -- TODO changes
+    Text            -- summary
+    Text            -- changes
 $(makeRecordPersistableDefault ''AuditLogInsert)
 
 piAuditLog :: Pi AuditLogs AuditLogInsert
@@ -65,6 +72,7 @@ piAuditLog = AuditLogInsert
     |*| AuditLog.auditableId'
     |*| AuditLog.auditableTableName'
     |*| AuditLog.summary'
+    |*| AuditLog.changes'
 
 insertLogEntry :: Insert AuditLogInsert
 insertLogEntry = derivedInsert piAuditLog
@@ -82,39 +90,66 @@ dbQuery (DBConnector _ _ conn) rel param =
 
 
 dbDelete :: (ToSql SqlValue p)
-     => DBConnector -> Delete p -> p -> IO (DBResult ())
-dbDelete (DBConnector _ _ conn) dlt param =
+     => DBConnector -> AuditInfo () -> Delete p -> p -> IO (DBResult ())
+dbDelete DBConnector {dbTenantId = Nothing} _ _ _ =
+    return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to delete from the DB"
+dbDelete (DBConnector (Just tenantPK) mUserId conn) (AuditInfo tName summ _) dlt param =
     handle (rollback conn) $ do
-        num     <- runDelete conn dlt param
-        commit  conn
-                                                                                -- TODO auditLog entry for delete action?
-        return  $ if num > 0 then ResPKId 0 else ResPKId (-1)                   -- TODO which return codes does DomainAPI want/need?
+        num <- runDelete conn dlt param
+        res <- if num > 0
+            then
+                let logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) (-1) tName summ "{}"
+                in runInsert conn insertLogEntry logEntry >> return (ResPKId 0)
+            else return ResEmpty
+        commit conn
+        return res                                                              -- TODO which return codes does DomainAPI want/need for deletes?
 
 
-dbInsert :: (ToSql SqlValue p)
-    => DBConnector -> Text -> Insert p -> p -> IO (DBResult ())
+dbInsert :: (ToSql SqlValue p, ToJSON a)
+    => DBConnector -> AuditInfo a -> Insert p -> p -> IO (DBResult a)
 dbInsert DBConnector {dbTenantId = Nothing} _ _ _ =
     return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to insert into the DB"
-dbInsert (DBConnector (Just tenantPK) mUserId conn) tName ins param =
-    handle (rollback conn) $ do
-        _       <- runInsert conn ins param
-        newId   <- lastInsertedPK conn
-        let
-            logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) newId tName (pack . show $ ins)
-        _       <- runInsert conn insertLogEntry logEntry
-        commit  conn
-        return  $ ResPKId newId
+dbInsert dbc@(DBConnector (Just tenantPK) mUserId conn) (AuditInfo tName summ mGet) ins param =
+    handle (rollback conn) $ runInsert conn ins param >> case mGet of
+        Nothing ->
+            let
+                logEntry = AuditLogInsert
+                    tenantPK mUserId (isNothing mUserId) (-1) tName summ "{}"
+            in runInsert conn insertLogEntry logEntry
+                >> commit conn
+                >> return ResEmpty
+        Just get -> do
+            newId <- lastInsertedPK conn
+            get dbc newId >>= \case
+                Left _ -> throwSqlError $ mkDBErr "dbInsert: couldn't read inserted row"
+                Right newRec ->
+                    let
+                        diff = asText $ encode $ removeTimestamps $ toJSON newRec
+                        logEntry = AuditLogInsert
+                            tenantPK mUserId (isNothing mUserId) newId tName summ diff
+                    in runInsert conn insertLogEntry logEntry
+                        >> commit conn
+                        >> return (ResJust newRec)
 
 
-dbUpdate :: DBConnector -> Text -> TimestampedUpdate -> PKey -> IO (DBResult ())
+dbUpdate :: ToJSON a => DBConnector -> AuditInfo a -> TimestampedUpdate -> PKey -> IO (DBResult a)
 dbUpdate DBConnector {dbTenantId = Nothing} _ _ _ =
     return $ ResDBErr $ mkDBErr "connection needs a tenant id to be allowed to update the DB"
-dbUpdate (DBConnector (Just tenantPK) mUserId conn) tName upd k =
+dbUpdate dbc@(DBConnector (Just tenantPK) mUserId conn) (AuditInfo tName summ ~(Just get)) upd k =
     handle (rollback conn) $ do
+        ~(Right oldRec) <- get dbc k
         tNow    <- getZonedTime
         _       <- runUpdate conn upd (tNow, k)
+        ~(Right newRec)  <- get dbc k
         let
-            logEntry = AuditLogInsert tenantPK mUserId (isNothing mUserId) k tName (pack . show $ upd)
+            diff = asText $ jsonDiff oldRec newRec
+            logEntry = AuditLogInsert
+                tenantPK mUserId (isNothing mUserId) k tName summ diff
         _       <- runInsert conn insertLogEntry logEntry
         commit  conn
-        return  $ ResPKId k
+        return  $ ResJust newRec
+
+
+handle :: IO () -> IO (DBResult a) -> IO (DBResult a)
+handle doRollback = handleSql $ \err ->
+    doRollback >> return (ResDBErr err)

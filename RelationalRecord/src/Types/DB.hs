@@ -46,17 +46,17 @@ data DBResult a
     | ResDBErr  SqlError
     deriving (Show, Eq, Foldable)
 
-type DBWriteResult  = Either SqlError PKey
+type DBWriteResult  = Either SqlError
 
 type DBUniqueResult = Either SqlError
 
-dbWriteResult :: DBResult a -> DBWriteResult
+dbWriteResult :: DBResult a -> DBWriteResult a
 dbWriteResult = \case
-    ResPKId k       -> Right k
+    ResJust a       -> Right a
     ResDBErr err    -> Left err
-    _               -> Left $ mkDBErr "expected primary key result"
+    _               -> Left $ mkDBErr "expected record"
 
-dbUniqueResult :: DBResult a -> Either SqlError a
+dbUniqueResult :: DBResult a -> DBUniqueResult a
 dbUniqueResult = \case
     ResJust v       -> Right v
     ResDBErr err    -> Left err
