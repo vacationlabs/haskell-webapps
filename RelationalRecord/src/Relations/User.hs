@@ -8,10 +8,12 @@ import  Types.DB
 import  Relations.DB
 
 import  Database.Relational.Query
-import  Database.HDBC.Query.TH      (makeRecordPersistableDefault)
+import  Database.HDBC.Query.TH              (makeRecordPersistableDefault)
+import  Database.Relational.Query.Pi.Unsafe (definePi)
+import  Database.Relational.Query.Relation  (tableOf)
 
-import  Data.Int                    (Int32)
-import  GHC.Generics                (Generic)
+import  Data.Int                            (Int32)
+import  GHC.Generics                        (Generic)
 import  Data.Default
 
 
@@ -30,6 +32,8 @@ getUser = relation' . placeholder $ \usrId -> do
 
 -- INSERTS
 
+-- an insert constrained to the obligatory fields, thus enforcing
+-- default values encoded in the DB schema for all other fields
 data UserInsert = UserInsert
     { iTenantId     :: PKey
     , iUsername     :: Text
@@ -49,6 +53,11 @@ piUser = UserInsert
 
 insertUser :: Insert UserInsert
 insertUser = derivedInsert piUser
+
+
+-- an insert with the original data type derived by HRR
+insertUser' :: Insert Users
+insertUser' = typedInsert (tableOf users) (definePi 1)
 
 
 -- UPDATES

@@ -19,3 +19,7 @@ tableName = pack $ T.name $ tableOf users
 
 deriving instance Generic Users
 instance ToJSON Users
+
+-- NOTE deriving a default instance doesn't make sense here: there's
+-- no sane value for the primary key field, and for the timestamp
+-- fields (createdAt, updatedAt), IO is necessary.

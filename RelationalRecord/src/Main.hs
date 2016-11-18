@@ -6,9 +6,13 @@ import DataSource       (getDataSource)
 import DomainAPI
 import Relations.Tenant as Tenant hiding (getTenant)
 import Relations.User   hiding (getUser)
-import Relations.Role   (RoleAssignment(..), allRoles, allRoleAssignments)
+import Relations.Role   hiding (getRole)
 import Relations.DB
+import Types.Role       as Role
+import Types.Tenant     as Tenant
 import DBInterface
+import Helpers.JSONDiff
+
 
 import Data.Default     (def)
 import Data.Aeson       (ToJSON)
@@ -36,6 +40,7 @@ main = do
     conn    <- getDataSource
     let conn' = DBConnector (Just 1) Nothing conn
 
+    {-
     createUser conn' someUser >>= print
     createTenant conn' someTenant >>= print
     activateTenant conn' 2 >>= print
@@ -45,9 +50,12 @@ main = do
     getUser conn' 1 >>= printJson
 
     deleteRole conn' (Left 4) >>= print
+    -}
 
+    -- createRole conn' (RoleInsert 1 "testrole" "foo,bar") >>= print
     dbQuery conn' allRoles () >>= print
 
+    {-
     dbQuery conn' allTenants () >>= print
 
     _ <- updateTenant conn' 2 def {Tenant.uName = NewVal "asd"}
@@ -56,5 +64,10 @@ main = do
 
     _ <- removeRole conn' (RoleAssignment 1 1)
     dbQuery conn' allRoleAssignments () >>= print
+    -}
+
+    Right ten <- getTenant conn' 1
+    let ten' = ten {Tenant.status = 2, Tenant.firstName = "blub", Tenant.ownerId = Just 3}
+    print $ jsonDiff ten ten'
 
     putStrLn "...done"

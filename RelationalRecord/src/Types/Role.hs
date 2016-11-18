@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
-{-# LANGUAGE DeriveGeneric, StandaloneDeriving #-}
+{-# LANGUAGE DeriveGeneric, StandaloneDeriving, DeriveAnyClass #-}
 
 module  Types.Role where
 
@@ -19,3 +19,7 @@ tableName = pack $ T.name $ tableOf roles
 
 deriving instance Generic Roles
 instance ToJSON Roles
+
+-- NOTE deriving a default instance doesn't make sense here: there's
+-- no sane value for the primary key field, and for the timestamp
+-- fields (createdAt, updatedAt), IO is necessary.

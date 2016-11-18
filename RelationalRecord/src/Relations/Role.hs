@@ -10,9 +10,12 @@ import  Types.DB
 import  Relations.DB
 
 import  Database.Relational.Query
-import  Database.HDBC.Query.TH      (makeRecordPersistableDefault)
+import  Database.HDBC.Query.TH              (makeRecordPersistableDefault)
+import  Database.Relational.Query.Pi.Unsafe (definePi)
+import  Database.Relational.Query.Relation  (tableOf)
 
-import  GHC.Generics                (Generic)
+
+import  GHC.Generics                        (Generic)
 import  Data.Default
 
 
@@ -57,6 +60,8 @@ assignRole :: Insert RoleAssignment
 assignRole = derivedInsert piAssignRole
 
 
+-- an insert constrained to the obligatory fields, thus enforcing
+-- default values encoded in the DB schema for all other fields
 data RoleInsert = RoleInsert
     { iTenantId     :: PKey
     , iName         :: Text
@@ -72,6 +77,11 @@ piRoles = RoleInsert
 
 insertRole :: Insert RoleInsert
 insertRole = derivedInsert piRoles
+
+
+-- an insert with the original data type derived by HRR
+insertRole' :: Insert Roles
+insertRole' = typedInsert (tableOf roles) (definePi 1)
 
 
 -- UPDATES

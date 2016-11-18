@@ -22,6 +22,7 @@ module  DBInterface
 import  Types.AuditLog                  as AuditLog
 import  Types.DB
 import  DataSource
+import  Helpers.JSONDiff
 
 import  Database.HDBC                   (SqlValue, handleSql, commit, rollback)
 

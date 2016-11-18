@@ -24,8 +24,12 @@ import  Database.HDBC.Schema.PostgreSQL     (driverPostgreSQL)
 import  Database.HDBC.Schema.Driver         (typeMap)
 import  Database.Relational.Query.Component (Config(..), defaultConfig)
 import  Data.ByteString                     (ByteString)
-import  Data.Text                           (Text)
+import  Data.Text                           (Text, empty)
+import  Data.Default
 
+
+instance Default Text where
+    def = empty
 
 defineTable :: String -> Q [Dec]
 defineTable tableName =

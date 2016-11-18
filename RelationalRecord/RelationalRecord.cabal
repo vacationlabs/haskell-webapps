@@ -33,6 +33,8 @@ executable RelationalRecord
                     aeson >= 1.0.2,
                     aeson-pretty >= 0.8.2,
                     text,
+                    unordered-containers,
+                    vector,
                     data-default,
                     bytestring,
                     time
