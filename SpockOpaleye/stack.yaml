@@ -67,7 +67,7 @@ extra-package-dbs: []
 #
 # Extra directories used by stack for building
 # extra-include-dirs: [/path/to/dir]
-# extra-lib-dirs: [/path/to/dir]
+extra-lib-dirs: [/usr/lib]
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor

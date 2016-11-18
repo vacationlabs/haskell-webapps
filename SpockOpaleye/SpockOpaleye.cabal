@@ -15,8 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib,
-                       DataTypes,
+  exposed-modules:     DataTypes,
                        ApiBase, 
                        TenantApi,
                        UserApi,
@@ -24,7 +23,8 @@ library
                        OpaleyeDef,
                        CryptoDef,
                        JsonInstances,
-                       Validations
+                       Validations,
+                       TH
   build-depends:       base >= 4.7 && < 5
                       ,product-profunctors
                       ,profunctors
@@ -36,9 +36,12 @@ library
                       ,text
                       ,lens
                       ,mtl
+                      ,transformers
+                      ,time
                       ,vector
                       ,Spock >=0.11
                       ,aeson
+                      ,unordered-containers
                       ,template-haskell
   default-language:    Haskell2010
 
@@ -51,8 +54,10 @@ executable SpockOpaleye-exe
                      , SpockOpaleye
                      , Spock >=0.11
                      , mtl
+                     , transformers
                      , lens
                      , text
+                     , time
                      , bcrypt
                      , vector
                      , aeson
