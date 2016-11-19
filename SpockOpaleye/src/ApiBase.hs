@@ -15,15 +15,15 @@ import qualified Data.Profunctor.Product.Default as D
 import           Data.Time                       (UTCTime, getCurrentTime)
 import           Database.PostgreSQL.Simple
 import           DataTypes
-import           Opaleye
 import           GHC.Int
+import           Opaleye
 import           Prelude                         hiding (id)
 
 
 auditLog :: String -> AppM ()
-auditLog = tell 
+auditLog = tell
 
-createDbRows :: (Show columnsW, D.Default QueryRunner columnsR haskells) 
+createDbRows :: (Show columnsW, D.Default QueryRunner columnsR haskells)
     =>  Connection -> Table columnsW columnsR -> [columnsW] -> AppM [haskells]
 createDbRows conn table pgrows = do
   auditLog $ "Create : " ++ (show pgrows)
@@ -32,12 +32,12 @@ createDbRows conn table pgrows = do
 updateDbRow :: (Show columnsW, HasId columnsR (Column PGInt4)) => Connection -> Table columnsW columnsR -> Column PGInt4 -> columnsW -> AppM columnsW
 updateDbRow conn table row_id item = do
   auditLog $ "Update :" ++ (show item)
-  _ <- liftIO $ runUpdate conn table (\_ -> item) (matchFunc row_id) 
+  _ <- liftIO $ runUpdate conn table (\_ -> item) (matchFunc row_id)
   return item
   where
     matchFunc :: (HasId cmR (Column PGInt4)) => (Column PGInt4 -> cmR -> Column PGBool)
     matchFunc itId item' = (item' ^. id) .== itId
-  
+
 createRow ::(
     Show incoming,
     Show columnsW,
@@ -49,7 +49,7 @@ createRow conn table item = do
   auditLog $ "Create : " ++ (show item)
   currentTime <- liftIO $ fmap pgUTCTime getCurrentTime
   let itemPg = (constant item) & createdat .~ (Just currentTime) & updatedat .~ (currentTime)
-  fmap head $ createDbRows conn table [itemPg] 
+  fmap head $ createDbRows conn table [itemPg]
 
 updateRow :: (
     Show columnsW
@@ -66,7 +66,7 @@ updateRow conn table item = do
   let itId = item ^. id
   currentTime <- liftIO getCurrentTime
   let updatedItem = (putUpdatedTimestamp currentTime) item
-  _ <- updateDbRow conn table (constant itId) (constant updatedItem) 
+  _ <- updateDbRow conn table (constant itId) (constant updatedItem)
   return updatedItem
   where
     putUpdatedTimestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
