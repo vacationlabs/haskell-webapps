@@ -9,7 +9,7 @@
 module DataTypes where
 
 import           Control.Lens
-import           Control.Monad.Reader
+import           Control.Monad.Reader as R
 import           Control.Monad.Writer
 import           CryptoDef
 import           Data.List.NonEmpty
@@ -19,6 +19,21 @@ import           Database.PostgreSQL.Simple
 import           GHC.Generics
 
 type AppM a = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) IO) a
+
+getConnection :: AppM Connection
+getConnection = do
+  (conn, _, _) <- R.ask
+  return conn
+
+getCurrentTenant :: AppM (Maybe Tenant)
+getCurrentTenant = do
+  (_, tenant, _) <- R.ask
+  return tenant
+
+getCurrentUser :: AppM (Maybe User)
+getCurrentUser = do
+  (_, _, user) <- R.ask
+  return user
 
 data ValidationResult = Valid | Invalid
   deriving (Eq, Show)

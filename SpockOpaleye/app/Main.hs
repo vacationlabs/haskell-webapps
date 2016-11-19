@@ -68,9 +68,9 @@ app = do
                result <- liftIO $ validateIncomingTenant conn incomingTenant
                case result of
                  Valid -> do
-                      newTenant <- createTenant conn incomingTenant
+                      newTenant <- createTenant incomingTenant
                       let modifiedTenant = newTenant & name .~ "Updated name"
-                      _ <- updateTenant conn modifiedTenant
+                      _ <- updateTenant modifiedTenant
                       return $ Right newTenant
                  _ -> return $ Left $ T.pack "Validation fail"
                )

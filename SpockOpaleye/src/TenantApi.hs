@@ -30,37 +30,34 @@ import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
 
-createTenant :: Connection -> TenantIncoming -> AppM Tenant
-createTenant conn tenant = do
-  createRow conn tenantTable tenant
+createTenant :: TenantIncoming -> AppM Tenant
+createTenant tenant = do
+  createRow tenantTable tenant
 
-activateTenant :: Connection -> Tenant -> AppM Tenant
-activateTenant conn tenant = setTenantStatus conn tenant TenantStatusActive
+activateTenant :: Tenant -> AppM Tenant
+activateTenant tenant = setTenantStatus tenant TenantStatusActive
 
-deactivateTenant :: Connection -> Tenant -> AppM Tenant
-deactivateTenant conn tenant = setTenantStatus conn tenant TenantStatusInActive
+deactivateTenant :: Tenant -> AppM Tenant
+deactivateTenant tenant = setTenantStatus tenant TenantStatusInActive
 
-setTenantStatus :: Connection -> Tenant -> TenantStatus -> AppM Tenant
-setTenantStatus conn tenant st = updateTenant conn (tenant & status .~ st)
+setTenantStatus :: Tenant -> TenantStatus -> AppM Tenant
+setTenantStatus tenant st = updateTenant (tenant & status .~ st)
 
-updateTenant :: Connection -> Tenant -> AppM Tenant
-updateTenant conn tenant = do
-  updateRow conn tenantTable tenant
+updateTenant :: Tenant -> AppM Tenant
+updateTenant tenant = do
+  updateRow tenantTable tenant
 
-removeTenant :: Connection -> Tenant -> AppM GHC.Int.Int64
-removeTenant conn tenant = do
-  tenant_deac <- deactivateTenant conn tenant
-  _ <- updateTenant conn (tenant_deac & ownerid .~ Nothing)
-  liftIO $ do
-    usersForTenant <- readUsersForTenant conn tid
-    rolesForTenant <- readRolesForTenant conn tid
-    mapM_ (removeRole conn) rolesForTenant
-    mapM_ (removeUser conn) usersForTenant
-    runDelete conn tenantTable matchFunc
+removeTenant :: Tenant -> AppM GHC.Int.Int64
+removeTenant tenant = do
+    tenant_deac <- deactivateTenant tenant
+    _ <- updateTenant (tenant_deac & ownerid .~ Nothing)
+    usersForTenant <- readUsersForTenant tid
+    rolesForTenant <- readRolesForTenant tid
+    mapM_ removeRole rolesForTenant
+    mapM_ removeUser usersForTenant
+    removeRow tenantTable tenant
   where
     tid = tenant ^. id
-    matchFunc :: TenantTableR -> Column PGBool
-    matchFunc tenant'  = (tenant' ^. id) .== (constant tid)
 
 readTenants :: Connection -> IO [Tenant]
 readTenants conn = runQuery conn tenantQuery

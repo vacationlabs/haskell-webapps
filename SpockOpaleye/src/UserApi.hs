@@ -22,7 +22,6 @@ import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.IO.Class
 import           Data.Maybe
-import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
 import           Opaleye
@@ -31,46 +30,44 @@ import           OpaleyeDef
 import           CryptoDef
 import           Prelude                    hiding (id)
 
-createUser :: Connection -> UserIncoming -> AppM User
-createUser conn user = do
+createUser :: UserIncoming -> AppM User
+createUser user = do
   Just hash <- liftIO $ bcryptPassword $ user ^. password
   let fullUser = user { _userpolyPassword = hash }
-  createRow conn userTable fullUser
+  createRow userTable fullUser
 
-updateUser :: Connection -> User -> AppM User
-updateUser conn user = updateRow conn userTable user
+updateUser :: User -> AppM User
+updateUser user = updateRow userTable user
 
-activateUser :: Connection -> User -> AppM User
-activateUser conn user = setUserStatus conn user UserStatusActive
+activateUser :: User -> AppM User
+activateUser user = setUserStatus user UserStatusActive
 
-deactivateUser :: Connection -> User -> AppM User
-deactivateUser conn user = setUserStatus conn user UserStatusInActive
+deactivateUser :: User -> AppM User
+deactivateUser user = setUserStatus user UserStatusInActive
 
-setUserStatus :: Connection -> User -> UserStatus -> AppM User
-setUserStatus conn user newStatus = updateUser conn $ user & status .~ newStatus
+setUserStatus :: User -> UserStatus -> AppM User
+setUserStatus user newStatus = updateUser $ user & status .~ newStatus
 
-removeUser :: Connection -> User -> IO GHC.Int.Int64
-removeUser conn rUser =
-  runDelete conn userTable matchFunction
-    where
-    matchFunction user = (user ^. id).== constant (rUser ^. id)
+removeUser :: User -> AppM GHC.Int.Int64
+removeUser rUser =
+  removeRow userTable rUser
 
-readUsers :: Connection -> IO [User]
-readUsers conn = runQuery conn userQuery
+readUsers :: AppM [User]
+readUsers = readRow userQuery
 
-readUsersForTenant :: Connection -> TenantId -> IO [User]
-readUsersForTenant conn tenantId = runQuery conn $ userQueryByTenantid tenantId
+readUsersForTenant :: TenantId -> AppM [User]
+readUsersForTenant tenantId = readRow $ userQueryByTenantid tenantId
 
-readUserById :: Connection -> UserId -> IO (Maybe User)
-readUserById conn id' = do
-  listToMaybe <$> (runQuery conn $ userQueryById id')
+readUserById :: UserId -> AppM (Maybe User)
+readUserById id' = do
+  listToMaybe <$> (readRow $ userQueryById id')
 
-addRoleToUser :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
-addRoleToUser conn userId roleId =
-  runInsertMany conn userRolePivotTable (return (constant userId, constant roleId))
+addRoleToUser :: UserId -> RoleId -> AppM [(UserId, RoleId)]
+addRoleToUser userId roleId =
+  createDbRows userRolePivotTable [(constant (userId, roleId))]
 
-removeRoleFromUser :: Connection -> UserId -> RoleId -> IO GHC.Int.Int64
-removeRoleFromUser conn tUserId tRoleId = runDelete conn userRolePivotTable
+removeRoleFromUser :: UserId -> RoleId -> AppM GHC.Int.Int64
+removeRoleFromUser tUserId tRoleId = removeRawDbRows userRolePivotTable
     (\(userId, roleId) -> (userId .== constant tUserId) .&& (roleId .== constant tRoleId))
 
 userQuery :: Query UserTableR
