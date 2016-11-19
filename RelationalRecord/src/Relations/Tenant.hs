@@ -9,8 +9,6 @@ import  Relations.DB
 
 import  Database.Relational.Query
 import  Database.HDBC.Query.TH              (makeRecordPersistableDefault)
-import  Database.Relational.Query.Pi.Unsafe (definePi)
-import  Database.Relational.Query.Relation  (tableOf)
 
 import  Data.Int                            (Int32)
 import  GHC.Generics                        (Generic)
@@ -59,11 +57,6 @@ insertTenant :: Insert TenantInsert
 insertTenant = derivedInsert piTenant
 
 
--- an insert with the original data type derived by HRR
-insertTenant' :: Insert Tenants
-insertTenant' = typedInsert (tableOf tenants) (definePi 1)
-
-
 -- UPDATES
 
 data TenantUpdate = TenantUpdate
@@ -72,11 +65,20 @@ data TenantUpdate = TenantUpdate
     , uLastName     :: VariadicArg Text
     , uPhone        :: VariadicArg Text
     , uEmail        :: VariadicArg Text
-    , uBOD          :: VariadicArg Text
     , uStatus       :: VariadicArg Int32
     , uOwnerId      :: VariadicArg (Maybe Int32)
     }
     deriving (Generic, Default)
+
+tenantVariadic :: Tenants -> Tenants -> TenantUpdate
+tenantVariadic old new = TenantUpdate
+    (varArg name old new)
+    (varArg firstName old new)
+    (varArg lastName old new)
+    (varArg phone old new)
+    (varArg email old new)
+    (varArg status old new)
+    (varArg ownerId old new)
 
 updateTenantVariadic :: TenantUpdate -> TimestampedUpdate
 updateTenantVariadic TenantUpdate {..} = derivedUpdate $ \projection -> do
@@ -85,7 +87,6 @@ updateTenantVariadic TenantUpdate {..} = derivedUpdate $ \projection -> do
     Tenant.lastName'    <-#? uLastName
     Tenant.phone'       <-#? uPhone
     Tenant.email'       <-#? uEmail
-    Tenant.backofficeDomain' <-#? uBOD
     Tenant.status'      <-#? uStatus
     Tenant.ownerId'     <-#? uOwnerId
 

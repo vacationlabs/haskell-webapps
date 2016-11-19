@@ -20,6 +20,11 @@ data VariadicArg a = None | NewVal a
 instance Default (VariadicArg a) where
     def = None
 
+varArg :: Eq a => (b -> a) -> b -> b -> VariadicArg a
+varArg getter old new =
+    let a = getter new
+    in if a /= getter old then NewVal a else None
+
 -- add an assigning to the target iff the variadic attribute provides a new value
 (<-#?) :: (ShowConstantTermsSQL v, Monad m)
     => AssignTarget r v -> VariadicArg v -> Assignings r m ()

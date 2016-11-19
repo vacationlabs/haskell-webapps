@@ -3,15 +3,15 @@
 
 module  Relations.Role where
 
-import  Types.Role          as Role
-import  Types.User          as User
-import  Types.UsersRoles    as UsersRoles
+import  Types.Role                  as Role
+import  qualified Types.User        as User
+import  Types.UsersRoles            as UsersRoles
 import  Types.DB
 import  Relations.DB
 
 import  Database.Relational.Query
 import  Database.HDBC.Query.TH              (makeRecordPersistableDefault)
-import  Database.Relational.Query.Pi.Unsafe (definePi)
+import  Database.Relational.Query.Pi.Unsafe (defineDirectPi)
 import  Database.Relational.Query.Relation  (tableOf)
 
 
@@ -35,7 +35,7 @@ getRole = relation' . placeholder $ \rolId -> do
     return  a
 
 -- given a user, get all his/her roles (inner join)
-getRoles :: Relation Users Roles
+getRoles :: Relation User.Users Roles
 getRoles = relation' . placeholder $ \user -> do
     a       <- query roles
     ur      <- query usersRoles
@@ -47,17 +47,9 @@ getRoles = relation' . placeholder $ \user -> do
 
 -- INSERTS
 
-data RoleAssignment = RoleAssignment
-    { iUserId :: PKey
-    , iRoleId :: PKey
-    }
-$(makeRecordPersistableDefault ''RoleAssignment)
-
-piAssignRole :: Pi UsersRoles RoleAssignment
-piAssignRole = RoleAssignment |$| UsersRoles.userId' |*| UsersRoles.roleId'
-
-assignRole :: Insert RoleAssignment
-assignRole = derivedInsert piAssignRole
+-- table has no PK: we can use the identity projection provided by HRR
+assignRole :: Insert UsersRoles
+assignRole = typedInsert (tableOf usersRoles) (defineDirectPi [0, 1])
 
 
 -- an insert constrained to the obligatory fields, thus enforcing
@@ -79,11 +71,6 @@ insertRole :: Insert RoleInsert
 insertRole = derivedInsert piRoles
 
 
--- an insert with the original data type derived by HRR
-insertRole' :: Insert Roles
-insertRole' = typedInsert (tableOf roles) (definePi 1)
-
-
 -- UPDATES
 
 data RoleUpdate = RoleUpdate
@@ -92,6 +79,12 @@ data RoleUpdate = RoleUpdate
     , uPermissions  :: VariadicArg Text
     }
     deriving (Generic, Default)
+
+roleVariadic :: Roles -> Roles -> RoleUpdate
+roleVariadic old new = RoleUpdate
+    (varArg tenantId old new)
+    (varArg name old new)
+    (varArg permissions old new)
 
 updateRoleVariadic :: RoleUpdate -> TimestampedUpdate
 updateRoleVariadic RoleUpdate {..} = derivedUpdate $ \projection -> do
@@ -114,9 +107,10 @@ deleteRoleByName :: Delete Text
 deleteRoleByName = derivedDelete $ \projection ->
     fst <$> placeholder (\rolName -> wheres $ projection ! Role.name' .=. rolName)
 
-removeRole :: Delete RoleAssignment
+-- TODO check if there's some default definition in HRR for this Delete
+removeRole :: Delete UsersRoles
 removeRole = derivedDelete $ \projection ->
     fst <$> placeholder (\rAssign -> do
-        wheres $ projection ! UsersRoles.userId' .=. rAssign ! iUserId'
-        wheres $ projection ! UsersRoles.roleId' .=. rAssign ! iRoleId'
+        wheres $ projection ! UsersRoles.userId' .=. rAssign ! userId'
+        wheres $ projection ! UsersRoles.roleId' .=. rAssign ! roleId'
         )

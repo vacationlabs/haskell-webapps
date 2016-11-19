@@ -11,10 +11,8 @@ Various DB-related helper types.
 module  Types.DB
         ( DBResult(..)
         , TimestampedUpdate
-        , DBWriteResult
         , DBUniqueResult
         , DBConnector(..)
-        , dbWriteResult
         , dbUniqueResult
         , module DataSource
         , module Data.Text
@@ -46,15 +44,8 @@ data DBResult a
     | ResDBErr  SqlError
     deriving (Show, Eq, Foldable)
 
-type DBWriteResult  = Either SqlError
 
 type DBUniqueResult = Either SqlError
-
-dbWriteResult :: DBResult a -> DBWriteResult a
-dbWriteResult = \case
-    ResJust a       -> Right a
-    ResDBErr err    -> Left err
-    _               -> Left $ mkDBErr "expected record"
 
 dbUniqueResult :: DBResult a -> DBUniqueResult a
 dbUniqueResult = \case

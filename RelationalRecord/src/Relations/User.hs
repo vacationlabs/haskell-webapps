@@ -3,17 +3,15 @@
 
 module  Relations.User where
 
-import  Types.User          as User
-import  Types.Tenant        as Tenant
-import  Types.Role          as Role
-import  Types.UsersRoles    as UsersRoles
+import  Types.User                          as User
+import  qualified Types.Tenant              as Tenant
+import  qualified Types.Role                as Role
+import  qualified Types.UsersRoles          as UsersRoles
 import  Types.DB
 import  Relations.DB
 
 import  Database.Relational.Query
 import  Database.HDBC.Query.TH              (makeRecordPersistableDefault)
-import  Database.Relational.Query.Pi.Unsafe (definePi)
-import  Database.Relational.Query.Relation  (tableOf)
 
 import  Data.Int                            (Int32)
 import  GHC.Generics                        (Generic)
@@ -35,14 +33,14 @@ getUser = relation' . placeholder $ \usrId -> do
 -- example of a multiway join:
 -- * get all users with their roles (inner join, via join-through table)
 -- * maybe get tenant whose owner_id is my user id (left outer join)
-getUserTenantRoles :: Relation () ((Users, Roles), Maybe Tenants)
+getUserTenantRoles :: Relation () ((Users, Role.Roles), Maybe Tenant.Tenants)
 getUserTenantRoles = relation $ do
     a       <- query users
-    ur      <- query usersRoles
-    b       <- query roles
+    ur      <- query UsersRoles.usersRoles
+    b       <- query Role.roles
     on      $ a ! User.id' .=. ur ! UsersRoles.userId'
     on      $ ur ! UsersRoles.roleId' .=. b ! Role.id'
-    c       <- queryMaybe tenants
+    c       <- queryMaybe Tenant.tenants
     on      $ just (a ! User.id') .=. flattenMaybe (c ?! Tenant.ownerId')
     return  $ a >< b >< c
 
@@ -72,28 +70,29 @@ insertUser :: Insert UserInsert
 insertUser = derivedInsert piUser
 
 
--- an insert with the original data type derived by HRR
-insertUser' :: Insert Users
-insertUser' = typedInsert (tableOf users) (definePi 1)
-
-
 -- UPDATES
 
 data UserUpdate = UserUpdate
     { uTenantId     :: VariadicArg PKey
     , uUsername     :: VariadicArg Text
-    , uPassword     :: VariadicArg Text
     , uFirstName    :: VariadicArg (Maybe Text)
     , uLastName     :: VariadicArg (Maybe Text)
     , uStatus       :: VariadicArg Int32
     }
     deriving (Generic, Default)
 
+userVariadic :: Users -> Users -> UserUpdate
+userVariadic old new = UserUpdate
+    (varArg tenantId old new)
+    (varArg username old new)
+    (varArg firstName old new)
+    (varArg lastName old new)
+    (varArg status old new)
+
 updateUserVariadic :: UserUpdate -> TimestampedUpdate
 updateUserVariadic UserUpdate {..} = derivedUpdate $ \projection -> do
     User.tenantId'  <-#? uTenantId
     User.username'  <-#? uUsername
-    User.password'  <-#? uPassword
     User.firstName' <-#? uFirstName
     User.lastName'  <-#? uLastName
     User.status'    <-#? uStatus

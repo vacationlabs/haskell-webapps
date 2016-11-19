@@ -37,6 +37,7 @@ executable RelationalRecord
                     vector,
                     data-default,
                     bytestring,
+                    random,
                     time
 
     hs-source-dirs: src

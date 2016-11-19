@@ -7,23 +7,34 @@ import DomainAPI
 import Relations.Tenant as Tenant hiding (getTenant)
 import Relations.User   hiding (getUser)
 import Relations.Role   hiding (getRole, assignRole, removeRole)
-import Relations.DB
+import Types.Tenant     as Tenant
+import Types.Role       as Role
 import DBInterface
 
-import Data.Default     (def)
 import Data.Aeson       (ToJSON(..))
+import Data.Text        (Text, pack)
+import System.Random    (randomRIO)
 import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy.Char8 as BL
+import Control.Monad
+import Data.Maybe
 
 
 someTenant :: TenantInsert
 someTenant = TenantInsert
-    "TestTenant" "Sylvain" "Duchamps" "sly@champsxxx.fr" "3980" Nothing "sy.chasms.xxxx.fr"
+    "TestTenant" "Sylvain" "Duchamps" "sly@champsxxx.fr" "3980" Nothing ""
 
 someUser :: UserInsert
 someUser = UserInsert
-    1 "testueser2" "testpass" (Just "tesss") (Just "usserrr")
+    1 "" "testpass" (Just "tesss") (Just "usserrr")
 
+
+randomText :: Bool -> IO Text
+randomText onlyDigits = do
+    len     <- randomRIO (12, 20)
+    pack    <$> replicateM len ((chars !!) <$> randomRIO (0, length chars - 1))
+  where
+    chars = (if onlyDigits then [] else ['a'..'z']) ++ ['0'..'9']
 
 printJson :: ToJSON a => DBUniqueResult a -> IO ()
 printJson (Left err)  = print err
@@ -36,30 +47,40 @@ main :: IO ()
 main = do
     conn    <- getDataSource
     let conn' = DBConnector (Just 1) Nothing conn
-    {-
-    createUser conn' someUser >>= print
-    createTenant conn' someTenant >>= print
-    activateTenant conn' 2 >>= print
-    assignRole conn' (RoleAssignment 1 1) >>= print
 
-    getTenant conn' 1 >>= printJson
-    getUser conn' 1 >>= printJson
+    putStrLn "creating some user..."
+    un <- randomText False
+    u1 <- createUser conn' someUser {iUsername = un}
+    printJson u1
 
-    deleteRole conn' (Left 4) >>= print
+    putStrLn "creating some tenant..."
+    bd <- randomText False
+    t1 <- createTenant conn' someTenant {iBOD = bd}
+    printJson t1
 
-    createRole conn' (RoleInsert 1 "testrole" "foo,bar") >>= print
-    dbQuery conn' allRoles () >>= print
-    -}
+    putStrLn $ "activating and deactivating tenant..."
+    ~(Right t2)     <- getTenant conn' 1
+    when (isNothing $ Tenant.ownerId t2) $ void $
+        updateTenant conn' t2 t2 {Tenant.ownerId = Just 1}
+    ~(Right t2')    <- activateTenant conn' t2
+    deactivateTenant conn' t2' >>= printJson
 
+    putStrLn $ "creating a role and assigning it..."
+    ~(Right u2) <- getUser conn' 1
+    ~(Right r1) <- createRole conn' (RoleInsert 1 "NEWROLE!!" "foo,bar")
+    assignRole conn' u2 r1 >>= print
+
+    putStrLn $ "now listing all user/role pairs, maybe with a tenant..."
     dbQuery conn' getUserTenantRoles () >>= mapM_ (printJson . Right)
 
-    {-
-    _ <- updateTenant conn' 3 Nothing def {Tenant.uName = NewVal "asd"}
+    putStrLn $ "removing role assignment and deleting role..."
+    removeRole conn' u2 r1 >>= print
+    deleteRole conn' (Left $ Role.id r1) >>= print
 
-    _ <- updateTenant conn' 2 Nothing def {uPhone = NewVal "4578453453", Tenant.uName = NewVal "asdkl"}
-
-    _ <- removeRole conn' (RoleAssignment 1 1)
-    dbQuery conn' allRoleAssignments () >>= print
-    -}
+    putStrLn $ "changing some tenant data explicitly"
+    ~(Right t3) <- getTenant conn' 2
+    nm <- randomText False
+    ph <- randomText True
+    _  <- updateTenant conn' t3 t3 {Tenant.phone = ph, Tenant.name = nm}
 
     putStrLn "...done"
