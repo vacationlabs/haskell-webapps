@@ -3,7 +3,10 @@
 
 module  Relations.User where
 
-import  Types.User as User
+import  Types.User          as User
+import  Types.Tenant        as Tenant
+import  Types.Role          as Role
+import  Types.UsersRoles    as UsersRoles
 import  Types.DB
 import  Relations.DB
 
@@ -28,6 +31,20 @@ getUser = relation' . placeholder $ \usrId -> do
     a       <- query users
     wheres  $ a ! User.id' .=. usrId
     return  a
+
+-- example of a multiway join:
+-- * get all users with their roles (inner join, via join-through table)
+-- * maybe get tenant whose owner_id is my user id (left outer join)
+getUserTenantRoles :: Relation () ((Users, Roles), Maybe Tenants)
+getUserTenantRoles = relation $ do
+    a       <- query users
+    ur      <- query usersRoles
+    b       <- query roles
+    on      $ a ! User.id' .=. ur ! UsersRoles.userId'
+    on      $ ur ! UsersRoles.roleId' .=. b ! Role.id'
+    c       <- queryMaybe tenants
+    on      $ just (a ! User.id') .=. flattenMaybe (c ?! Tenant.ownerId')
+    return  $ a >< b >< c
 
 
 -- INSERTS

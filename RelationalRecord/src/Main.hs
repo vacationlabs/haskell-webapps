@@ -10,9 +10,8 @@ import Relations.Role   hiding (getRole, assignRole, removeRole)
 import Relations.DB
 import DBInterface
 
-
 import Data.Default     (def)
-import Data.Aeson       (ToJSON)
+import Data.Aeson       (ToJSON(..))
 import Data.Aeson.Encode.Pretty
 import qualified Data.ByteString.Lazy.Char8 as BL
 
@@ -32,11 +31,12 @@ printJson (Right val) = BL.putStrLn $
     encodePretty' defConfig {confCompare = compare} val
 
 
+
 main :: IO ()
 main = do
     conn    <- getDataSource
     let conn' = DBConnector (Just 1) Nothing conn
-
+    {-
     createUser conn' someUser >>= print
     createTenant conn' someTenant >>= print
     activateTenant conn' 2 >>= print
@@ -49,14 +49,17 @@ main = do
 
     createRole conn' (RoleInsert 1 "testrole" "foo,bar") >>= print
     dbQuery conn' allRoles () >>= print
+    -}
 
-    dbQuery conn' allTenants () >>= print
+    dbQuery conn' getUserTenantRoles () >>= mapM_ (printJson . Right)
 
+    {-
     _ <- updateTenant conn' 3 Nothing def {Tenant.uName = NewVal "asd"}
 
     _ <- updateTenant conn' 2 Nothing def {uPhone = NewVal "4578453453", Tenant.uName = NewVal "asdkl"}
 
     _ <- removeRole conn' (RoleAssignment 1 1)
     dbQuery conn' allRoleAssignments () >>= print
+    -}
 
     putStrLn "...done"
