@@ -24,7 +24,6 @@ type MockApi = --"server" :>
      ("delete" :> Capture "role" RoleName :> Capture "user" User :> Delete '[JSON] NoContent
   :<|> "add" :> Capture "role" RoleName :> ReqBody '[JSON] RoleAttributes :> Put '[JSON] NoContent
   :<|> "roles" :> Get '[JSON] Roles
-  :<|> "assets" :> Raw
   :<|> Raw)
 
 type Navigation = "overview" :> View

@@ -29,11 +29,11 @@ initialPage = docTypeHtml $ do
         meta ! charset "utf-8"
         meta ! name "viewport" ! content "width=device-width, initial-scale=1.0"
         title "ui-mockups"
-        link ! rel "stylesheet" ! href "assets/bootstrap/css/bootstrap.min.css"
-        link ! rel "stylesheet" ! href "assets/fonts/ionicons.min.css"
-        link ! rel "stylesheet" ! href "assets/css/Login-Form-Clean.css"
-        script ! language "javascript" ! src "all.min.js" $ mempty
-        link ! rel "stylesheet" ! href "assets/css/styles.min.css"
+        link ! rel "stylesheet" ! href "/assets/bootstrap/css/bootstrap.min.css"
+        link ! rel "stylesheet" ! href "/assets/fonts/ionicons.min.css"
+        link ! rel "stylesheet" ! href "/assets/css/Login-Form-Clean.css"
+        script ! language "javascript" ! src "/js/all.min.js" $ mempty
+        link ! rel "stylesheet" ! href "/assets/css/styles.min.css"
     body mempty
 
 data Config = Config { rolesTVar :: TVar Roles }
@@ -44,10 +44,8 @@ server config
     :<|> enter (runReaderTNat config) addRole
     :<|> enter (runReaderTNat config) showRoles
     :<|> serveAssets
-    :<|> serveJS
   where
-    serveAssets = serveDirectory "../mockClient/assets"
-    serveJS     = serveDirectory "../mockClient/js/"
+    serveAssets = serveDirectory "../mockClient/"
 
 wholeServer :: Config -> Server WholeApi
 wholeServer config = navigationServer :<|> server config
