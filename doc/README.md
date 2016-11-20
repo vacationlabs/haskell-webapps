@@ -52,6 +52,8 @@
   * Joins
   * Limit/offset
   * Selecting in batches (or using cursors)
+* Database transactions
+  * Nested DB transactions
 * Managing housekeeping columns (createdAt, updatedAt)
 * Support for prepared statements
 * Any special/interesting/unique features?
