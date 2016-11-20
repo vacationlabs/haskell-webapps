@@ -2,10 +2,9 @@
 
 ## Overview
 
-In this section we will configure the DB<=>Haskell mapping for two related tables:
+In this section we will configure the DB<=>Haskell mapping for the following table:
 
 * `tenants` - the master table of "tenants" in a typical multi-tenant SaaS app. You can think of a tenant as a "company account", where no two company accounts share any data.
-* `users` - the master table of "users".
 
 At the end of the mapping process, we would like to have a schema as close to the following, as possible.
 
@@ -144,7 +143,7 @@ Now, coming back to the subtle differences in `TenantPGWrite` and `TenantPGRead`
 * `TenantPGWrite`: (Maybe (Column PGInt8))
 * `TenantPGRead`: (Column (Nullable PGInt8))
 
-**Making things even more typesafe:** If you notice, `TenantPGWrite` has the `key` field as `(Maybe (Column PGInt8))`, which makes it *omittable*, but it also makes it *definable*. Is there really any use of sending across the primary-key value from Haskell to the DB? In most cases, we think not. So, if we want to make this interface ultra typesafe, Opaleye allows us to do the following as well:
+**Making things even more typesafe:** If you notice, `TenantPGWrite` has the `key` field as `(Maybe (Column PGInt8))`, which makes it *omittable*, but it also makes it *definable*. Is there really any use of sending across the primary-key value from Haskell to the DB? In most cases, we think not. So, if we want to make this interface ultra typesafe, Opaleye allows us to do the following as well (notice the type of `key`):
 
 ```
 type TenantPGWrite = TenantPoly
