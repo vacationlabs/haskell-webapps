@@ -39,10 +39,11 @@ resolver: lts-7.7
 packages:
 - '.'
 - location:
-    git: https://github.com/khibino/haskell-relational-record
-    commit: 0c2306a6438fbdf58b1736e68affaca7cb176de8
+    git: https://github.com/mgmeier/haskell-relational-record
+    commit: 7d1a30cea2ab05048fb88c0e8d8b0a43ad171b18
   subdirs:
       - relational-record
+      - relational-schemas
 
 # The following packages have been ignored due to incompatibility with the
 # resolver compiler, dependency conflicts with other packages

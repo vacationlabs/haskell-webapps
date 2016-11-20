@@ -9,6 +9,8 @@ import Relations.User   hiding (getUser)
 import Relations.Role   hiding (getRole, assignRole, removeRole)
 import Types.Tenant     as Tenant
 import Types.Role       as Role
+import Types.AuditLog
+-- import Types.EnumDummy
 import DBInterface
 
 import Data.Aeson       (ToJSON(..))
@@ -41,7 +43,9 @@ printJson (Left err)  = print err
 printJson (Right val) = BL.putStrLn $
     encodePretty' defConfig {confCompare = compare} val
 
-
+printLog :: DBConnector -> IO ()
+printLog conn =
+    dbQuery conn auditLogs () >>= mapM_ print
 
 main :: IO ()
 main = do

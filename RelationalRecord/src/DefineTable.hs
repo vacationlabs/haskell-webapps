@@ -16,7 +16,7 @@ module  DefineTable
 
 
 import  DataSource
-import  Types.Enums
+import  Types.Enum
 
 import  Language.Haskell.TH                 (Q, Dec)
 

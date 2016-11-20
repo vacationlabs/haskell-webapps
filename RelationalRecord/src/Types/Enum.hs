@@ -1,13 +1,5 @@
-{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances #-}
 
-module  Types.TenantStatus where
-
-import  DefineTable
-import  Prelude hiding (id)
-
-
-$(defineTable "enum_tenant_status")
-
+module  Types.Enum where
 
 -- TODO
 -- This Haskell wrapper type is *not* type-safe, conversion might result
@@ -19,10 +11,12 @@ $(defineTable "enum_tenant_status")
 -- possible solution: build a custom TH action, select * from the
 -- above defined table, creating the datatype below
 
-data TenantStatus = Inactive | Active | New deriving Enum
+data TestEnum = Inactive | Active | New deriving (Show, Eq)
 
-toTenantStatus :: EnumTenantStatus -> TenantStatus
+{-
+toTenantStatus :: TestEnum -> TenantStatus
 toTenantStatus = toEnum . fromIntegral . subtract 1 . id
 
 fromTenantStatus :: TenantStatus -> Int32
 fromTenantStatus = fromIntegral . (+1) .fromEnum
+-}

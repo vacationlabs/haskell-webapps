@@ -40,6 +40,8 @@ import  Database.HDBC.Query.TH          (makeRecordPersistableDefault)
 import  Data.Aeson                      (ToJSON())
 import  Data.Time.LocalTime             (getZonedTime)
 import  Data.Maybe
+import  Data.ByteString                 (ByteString)
+import  Data.ByteString.Lazy            (toStrict)
 
 
 
@@ -54,7 +56,7 @@ data AuditLogInsert = AuditLogInsert
     PKey            -- auditableId
     Text            -- auditableTableName
     Text            -- summary
-    Text            -- changes
+    ByteString      -- changes
 $(makeRecordPersistableDefault ''AuditLogInsert)
 
 piAuditLog :: Pi AuditLogs AuditLogInsert
@@ -70,6 +72,9 @@ piAuditLog = AuditLogInsert
 insertLogEntry :: Insert AuditLogInsert
 insertLogEntry = derivedInsert piAuditLog
 
+-- what should changes look like in the auditlog when we can't row-wise diff?
+emptyChanges :: ByteString
+emptyChanges = "{}"
 
 
 dbQuery :: (FromSql SqlValue a, ToSql SqlValue p)
@@ -92,7 +97,7 @@ dbDelete (DBConnector (Just tenantPK) mUserId conn) (AuditInfo tName summ _) dlt
         res <- if num > 0
             then do
                 _ <- runInsert conn insertLogEntry $ AuditLogInsert
-                        tenantPK mUserId (isNothing mUserId) (-1) tName summ "{}"
+                        tenantPK mUserId (isNothing mUserId) (-1) tName summ emptyChanges
                 return $ ResPKId 0
             else return ResEmpty
         commit conn
@@ -108,7 +113,7 @@ dbInsert (DBConnector (Just tenantPK) mUserId conn) (AuditInfo tName summ _) ins
         _       <- runInsert conn ins param
         newId   <- lastInsertedPK conn
         _       <- runInsert conn insertLogEntry $ AuditLogInsert
-                    tenantPK mUserId (isNothing mUserId) newId tName summ "{}"
+                    tenantPK mUserId (isNothing mUserId) newId tName summ emptyChanges
         commit  conn
         return  $ ResPKId newId
 
@@ -120,7 +125,7 @@ dbUpdate (DBConnector (Just tenantPK) mUserId conn) (AuditInfo tName summ mDiff)
     handle (rollback conn) $ do
         tNow    <- getZonedTime
         _       <- runUpdate conn upd (tNow, k)
-        let dif = maybe "{}" (asText . uncurry jsonDiff) mDiff
+        let dif = maybe emptyChanges (toStrict . uncurry jsonDiff) mDiff
         _       <- runInsert conn insertLogEntry $ AuditLogInsert
                     tenantPK mUserId (isNothing mUserId) k tName summ dif
         commit  conn
