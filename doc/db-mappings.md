@@ -173,7 +173,7 @@ tenantTable = Table "tenants" (pTenant Tenant{
 
 With this, we witness another quirk (and power) of Opaleye. It allows us to define different types for the read (SELECT) and write (INSERT/UPDATE) operations. In fact, our guess is that, to achieve type-safety, it is forced to do this. Let us explain. If you're using standard auto-increment integers for the primary key (which most people do), you essentially end-up having two different types for the `INSERT` and `SELECT` operations. In the `INSERT` operation, you *should not* be specifying the `id` field/column. Whereas, in the `SELECT` operation, you will always be reading it. (Look at Persistent if you want to see another approach of solving this problem.)
 
-One way to omit the primary key during `INSERT` is by defining only a single type `TenantPG`, letting the `id` (or `key`) field be lazy, and depending on it being `undefined` for new records. We haven't tried this approach yet, but we're very sure it would require us to teach Opalaye how to map `undefined` values in Haskell to SQL. Nevertheless, depending upon partially defined records for something as common as `INSERT` operations does not bode too well for a language that prides itself on type-safety and correctness.
+One way to omit the primary key during `INSERT` is by defining only a single type `TenantPG`, letting the `id` (or `key`) field be lazy, and depending on it being `undefined` for new records. We haven't tried this approach yet, but we're very sure it would require us to teach Opalaye how to map `undefined` values to SQL. Nevertheless, depending upon partially defined records for something as common as `INSERT` operations does not bode too well for a language that prides itself on type-safety and correctness.
 
 ```
 -- NOT RECOMMENDED. NOT TESTED.
@@ -208,7 +208,7 @@ Let's look at `TenantPGWrite` again:
 Now, coming back to the subtle differences in `TenantPGWrite` and `TenantPGRead`:
 
 * While writing, we may **omit** the `key` and `createdAt` columns (because their type is `(Maybe (Column x))` in `TenantPGWrite`)
-* However, we are telling Opaleye, that while reading from the DB, we guarantee that `key` and `createdAt` will be of type `TIME WITH TIME ZONE NOT NULL`
+* However, we are telling Opaleye, that while reading from the DB, we guarantee that `key` and `createdAt` will be of type `NUMERIC NOT NULL` and `TIME WITH TIME ZONE NOT NULL`, respectively. This is because in `TenantPGRead` their types are `(Column x)`
 
 **Here's a small exercise:** What if `ownerId` had the following types. What would it mean?
 
@@ -219,6 +219,11 @@ Now, coming back to the subtle differences in `TenantPGWrite` and `TenantPGRead`
 
 * `TenantPGWrite`: (Maybe (Column PGInt8))
 * `TenantPGRead`: (Column (Nullable PGInt8))
+
+**Here's more to think about:** What if `ownerId` had the following types. What would it mean? What does having a `(Maybe (Column x))` during `SELECT` operations really mean? Does it mean anything in regular `SELECT` operations? What about `LEFT JOIN` operations?
+
+* `TenantPGWrite`: (Maybe (Column PGInt8))
+* `TenantPGRead`: (Maybe (Column PGInt8))
 
 **Making things even more typesafe:** If you notice, `TenantPGWrite` has the `key` field as `(Maybe (Column PGInt8))`, which makes it *omittable*, but it also makes it *definable*. Is there really any use of sending across the primary-key value from Haskell to the DB? In most cases, we think not. So, if we want to make this interface ultra typesafe, Opaleye allows us to do the following as well (notice the type of `key`):
 
