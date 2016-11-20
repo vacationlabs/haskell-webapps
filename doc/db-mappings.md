@@ -144,6 +144,19 @@ Now, coming back to the subtle differences in `TenantPGWrite` and `TenantPGRead`
 * `TenantPGWrite`: (Maybe (Column PGInt8))
 * `TenantPGRead`: (Column (Nullable PGInt8))
 
+**Making things even more typesafe:** If you notice, `TenantPGWrite` has the `key` field as `(Maybe (Column PGInt8))`, which makes it *omittable*, but it also makes it *definable*. Is there really any use of sending across the primary-key value from Haskell to the DB? In most cases, we think not. So, if we want to make this interface ultra typesafe, Opaleye allows us to do the following as well:
+
+```
+type TenantPGWrite = TenantPoly
+  () -- key
+  (Maybe (Column PGTimestamptz)) -- createdAt
+  (Column PGTimestamptz) -- updatedAt
+  (Column PGText) -- name
+  (Column PGText) -- status
+  (Column (Nullable PGInt8)) -- ownerId
+  (Column PGText) -- backofficeDomain
+```
+
 ### Wrapping-up
 
 Coming to the last part of setting up DB<=>Haskell mapping with Opaleye, we need to issue these magic incantations:
