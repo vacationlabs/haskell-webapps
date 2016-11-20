@@ -23,9 +23,9 @@ import           TH
 import           Data.Aeson (Value(..))
 import           JsonInstances ()
 
-makeAudtableLenses ''Role
-makeAudtableLenses ''Tenant
-makeAudtableLenses ''User
+makeAuditableLenses ''Role
+makeAuditableLenses ''Tenant
+makeAuditableLenses ''User
 
 auditLog :: String -> AppM ()
 auditLog = tell 

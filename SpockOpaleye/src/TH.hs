@@ -29,8 +29,8 @@ getType tn = do
     TyConI (TySynD _ _ tpe) -> return tpe
     _ -> error "Not a type syn"
     
-makeAudtableLenses :: Name -> Q [Dec]
-makeAudtableLenses tq= do
+makeAuditableLenses :: Name -> Q [Dec]
+makeAuditableLenses tq= do
     a <- getType tq
     let type_segs = reverse $ getTypeSegs a
     let n = typeToName $ head type_segs
