@@ -31,6 +31,8 @@ import           Servant.API
 import           Servant.Router
 import Control.Lens
 import Control.Lens.Wrapped
+
+import Data.Time.Clock
 -- main :: IO ()
 -- main = mainWidget $ do
 --   rec rendererAndSwitch <- domMorph app currentState
@@ -54,6 +56,14 @@ app (Edit serverState clientState (rolename, roleattrs)) = do
   return $ leftmost [Overview serverState <$> saveClient clientState <$> n]
 
 ----------------------------------------------
+-- | delay an Event by the amount of time specified in its value
+drivenDelay     :: MonadWidget t m
+                => Event t (NominalDiffTime,a) -- ^ delay time in seconds + value
+                -> m (Event t a)
+drivenDelay e =  performEventAsync . ffor e $ \(dt,a) cb -> liftIO . void . forkIO $ do
+  threadDelay . ceiling $ dt * 1000000
+  cb a
+
 
 main :: IO ()
 main = routeSite $ \uri -> do
@@ -63,15 +73,19 @@ main = routeSite $ \uri -> do
     Left _ -> do
       el "div" $ text "Incorrect address"
       return never
-    Right e -> return e
+    Right e -> do
+      let e' = traceEvent "sono in main: " e
+      performEvent_ $ ffor e $ \t -> liftIO (setWindowLocationHref t)
+      return e'
 
 overviewPage :: forall t m. MonadWidget t m => m (Event t Text)
 overviewPage = do
   e <- getPostBuild
   roles <- parseR' <$$> showRoles e
-  let a = fmap behavior roles
+  let a = fmap behavior (traceEvent "Roles e' stato usato " roles)
   b <- widgetHold (return never) a
-  return $ switchPromptlyDyn b
+  let c = traceEvent "b e' adesso: " $ switchPromptlyDyn b
+  return c
 
 behavior :: MonadWidget t m => Either Text Roles -> m (Event t Text)
 behavior (Left t) = do
@@ -80,6 +94,9 @@ behavior (Left t) = do
 behavior (Right r) = do
   a <- overview r r
   return $ fmap textLink a
+
+-- flattening :: Event t (Event t a) -> Event t a
+-- flattening ee = V
 
 editPage' :: MonadWidget t m => RoleName -> m (Event t Text)
 editPage' roleName = do

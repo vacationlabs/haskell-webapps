@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, ScopedTypeVariables, DataKinds, FlexibleContexts, Rank2Types, ConstraintKinds, TypeFamilies, MultiParamTypeClasses, FlexibleInstances, NoMonomorphismRestriction, NoImplicitPrelude #-}
+{-# LANGUAGE GADTs, ScopedTypeVariables, DataKinds, FlexibleContexts, Rank2Types, ConstraintKinds, TypeFamilies, MultiParamTypeClasses, FlexibleInstances, NoMonomorphismRestriction, NoImplicitPrelude, CPP #-}
 
 {-# LANGUAGE TypeApplications, OverloadedStrings, PartialTypeSignatures #-}
 
@@ -15,6 +15,7 @@ import qualified Data.Dependent.Map     as DMap
 import           Data.GADT.Compare
 import           Data.Proxy             (Proxy (..))
 
+import GHCJS.Foreign
 
 type ServerState = Roles
 type ClientState = Roles
@@ -25,8 +26,8 @@ data AppState = BootApp
               | Edit ServerState ClientState (RoleName, RoleAttributes)
 
 textLink :: AppState -> Text
-textLink (Overview _ _) = "overview"
-textLink (Edit _ _ (roleName,_)) = "edit/" <> roleName
+textLink (Overview _ _) = "/overview"
+textLink (Edit _ _ (roleName,_)) = "/edit/" <> roleName
 textLink BootApp = "Non ci dovrebbe essere"
 
 -------------- These four functions are being used after a discussion with Paolo -------------
@@ -110,3 +111,14 @@ parseR' (RequestFailure t)    = Left $ "Request failure: "  <> t
 (<$$>) :: (Functor f, Functor g) => (a -> b) -> f (g a) -> f (g b)
 (<$$>) = fmap . fmap
 infixl 4 <$$>
+
+-- setWindowLocationHref :: Text -> IO ()
+-- #ifdef ghcjs_HOST_OS
+-- setWindowLocationHref = js_setWindowLocationHref . toJSString . unpack
+
+-- foreign import javascript unsafe
+--   "window.location.href=$1"
+--   js_setWindowLocationHref :: JSString -> IO ()
+-- #else
+-- setWindowLocationHref = error "setWindowLocationHref: only works in GHCJS"
+-- #endif

@@ -38,6 +38,7 @@ roleSection :: MonadWidget t m => Roles -> Roles -> (RoleName, RoleAttributes) -
 roleSection serverState clientState (rolename, roleattrs) = el "tr" $ do
   edit <- el "td" $ do
     text rolename
+    elAttr "a" ("href"=:("/edit/" <> rolename)) (text "fuggi")
     link " (edit)"
   _ <- el "td" $ el "em" $ permissionList (roleattrs ^. rolePermission)
   _ <- el "td" $ el "ul" $ listComponent (rolename, roleattrs)
