@@ -29,6 +29,12 @@ getType tn = do
     TyConI (TySynD _ _ tpe) -> return tpe
     _ -> error "Not a type syn"
     
+-- This will generate lenses that can operate on
+-- models wrapped in Auditable wrapper. The setters
+-- thus generated will also take care of capturing the
+-- audit log diffs and store them in the _log fields of
+-- the Auditable wrapper
+
 makeAuditableLenses :: Name -> Q [Dec]
 makeAuditableLenses tq= do
     a <- getType tq

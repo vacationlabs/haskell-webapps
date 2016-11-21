@@ -65,7 +65,6 @@ data TenantPoly key created_at updated_at name fname lname email phone status ow
 type Tenant = TenantPoly TenantId UTCTime UTCTime Text Text Text Text Text TenantStatus (Maybe UserId) Text
 
 type TenantIncoming = TenantPoly () () () Text Text Text Text Text () (Maybe UserId) Text
-type TenantIncomingCreatable = TenantPoly () UTCTime UTCTime Text Text Text Text Text () (Maybe UserId) Text
 
 data UserStatus = UserStatusActive | UserStatusInActive | UserStatusBlocked
   deriving (Show)
