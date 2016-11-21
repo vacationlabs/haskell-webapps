@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>My Hakyll Blog - Setting up Haskell <=> DB mappings in Opaleye</title>
+        <link rel="stylesheet" type="text/css" href="../css/default.css" />
+    </head>
+    <body>
+        <div id="header">
+            <div id="logo">
+                <a href="../">My Hakyll Blog</a>
+            </div>
+            <div id="navigation">
+                <a href="../">Home</a>
+                <a href="../about.html">About</a>
+                <a href="../contact.html">Contact</a>
+                <a href="../archive.html">Archive</a>
+            </div>
+        </div>
+
+        <div id="content">
+            <h1>Setting up Haskell <=> DB mappings in Opaleye</h1>
+
+            <div class="info">
+    Posted on November 23, 2016
+    
+</div>
+
+<h2 id="creating-the-db">Creating the DB</h2>
+<p>Since Opaleye does not have any support for migrations, setting up the DB schema is done by simply issuing SQL statement directly.</p>
+<pre class="shell"><code>$ createdb vacationlabs
+$ psql vacationlabs &lt; includes/db-mappings/schema.sql</code></pre>
+<p>Now, to setup the DB&lt;=&gt;Haskell mapping for the <code>tenants</code> table, we’ll walk down the following code:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">DB</span> <span class="kw">where</span>
+
+<span class="kw">import </span><span class="dt">Opalaye</span>
+<span class="kw">import </span><span class="dt">Data.Text</span>
+<span class="kw">import </span><span class="dt">Data.Time</span> (<span class="dt">UTCTime</span>)
+
+<span class="kw">data</span> <span class="dt">TenantPoly</span> key createdAt updatedAt name status ownerId backofficeDomain <span class="fu">=</span> <span class="dt">Tenant</span> {
+<span class="ot">  tenantKey ::</span> key
+  ,<span class="ot">tenantCreatedAt ::</span> createdAt
+  ,<span class="ot">tenantUpdatedAt ::</span> updatedAt
+  ,<span class="ot">tenantName ::</span> name
+  ,<span class="ot">tenantStatus ::</span> status
+  ,<span class="ot">tenantOwnerId ::</span> ownerId
+  ,<span class="ot">tenantBackofficeDomain ::</span> backofficeDomain
+  } <span class="kw">deriving</span> <span class="dt">Show</span>
+
+<span class="kw">type</span> <span class="dt">TenantPGWrite</span> <span class="fu">=</span> <span class="dt">TenantPoly</span>
+  (<span class="dt">Maybe</span> (<span class="dt">Column</span> <span class="dt">PGInt8</span>)) <span class="co">-- key</span>
+  (<span class="dt">Maybe</span> (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>)) <span class="co">-- createdAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>) <span class="co">-- updatedAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- name</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- status</span>
+  (<span class="dt">Column</span> (<span class="dt">Nullable</span> <span class="dt">PGInt8</span>)) <span class="co">-- ownerId</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- backofficeDomain</span>
+
+<span class="kw">type</span> <span class="dt">TenantPGRead</span> <span class="fu">=</span> <span class="dt">TenantPoly</span>
+  (<span class="dt">Column</span> <span class="dt">PGInt8</span>) <span class="co">-- key</span>
+  (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>) <span class="co">-- createdAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>) <span class="co">-- updatedAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- name</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- status</span>
+  (<span class="dt">Column</span> (<span class="dt">Nullable</span> <span class="dt">PGInt8</span>)) <span class="co">-- ownerId</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- backofficeDomain</span>
+
+<span class="kw">type</span> <span class="dt">Tenant</span> <span class="fu">=</span> <span class="dt">TenantPoly</span>
+  <span class="dt">Integer</span> <span class="co">-- key</span>
+  <span class="dt">UTCTime</span> <span class="co">-- createdAt</span>
+  <span class="dt">UTCTime</span> <span class="co">-- updatedAt</span>
+  <span class="dt">Text</span> <span class="co">-- name</span>
+  <span class="dt">Text</span> <span class="co">-- status</span>
+  (<span class="dt">Maybe</span> <span class="dt">Integer</span>) <span class="co">-- ownerId</span>
+  <span class="dt">Text</span> <span class="co">-- backofficeDomain</span>
+
+<span class="fu">$</span>(makeAdaptorAndInstance <span class="st">&quot;pTenant&quot;</span> <span class="ch">''</span><span class="dt">TenantPoly</span>)
+<span class="fu">$</span>(makeLensesWith abbreviatedFields <span class="ch">''</span><span class="dt">TenantPoly</span>)
+
+
+<span class="ot">tenantTable ::</span> <span class="dt">Table</span> <span class="dt">TenantPGWrite</span> <span class="dt">TenantPGRead</span>
+tenantTable <span class="fu">=</span> <span class="dt">Table</span> <span class="st">&quot;tenants&quot;</span> (pTenant <span class="dt">Tenant</span>{
+                                  tenantKey <span class="fu">=</span> optional <span class="st">&quot;id&quot;</span>
+                                  ,tenantCreatedAt <span class="fu">=</span> optional <span class="st">&quot;created_at&quot;</span>
+                                  ,tenantUpdatedAt <span class="fu">=</span> required <span class="st">&quot;updated_at&quot;</span>
+                                  ,tenantName <span class="fu">=</span> required <span class="st">&quot;name&quot;</span>
+                                  ,tenantStatus <span class="fu">=</span> required <span class="st">&quot;status&quot;</span>
+                                  ,tenantOwnerId <span class="fu">=</span> required <span class="st">&quot;owner_id&quot;</span>
+                                  ,tenantBackofficeDomain <span class="fu">=</span> required <span class="st">&quot;backoffice_domain&quot;</span>
+                                  })</code></pre></div>
+<p>That’s quite a <strong>lot of code</strong> to setup mappings for just one table! Most of it is just boilerplate that can easily be abstracted away using typefamilies or some TemplateHaskell. In fact there are libraries, such as, SilkOpaleye and dbrecord-opaleye which try to give Opaleye an easier-to-use API.</p>
+<h2 id="strange-polymorphic-records">Strange polymorphic records</h2>
+<p>Firstly, let’s tackle the strangely polymorphic <code>TenantPoly</code>.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">TenantPoly</span> key createdAt updatedAt name status ownerId backofficeDomain <span class="fu">=</span> <span class="dt">Tenant</span> {
+<span class="ot">  tenantKey ::</span> key
+  ,<span class="ot">tenantCreatedAt ::</span> createdAt
+  ,<span class="ot">tenantUpdatedAt ::</span> updatedAt
+  ,<span class="ot">tenantName ::</span> name
+  ,<span class="ot">tenantStatus ::</span> status
+  ,<span class="ot">tenantOwnerId ::</span> ownerId
+  ,<span class="ot">tenantBackofficeDomain ::</span> backofficeDomain
+  } <span class="kw">deriving</span> <span class="dt">Show</span></code></pre></div>
+<p>This is a <strong>base type</strong> which defines the <strong>shape</strong> of a set of related record-types (namely <code>TenantPGRead</code>, <code>TenantPGWrite</code>, and <code>Tenant</code>). <code>TenantPoly</code> is polymorphic over every single field of the record. This allows us to easily change the type of each field, while ensuring that the <em>shape</em> of all these related records is always the same. (<em>Why</em> would we want records with similar shapes, but different types, will get clearer in a moment - hang in there!) Generally, <code>TenantPoly</code> is never used directly in any Opaleye operation. The concrete types - <code>TenantPGRead</code> <code>TenantPGWrite</code> and <code>Tenant</code> - are used instead.</p>
+<p>Now, it seems that Opalaye does <strong>not do any reflection</strong> on the DB schema whatsoever. This is a completely different approach compared to Rails (in the Ruby world) and HRR (in the Haskell world) which generate the DB&lt;=&gt;Haskell classes/record-types completely on the basis of schema reflection). So, Opaleye does not know what data-types to expect for each column when talking to the DB. Therefore, we have to teach it by duplicating the column definitions in Haskell. This is precisely what <code>TenantPGRead</code>, <code>TenantPGWrite</code>, <code>makeAdaptorAndInstance</code> and <code>tenantTable</code> do, and this is what we absolutely hate about Opaleye!</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">TenantPGWrite</span> <span class="fu">=</span> <span class="dt">TenantPoly</span>
+  (<span class="dt">Maybe</span> (<span class="dt">Column</span> <span class="dt">PGInt8</span>)) <span class="co">-- key</span>
+  (<span class="dt">Maybe</span> (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>)) <span class="co">-- createdAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>) <span class="co">-- updatedAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- name</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- status</span>
+  (<span class="dt">Column</span> (<span class="dt">Nullable</span> <span class="dt">PGInt8</span>)) <span class="co">-- ownerId</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- backofficeDomain</span>
+
+<span class="kw">type</span> <span class="dt">TenantPGRead</span> <span class="fu">=</span> <span class="dt">TenantPoly</span>
+  (<span class="dt">Column</span> <span class="dt">PGInt8</span>) <span class="co">-- key</span>
+  (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>) <span class="co">-- createdAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>) <span class="co">-- updatedAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- name</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- status</span>
+  (<span class="dt">Column</span> (<span class="dt">Nullable</span> <span class="dt">PGInt8</span>)) <span class="co">-- ownerId</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- backofficeDomain</span>
+
+<span class="fu">$</span>(makeAdaptorAndInstance <span class="st">&quot;pTenant&quot;</span> <span class="ch">''</span><span class="dt">TenantPoly</span>)
+
+<span class="ot">tenantTable ::</span> <span class="dt">Table</span> <span class="dt">TenantPGWrite</span> <span class="dt">TenantPGRead</span>
+tenantTable <span class="fu">=</span> <span class="dt">Table</span> <span class="st">&quot;tenants&quot;</span> (pTenant <span class="dt">Tenant</span>{
+                                  tenantKey <span class="fu">=</span> optional <span class="st">&quot;id&quot;</span>
+                                  ,tenantCreatedAt <span class="fu">=</span> optional <span class="st">&quot;created_at&quot;</span>
+                                  ,tenantUpdatedAt <span class="fu">=</span> optional <span class="st">&quot;updated_at&quot;</span>
+                                  ,tenantName <span class="fu">=</span> required <span class="st">&quot;name&quot;</span>
+                                  ,tenantStatus <span class="fu">=</span> required <span class="st">&quot;status&quot;</span>
+                                  ,tenantOwnerId <span class="fu">=</span> required <span class="st">&quot;owner_id&quot;</span>
+                                  ,tenantBackofficeDomain <span class="fu">=</span> required <span class="st">&quot;backoffice_domain&quot;</span>
+                                  })</code></pre></div>
+<h2 id="different-types-for-read-write">Different types for read &amp; write</h2>
+<p>With this, we witness another quirk (and power) of Opaleye. It allows us to define different types for the read (SELECT) and write (INSERT/UPDATE) operations. In fact, our guess is that, to achieve type-safety, it is forced to do this. Let us explain. If you’re using standard auto-increment integers for the primary key (which most people do), you essentially end-up having two different types for the <code>INSERT</code> and <code>SELECT</code> operations. In the <code>INSERT</code> operation, you <em>should not</em> be specifying the <code>id</code> field/column. Whereas, in the <code>SELECT</code> operation, you will always be reading it. (Look at Persistent if you want to see another approach of solving this problem.)</p>
+<p>One way to omit the primary key during <code>INSERT</code> is by defining only a single type <code>TenantPG</code>, letting the <code>id</code> (or <code>key</code>) field be lazy, and depending on it being <code>undefined</code> for new records. We haven’t tried this approach yet, but we’re very sure it would require us to teach Opalaye how to map <code>undefined</code> values to SQL. Nevertheless, depending upon partially defined records for something as common as <code>INSERT</code> operations does not bode too well for a language that prides itself on type-safety and correctness.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- NOT RECOMMENDED. NOT TESTED.</span>
+<span class="kw">type</span> <span class="dt">TenantPG</span> <span class="fu">=</span> <span class="dt">TenantPoly</span>
+  (<span class="dt">Column</span> <span class="dt">PGInt8</span>) <span class="co">-- key</span>
+  (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>) <span class="co">-- createdAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>) <span class="co">-- updatedAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- name</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- status</span>
+  (<span class="dt">Column</span> (<span class="dt">Nullable</span> <span class="dt">PGInt8</span>)) <span class="co">-- ownerId</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- backofficeDomain</span></code></pre></div>
+<p>Therefore, the need for two separate types: <code>TenantPGRead</code> and <code>TenantPGWrite</code>, with subtle differences. But, before we discuss the differences, we need to understand how Opaleye deals with <code>NULL</code> values and “omitted columns”.</p>
+<h2 id="handling-null-and-database-defaults">Handling <code>NULL</code> and database defaults</h2>
+<p>Let’s look at <code>TenantPGWrite</code> again:</p>
+<table style="width:15%;">
+<colgroup>
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Column</th>
+<th>Data type</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>key</code></td>
+<td><code>(Maybe (Column PGInt8))</code></td>
+<td>A PG column of type PGInt8, which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it’s an auto-increment primary key), it will be used, else it will be <code>NULL</code>.</td>
+</tr>
+<tr class="even">
+<td><code>createdAt</code></td>
+<td><code>(Maybe (Column PGTimestamptz))</code></td>
+<td>A PG column of type PGTimestamptz (<code>TIME WITH TIME ZONE</code>), which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it is <code>current_timestamp</code>), it will be used, else it will be <code>NULL</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>updatedAt</code></td>
+<td><code>(Column PGTimestamptz)</code></td>
+<td>A PG column of type PGTimestamptz, which can NOT be omitted from the INSERT/UPDATE statement AND its value must be <code>NOT NULL</code></td>
+</tr>
+<tr class="even">
+<td><code>name</code></td>
+<td><code>(Column PGText)</code></td>
+<td>A PG column of type PGText (<code>TEXT</code>), which can NOT be omitted from the INSERT/UPDATE statement AND its value must be <code>NOT NULL</code></td>
+</tr>
+<tr class="odd">
+<td><code>status</code></td>
+<td><code>(Column PGText)</code></td>
+<td>A PG column of type PGText (<code>TEXT</code>), which can NOT be omitted from the INSERT/UPDATE statement AND its value must be <code>NOT NULL</code></td>
+</tr>
+<tr class="even">
+<td><code>ownerId</code></td>
+<td><code>(Column (Nullable PGInt8))</code></td>
+<td>A PG column of type PGInt8, which can NOT be omitted from the INSERT/UPDATE statement, HOWEVER its value CAN be <code>NULL</code>. While the column can hold <code>NULL</code> values, it cannot be omitted from the INSERT/UPDATE statement. This means, that even if you want to set it to <code>NULL</code> you need to do so explicitly. Moreover, actual <code>NULL</code> values are represented as <a href="https://hackage.haskell.org/package/opaleye-0.5.1.0/docs/Opaleye-Column.html#v:null"><code>null</code></a> instead of <code>Nothing</code> in Opaleye.</td>
+</tr>
+<tr class="odd">
+<td><code>backofficeDomain</code></td>
+<td><code>(Column PGText)</code></td>
+<td>A PG column of type PGText (<code>TEXT</code>), which can NOT be omitted from the INSERT/UPDATE statement AND its value must be <code>NOT NULL</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="different-types-for-read-write---again">Different types for read &amp; write - again</h2>
+<p>Now, coming back to the subtle differences in <code>TenantPGWrite</code> and <code>TenantPGRead</code>:</p>
+<ul>
+<li>While writing, we may <strong>omit</strong> the <code>key</code> and <code>createdAt</code> columns (because their type is <code>(Maybe (Column x))</code> in <code>TenantPGWrite</code>)</li>
+<li>However, we are telling Opaleye, that while reading from the DB, we guarantee that <code>key</code> and <code>createdAt</code> will be of type <code>NUMERIC NOT NULL</code> and <code>TIME WITH TIME ZONE NOT NULL</code>, respectively. This is because in <code>TenantPGRead</code> their types are <code>(Column x)</code></li>
+</ul>
+<p><strong>Here’s a small exercise:</strong> What if <code>ownerId</code> had the following types. What would it mean?</p>
+<ul>
+<li><code>TenantPGWrite</code>: (Maybe (Column (Nullable PGInt8)))</li>
+<li><code>TenantPGRead</code>: (Column (Nullable PGInt8))</li>
+</ul>
+<p><strong>Here’s another small exercise:</strong> What if <code>ownerId</code> had the following types. What would it mean?</p>
+<ul>
+<li><code>TenantPGWrite</code>: (Maybe (Column PGInt8))</li>
+<li><code>TenantPGRead</code>: (Column (Nullable PGInt8))</li>
+</ul>
+<p><strong>Here’s more to think about:</strong> What if <code>ownerId</code> had the following types. What would it mean? What does having a <code>(Maybe (Column x))</code> during <code>SELECT</code> operations really mean? Does it mean anything in regular <code>SELECT</code> operations? What about <code>LEFT JOIN</code> operations?</p>
+<ul>
+<li><code>TenantPGWrite</code>: (Maybe (Column PGInt8))</li>
+<li><code>TenantPGRead</code>: (Maybe (Column PGInt8))</li>
+</ul>
+<p><strong>Making things even more typesafe:</strong> If you notice, <code>TenantPGWrite</code> has the <code>key</code> field as <code>(Maybe (Column PGInt8))</code>, which makes it <em>omittable</em>, but it also makes it <em>definable</em>. Is there really any use of sending across the primary-key value from Haskell to the DB? In most cases, we think not. So, if we want to make this interface ultra typesafe, Opaleye allows us to do the following as well (notice the type of <code>key</code>):</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">TenantPGWrite</span> <span class="fu">=</span> <span class="dt">TenantPoly</span>
+  () <span class="co">-- key</span>
+  (<span class="dt">Maybe</span> (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>)) <span class="co">-- createdAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGTimestamptz</span>) <span class="co">-- updatedAt</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- name</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- status</span>
+  (<span class="dt">Column</span> (<span class="dt">Nullable</span> <span class="dt">PGInt8</span>)) <span class="co">-- ownerId</span>
+  (<span class="dt">Column</span> <span class="dt">PGText</span>) <span class="co">-- backofficeDomain</span></code></pre></div>
+<h2 id="wrapping-up">Wrapping-up</h2>
+<p>Coming to the last part of setting up DB&lt;=&gt;Haskell mapping with Opaleye, we need to issue these magic incantations:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">$</span>(makeAdaptorAndInstance <span class="st">&quot;pTenant&quot;</span> <span class="ch">''</span><span class="dt">TenantPoly</span>)
+
+<span class="ot">tenantTable ::</span> <span class="dt">Table</span> <span class="dt">TenantPGWrite</span> <span class="dt">TenantPGRead</span>
+tenantTable <span class="fu">=</span> <span class="dt">Table</span> <span class="st">&quot;tenants&quot;</span> (pTenant <span class="dt">Tenant</span>{
+                                  tenantKey <span class="fu">=</span> optional <span class="st">&quot;id&quot;</span>
+                                  ,tenantCreatedAt <span class="fu">=</span> optional <span class="st">&quot;created_at&quot;</span>
+                                  ,tenantUpdatedAt <span class="fu">=</span> optional <span class="st">&quot;updated_at&quot;</span>
+                                  ,tenantName <span class="fu">=</span> required <span class="st">&quot;name&quot;</span>
+                                  ,tenantStatus <span class="fu">=</span> required <span class="st">&quot;status&quot;</span>
+                                  ,tenantOwnerId <span class="fu">=</span> required <span class="st">&quot;owner_id&quot;</span>
+                                  ,tenantBackofficeDomain <span class="fu">=</span> required <span class="st">&quot;backoffice_domain&quot;</span>
+                                  })</code></pre></div>
+<p>The TH splice - <code>makeAdaptorAndInstance</code> - does two very important things:</p>
+<ul>
+<li>Defines the <code>pTenant</code> function, which is subsequently used in <code>tenantTable</code></li>
+<li>Defines the <code>Default</code> instance for <code>TenantPoly</code> (this is not <code>Data.Default</code>, but the <a href="https://github.com/tomjaguarpaw/haskell-opaleye/issues/225#issuecomment-258441089">poorly named <code>Data.Profunctor.Product.Default</code></a>)</li>
+</ul>
+<p>Right now, we don’t need to be bothered with the internals of <code>pTenant</code> and <code>Default</code>, but we <em>will</em> need them when we want to do some advanced DB&lt;=&gt;Haskell mapping. Right now, what we need to be bothered about is <code>tenantTable</code>. That is what we’ve been waiting for! This is what represents the <code>tenants</code> table in the Haskell land. Every SQL operation on the <code>tenants</code> table will need to reference <code>tenantsTable</code>. And while defining <code>tenantsTable</code> we’ve finally assembled the last piece of the puzzle: field-name &lt;=&gt; column-name mappings AND the name of the table! (did you happen to forget about them?)</p>
+<p><strong>Note:</strong> We’re not really clear why we need to specify <code>optional</code> and <code>required</code> in the table definition when <code>TenantPGWrite</code> has already defined which columns are optional and which are required.</p>
+<p>And, one last thing. We’ve been talking about <code>PGText</code>, <code>PGTimestamptz</code>, and <code>PGInt8</code> till now. These aren’t the regular Haskell types that we generally deal with! These are representations of native PG types in Haskell. You would generally not build your app with these types. Instead, you would use something like <code>Tenant</code>, defined below:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="dt">Tenant</span> <span class="fu">=</span> <span class="dt">TenantPoly</span>
+  <span class="dt">Integer</span> <span class="co">-- key</span>
+  <span class="dt">UTCTime</span> <span class="co">-- createdAt</span>
+  <span class="dt">UTCTime</span> <span class="co">-- updatedAt</span>
+  <span class="dt">Text</span> <span class="co">-- name</span>
+  <span class="dt">Text</span> <span class="co">-- status</span>
+  (<span class="dt">Maybe</span> <span class="dt">Integer</span>) <span class="co">-- ownerId</span>
+  <span class="dt">Text</span> <span class="co">-- backofficeDomain</span></code></pre></div>
+<p><strong>Remember these three types and their purpose. We will need them when we’re inserting, udpating, and selecting rows.</strong></p>
+<ul>
+<li><code>TenantPGWrite</code> defines the record-type that can be written to the DB in terms of PG types.</li>
+<li><code>TenantPGRead</code> defines the record-type that can be read from the DB in terms of PG types.</li>
+<li><code>Tenant</code> defines the records that represents rows of the <code>tenants</code> table, in terms of Haskell types. We haven’t yet split this into separate read and write types.</li>
+</ul>
+<h2 id="template-haskell-expansion">Template Haskell expansion</h2>
+<p>If you’re curious, this is what the TH splice expands to (not literally, but conceptually). You might also want to read the <a href="https://hackage.haskell.org/package/product-profunctors-0.7.1.0/docs/Data-Profunctor-Product-TH.html">documentation of Data.Profunctor.Product.TH</a> to understand what’s going on here.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">    pTenant ::</span> <span class="dt">ProductProfunctor</span> p <span class="ot">=&gt;</span>
+      <span class="dt">TenantPoly</span> 
+        (p key0 key1)
+        (p createdAt0 createdAt1) 
+        (p updatedAt0 updatedAt1)
+        (p name0 name1)
+        (p status0 status1)
+        (p ownerId0 ownerId1)
+        (p backofficeDomain0 backofficeDomain1)
+      <span class="ot">-&gt;</span> p  (<span class="dt">TenantPoly</span> key0 createdAt0 updatedAt0 name0 status0 ownerId0 backofficeDomain0) 
+            (<span class="dt">TenantPoly</span> key1 createdAt1 updatedAt1 name1 status ownerId1 backofficeDomain1)
+    pTenant <span class="fu">=</span> (((dimap toTuple fromTuple) <span class="fu">.</span> Data.Profunctor.Product.p7)<span class="fu">.</span> toTuple)
+      <span class="kw">where</span>
+          toTuple (<span class="dt">Tenant</span> key createdAt updatedAt name status ownerId backofficeDomain)
+            <span class="fu">=</span> (key, createdAt, updatedAt, name, status, ownerId, backofficeDomain)
+          fromTuple (key, createdAt, updatedAt, name, status, ownerId, backofficeDomain)
+            <span class="fu">=</span> <span class="dt">Tenant</span> key createdAt updatedAt name status ownerId backofficeDomain
+
+
+    <span class="kw">instance</span> (<span class="dt">ProductProfunctor</span> p,
+              <span class="dt">Default</span> p key0 key1,
+              <span class="dt">Default</span> p createdAt0 createdAt1,
+              <span class="dt">Default</span> p updatedAt0 updatedAt1,
+              <span class="dt">Default</span> p name0 name1,
+              <span class="dt">Default</span> p status0 status,
+              <span class="dt">Default</span> p ownerId0 ownerId1,
+              <span class="dt">Default</span> p backofficeDomain0 backofficeDomain1) <span class="ot">=&gt;</span>
+             <span class="dt">Default</span> p (<span class="dt">TenantPoly</span> key0 createdAt0 updatedAt0 name0 status0 ownerId0 backofficeDomain0) 
+                       (<span class="dt">TenantPoly</span> key1 createdAt1 updatedAt1 name1 status ownerId1 backofficeDomain1) <span class="kw">where</span>
+      def <span class="fu">=</span> pTenant (<span class="dt">Tenant</span> def def def def def def def)</code></pre></div>
+
+        </div>
+        <div id="footer">
+            Site proudly generated by
+            <a href="http://jaspervdj.be/hakyll">Hakyll</a>
+        </div>
+    </body>
+</html>
