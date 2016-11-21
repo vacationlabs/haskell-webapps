@@ -287,7 +287,7 @@ type Tenant = TenantPoly
 
 ### Template Haskell expansion
 
-If you're curious, this is what the TH splice expands to (not literally, but conceptually):
+If you're curious, this is what the TH splice expands to (not literally, but conceptually). You might also want to read the [documentation of Data.Profunctor.Product.TH](https://hackage.haskell.org/package/product-profunctors-0.7.1.0/docs/Data-Profunctor-Product-TH.html) to understand what's going on here.
 
 ```
     pTenant :: ProductProfunctor p =>
