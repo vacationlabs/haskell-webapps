@@ -104,6 +104,7 @@ A lot of people are excited about building a JSON API in Servant and everyone se
   - Minification toolchain to reduce the final JS size (closure compiler, specific ghcjs compilation options etc.)
   - Progressive loading of JS files to reduce initial page-load time
   - Server-side rendering of initial page-load
+  - Benchmarking how well the generated app fares on mobile
 
 **Please raise a PR against this file to add more higher-order design goals**
 
