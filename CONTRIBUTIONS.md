@@ -97,10 +97,14 @@ A lot of people are excited about building a JSON API in Servant and everyone se
   - Investigate the tradeoff of doing all the implementation in haskell vs. interface, via haskell, to html templates.
   - Investigate how to integrate with existing jQuery widgets (calendar, accordion, search/sort tables, editable grids, etc)
   - Forms relying only on server side validation or with mixed client/server side validation
+  - Investigate the preferred way to architecture an application. How powerful, and how general, is it?
+  - Find a simple and elegant way to do client-side routing. Bonus points if it's easily integrable with the server.
+  - Analyze, in the case of a language barrier to cross, the tradeoffs involved. In particular if is it possible to automatically reutilize the same structures (like the description of an API) on both frontend and backend.
 * Deployment concerns
   - Minification toolchain to reduce the final JS size (closure compiler, specific ghcjs compilation options etc.)
   - Progressive loading of JS files to reduce initial page-load time
   - Server-side rendering of initial page-load
+  - Benchmarking how well the generated app fares on mobile
 
 **Please raise a PR against this file to add more higher-order design goals**
 
