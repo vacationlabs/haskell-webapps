@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Haskell Tutorials
+Opaleye Tutorials
 =================
 
 Contents:
@@ -11,4 +11,5 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   docs/opaleye/opaleye
+   introduction
+   advanced-db-mapping
