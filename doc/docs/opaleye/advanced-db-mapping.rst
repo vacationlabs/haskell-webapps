@@ -6,7 +6,7 @@ Overview
 
 In this chapter we'll build upon what we did in the last chapter:
 
-- We'll modify the `tenants` table, to be a little more typesafe by changing the type of the `status` column to a Postgres `ENUM` (rather than a `text`).
+- We'll modify the ``tenants`` table, to be a little more typesafe by changing the type of the `status` column to a Postgres `ENUM` (rather than a `text`).
 - We'll also add a new table called `products` that will be used to store information of various products in our hypothetical ecommerce store.
 - We'll also change the `id` and `createdAt` columns read-only for greated type-safety.
 
