@@ -11,5 +11,6 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   introduction
+   instant-gratification
+   basic-db-mapping
    advanced-db-mapping
