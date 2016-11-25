@@ -16,7 +16,7 @@ SQL for table creation
 ----------------------
 
   .. code-block:: sql
-    :emphasize-lines: 7,16,40
+    :emphasize-lines: 7,16,32,39,47
 
     --
     -- Tenants
