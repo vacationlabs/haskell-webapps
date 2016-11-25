@@ -29,6 +29,7 @@ executable RelationalRecord
                     relational-query,
                     relational-schemas >= 0.1.3.2,
                     persistable-record,
+                    th-data-compat,
                     HDBC-session,
                     HDBC,
                     HDBC-postgresql,
