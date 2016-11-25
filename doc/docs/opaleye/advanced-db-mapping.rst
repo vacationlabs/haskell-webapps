@@ -16,6 +16,7 @@ SQL for table creation
 ----------------------
 
   .. code-block:: sql
+     :emphasize-lines: 7,16,40
 
     --
     -- Tenants
@@ -59,9 +60,6 @@ SQL for table creation
            ,currency char(3) not null
            ,advertised_price numeric not null
            ,comparison_price numeric not null
-
-           -- NOTE: Adding the cost-price as an optional column to make the JSON
-           -- responses dependent upon the persmission of the signed-in user.
            ,cost_price numeric
            ,type product_type not null
            ,is_published boolean not null default false
