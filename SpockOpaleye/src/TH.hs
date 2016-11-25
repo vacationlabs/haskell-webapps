@@ -27,13 +27,15 @@ getType tn = do
   info <- reify tn
   case info of
     TyConI (TySynD _ _ tpe) -> return tpe
-    _ -> error "Not a type syn"
+    _ -> return (ConT tn)
     
 -- This will generate lenses that can operate on
 -- models wrapped in Auditable wrapper. The setters
 -- thus generated will also take care of capturing the
 -- audit log diffs and store them in the _log fields of
 -- the Auditable wrapper
+
+-- Inspect a name: $(stringE . show =<< reify ''DataTypes.Role)
 
 makeAuditableLenses :: Name -> Q [Dec]
 makeAuditableLenses tq= do
@@ -49,7 +51,10 @@ makeAuditableLenses tq= do
       mkInstanceDef rec_name t_type type_params type_segs (field, typ) = do
         let resolved_type = resolve_type typ type_params type_segs
         let fname_rt = (drop (1+(length rec_name)) $ (toLower <$> field))
-        Just fname_ap <- lookupValueName fname_rt
+        tx <- lookupValueName fname_rt
+        let fname_ap = case  tx of
+                        Just x -> x
+                        _ -> error (show fname_rt)
         expr <- mkInstanceFunction field
         do
           let tc = "Has" ++ (uc_first fname_rt)
@@ -63,11 +68,10 @@ makeAuditableLenses tq= do
           uc_first (x:xs) = (toUpper x):xs
           uc_first [] = []
           resolve_type :: Type -> [Name] -> [Type] -> Type
-          resolve_type t@(ConT _) _ _ = t
           resolve_type (VarT n) tp ts = case (elemIndex n tp) of
             Just idx -> (ts !! (idx + 1))
             _ -> error "Unknown type variable"
-          resolve_type _ _ _ = error "Should be a type variable or a concrete type"
+          resolve_type t _ _ = t
 
 getTypeParams :: Name -> Q [Name]
 getTypeParams t_name = do
