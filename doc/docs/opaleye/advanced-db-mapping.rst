@@ -6,9 +6,11 @@ Overview
 
 In this chapter we'll build upon what we did in the last chapter:
 
-- We'll modify the ``tenants`` table, to be a little more typesafe by changing the type of the ``status`` column to a Postgres ``ENUM`` (rather than a ``text``).
-- We'll also add a new table called `products` that will be used to store information of various products in our hypothetical ecommerce store.
-- We'll also change the ``id`` and ``createdAt`` columns read-only for greated type-safety.
+- We'll modify the ``tenants`` table, to be a little more typesafe by changing the type of the ``status`` column to a Postgres ``ENUM`` (rather than a ``text``) and mapping it to a Haskell ADT.
+- We'll add a new table called ``products`` that will be used to store information of various products in our hypothetical ecommerce store
+- We'll change the ``id`` and ``createdAt`` columns to be read-only, for greater type-safety while inserting records.
+- We'll change the primary keys, ``tenants.id`` and ``products.id`` to ``TenantId`` and ``ProductId`` respecively. Again, for greater type-safety.
+
 
 SQL for table creation
 ----------------------
@@ -82,13 +84,23 @@ TODO:
 
 - Complete code with polymorphic records, etc (complete boilerplate) for ``tenats`` and ``products``
 
-Making columns read-only
-------------------------
+Core mechanism for mapping custom Haskell types to PG types
+----------------------
 
 TODO:
 
-- Code snippet for making ``id`` and ``createdAt`` readonly and its explanation
-- Note about why would you want to make a columnn read-only.
+- General commentary on how Haskell<=>DB mapping workds
+- Details about all the type-classes AND TH functions involved
+- Tutorial flow should treat the following sections as example of how the machinery is to be used in practice
+
+Newtypes for primary keys
+-------------------------
+
+TODO:
+
+- Code snippet to deal with ``ProductID`` and ``TenantID``
+- Example of joining ``tenants`` and ``products`` on ``tenants.ids=products.tenant_id`` thus resulting in correctly compiling code.
+- Example of joining ``tenants`` and ``products`` on ``tenants.id=products.id`` thus resulting in code that wont compile.
 
 
 Mapping ENUMs to Haskell ADTs
@@ -116,3 +128,13 @@ TODO:
 - Code snippet for handling ``properties`` column
 - Some recommendation about using strict vs lazy JSON. Is it possible to force usage of only one kind, while setting up the types for the table?
 - Fetch a record by primary-key to show how the JSONB column will look-like in Haskell land.
+
+
+Making columns read-only
+------------------------
+
+TODO:
+
+- Code snippet for making ``id`` and ``createdAt`` readonly and its explanation
+- Note about why would you want to make a columnn read-only.
+- Quick example of inserting a row with a read-only column.
