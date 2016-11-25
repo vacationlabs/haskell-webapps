@@ -2,6 +2,8 @@
 
 module  Types.Enum where
 
+import  Helpers.DefineEnum
+
 -- import  Database.HDBC.Query.TH              (makeRecordPersistableDefault)
 import  Database.Record
 import  Database.Record.TH              (deriveNotNullType)
@@ -10,6 +12,7 @@ import  Database.HDBC.SqlValue
 import  Data.ByteString.Char8           (unpack)
 import  Data.Char                       (toUpper, toLower)
 
+$(defineEnum "test_enum")
 
 -- TODO
 -- This Haskell wrapper type is *not* type-safe, conversion might result
