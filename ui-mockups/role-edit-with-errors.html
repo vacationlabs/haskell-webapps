@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ui-mockups</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/fonts/ionicons.min.css">
+    <link rel="stylesheet" href="assets/css/styles.min.css">
+</head>
+
+<body>
+    <div>
+        <nav class="navbar navbar-inverse navigation-clean-search">
+            <div class="container">
+                <div class="navbar-header"><a class="navbar-brand navbar-link" href="#">Tenant name comes here</a>
+                    <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navcol-1"><span class="sr-only">Toggle navigation</span><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></button>
+                </div>
+                <div class="collapse navbar-collapse" id="navcol-1">
+                    <ul class="nav navbar-nav">
+                        <li class="active" role="presentation"><a href="#">Link 1</a></li>
+                        <li role="presentation"><a href="#">Link 2</a></li>
+                        <li role="presentation"><a href="#">Link 3</a></li>
+                    </ul>
+                    <form class="navbar-form navbar-left" target="_self">
+                        <div class="form-group">
+                            <label class="control-label" for="search-field"><i class="glyphicon glyphicon-search"></i></label>
+                            <input class="form-control search-field" type="search" name="search" id="search-field">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <div></div>
+    <div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 secton-menu">
+                    <ul class="nav nav-pills nav-stacked">
+                        <li class="active"><a href="#">Account Settings</a></li>
+                        <li><a href="#">Second Item</a></li>
+                        <li><a href="#">Third Item</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-9">
+                    <ol class="breadcrumb">
+                        <li><a><span>Account settings</span></a></li>
+                        <li><a><span>Roles </span></a></li>
+                        <li><a><span>Edit role: Product editor</span></a></li>
+                    </ol>
+                    <div class="alert alert-danger" role="alert"><span>Please fix the errors highlighted in <strong>red</strong> below:</span>
+                        <ul>
+                            <li>Error not related to a specific field #1, eg. you must select at least one permission for this role</li>
+                            <li>Error not related to a specific field #2</li>
+                        </ul>
+                    </div>
+                    <form>
+                        <div class="form-group has-error">
+                            <label class="control-label">Role name</label>
+                            <input class="form-control" type="text"><span class="help-block">Role name can't be blank</span></div>
+                        <div class="form-group">
+                            <label class="control-label">Permissions </label>
+                            <div class="row">
+                                <div class="col-lg-4 col-md-4 col-md-offset-0 col-sm-6 col-xs-12">
+                                    <div class="checkbox permission-group-heading">
+                                        <label class="control-label">
+                                            <input type="checkbox"><strong>Product</strong></label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">View all product details</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Edit product textual content</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Edit product photos</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Edit product properties</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Edit product price</label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-md-offset-0 col-sm-6 col-xs-12">
+                                    <div class="checkbox permission-group-heading">
+                                        <label class="control-label">
+                                            <input type="checkbox"><strong>Orders</strong></label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">View all order details</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Create a new order</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Edit an existing order (not created by self)</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Apply special discounts to orders</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Cancel an order</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Change contact details in an order</label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 col-md-4 col-md-offset-0 col-sm-6 col-xs-12">
+                                    <div class="checkbox permission-group-heading">
+                                        <label class="control-label">
+                                            <input type="checkbox"><strong>Users</strong></label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">View user details</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Edit some other user's details</label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label class="control-label">
+                                            <input type="checkbox">Change roles assigned to a user</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group has-error">
+                            <label class="control-label">Users with this role</label>
+                            <ul>
+                                <li>user1@mydomain.com <a href="#">(revoke) </a> </li>
+                                <li>user2@mydomain.com <a href="#">(revoke) </a> </li>
+                                <li>user3@mydomain.com <a href="#">(revoke) </a> </li>
+                                <li>user4@mydomain.com <a href="#">(revoke) </a> </li>
+                            </ul>
+                            <div class="row">
+                                <div class="col-lg-6 col-md-8 col-sm-8 col-xs-12">
+                                    <div class="input-group">
+                                        <div class="input-group-addon"><span>Add another user</span></div>
+                                        <input class="form-control" type="text">
+                                        <div class="input-group-btn">
+                                            <button class="btn btn-default" type="button">Add </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div><span class="help-block">That doesn't look like a valid user. Does the user exist?</span></div>
+                    </form>
+                    <div class="form-group">
+                        <button class="btn btn-primary" type="submit">Save </button><a href="#" class="cancel text-danger">cancel </a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+</body>
+
+</html>
