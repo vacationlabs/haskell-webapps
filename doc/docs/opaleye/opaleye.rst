@@ -14,4 +14,6 @@ Contents:
    instant-gratification
    basic-db-mapping
    advanced-db-mapping
+   selecting-rows
    inserting-rows
+   updating-rows

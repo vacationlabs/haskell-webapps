@@ -34,7 +34,7 @@ We'll stick with the same ``tenants`` table as the previous chapter:
     create unique index idx_unique_tenants_backoffice_domain on tenants(lower(backoffice_domain));
 
 Inserting rows
------------------------
+--------------
 
 TODO
 
@@ -59,6 +59,15 @@ TODO: Recommended functions for the following two common operations:
 - Inserting a row using Haskell types as input (as against the PG type as input)
 - Inserting a single row and getting back the newly inserted ID
 - Inserting a single row and getting back the newly inserted row
+
+
+Dealing with errors
+-------------------
+
+TODO: 
+
+- What happens when an insert fails at the DB level, eg. a ``CHECK CONSTRAINT`` prevents insertion?
+- Take the example of ``idx_unique_tenants_backoffice_domain``
 
 
 Using a different record-type for inserting new rows
