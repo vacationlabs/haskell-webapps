@@ -42,4 +42,4 @@ insert into users_roles values (2, 2);
 insert into users_roles values (2, 3);
 insert into users_roles values (3, 1);
 
-update tenants set status = 2, owner_id = 2 where id = 2;
+update tenants set status = 'active', owner_id = 2 where id = 2;

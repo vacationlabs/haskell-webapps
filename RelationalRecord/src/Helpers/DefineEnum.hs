@@ -13,6 +13,7 @@ import Database.HDBC                        (SqlValue(..), safeFromSql, quickQue
 
 import Database.Record
 import Database.Record.TH                   (deriveNotNullType)
+import Database.Relational.Query.Pure
 
 import Data.ByteString.Char8                as B (pack, unpack)
 import Data.Either                          (partitionEithers)
@@ -52,13 +53,22 @@ genSqlInstances (conName -> name) =
     [d| instance ToSql SqlValue $(conT name) where
             recordToSql = valueRecordToSql sqlShow
         instance FromSql SqlValue $(conT name) where
-            recordFromSql = valueRecordFromSql sqlRead|]
+            recordFromSql = valueRecordFromSql sqlRead
+        instance ShowConstantTermsSQL $(conT name) where
+            showConstantTermsSQL' = showConstantTermsSQL' . show|]
+
+
+-- TODO
+-- generate a top-level definition of a mapping
+-- from "enum_name" to EnumName for conveniently inserting
+-- into typeMap when defining a table
 {-
 genMapping :: String -> ConName -> DecsQ
 genMapping eName (conName -> name) =
     [d| mapping :: (String, TypeQ)
         mapping = (eName , $(varT name))|]
 -}
+
 
 generateEnum :: String -> [String] -> Q [Dec]
 generateEnum enumName enumVals = do

@@ -21,6 +21,8 @@ import  Types.Tenant                as Tenant
 import  Types.User                  as User
 import  Types.Role                  as Role
 import  Types.UsersRoles            as UsersRoles
+import  Types.UserStatus            as UserStatus
+import  Types.TenantStatus          as TenantStatus
 import  Relations.Tenant            as Tenant
 import  Relations.Role              as Role
 import  Relations.User              as User
@@ -92,11 +94,11 @@ getUser conn =
 
 activateUser :: DBConnector -> Users -> IO (DBUniqueResult Users)
 activateUser conn u =
-    updateUserInt "activate a user" conn u u {User.status = 2}
+    updateUserInt "activate a user" conn u u {User.status = UserStatus.Active}
 
 deactivateUser :: DBConnector -> Users -> IO (DBUniqueResult Users)
 deactivateUser conn u =
-    updateUserInt "deactivate a user" conn u u {User.status = 1}
+    updateUserInt "deactivate a user" conn u u {User.status = UserStatus.Inactive}
 
 updateUser :: DBConnector -> Users -> Users -> IO (DBUniqueResult Users)
 updateUser = updateUserInt "update a user"
@@ -130,11 +132,11 @@ getTenant conn =
 
 activateTenant :: DBConnector -> Tenants -> IO (DBUniqueResult Tenants)
 activateTenant conn t =
-    updateTenantInt "activate a tenant" conn t t {Tenant.status = 2}
+    updateTenantInt "activate a tenant" conn t t {Tenant.status = TenantStatus.Active}
 
 deactivateTenant :: DBConnector -> Tenants -> IO (DBUniqueResult Tenants)
 deactivateTenant conn t =
-    updateTenantInt "deactivate a tenant" conn t t {Tenant.status = 1}
+    updateTenantInt "deactivate a tenant" conn t t {Tenant.status = TenantStatus.Inactive}
 
 updateTenant :: DBConnector -> Tenants -> Tenants -> IO (DBUniqueResult Tenants)
 updateTenant = updateTenantInt "update a tenant"

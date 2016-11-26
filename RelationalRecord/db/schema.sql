@@ -1,28 +1,14 @@
 
 -- copy of /ServantOpaleye/db/schema.sql
 
--- modified to circumvent postgres enums and arrays
+-- modified to circumvent postgres arrays
 
-
-create type test_enum as enum('inactive', 'active', 'new');
-
-create table enum_dummy(
-    id serial primary key
-    ,status_test test_enum not null
-);
-
-create table enum_tenant_status(
-    id serial primary key
-    ,name text not null
-);
-insert into enum_tenant_status (name) values ('inactive');                      /* id = 1 */
-insert into enum_tenant_status (name) values ('active');                        /* id = 2 */
-insert into enum_tenant_status (name) values ('new');                           /* id = 3 */
 
 --
 -- Tenants
 --
 
+create type tenant_status as enum('active', 'inactive', 'new');
 create table tenants(
        id serial primary key
        ,created_at timestamp with time zone not null default current_timestamp
@@ -32,10 +18,10 @@ create table tenants(
        ,last_name text not null
        ,email text not null
        ,phone text not null
-       ,status integer not null default 1 references enum_tenant_status(id)
+       ,status tenant_status not null default 'inactive'
        ,owner_id integer
        ,backoffice_domain text not null
-       constraint ensure_not_null_owner_id check (status!=2 or owner_id is not null)
+       constraint ensure_not_null_owner_id check (status!='active' or owner_id is not null)
 );
 create unique index idx_index_owner_id on tenants(owner_id);
 create index idx_status on tenants(status);
@@ -47,14 +33,7 @@ create unique index idx_unique_tenants_backoffice_domain on tenants(lower(backof
 -- Users
 --
 
-create table enum_user_status(
-    id serial primary key
-    ,name text not null
-);
-insert into enum_user_status (name) values ('inactive');                        /* id = 1 */
-insert into enum_user_status (name) values ('active');                          /* id = 2 */
-insert into enum_user_status (name) values ('blocked');                         /* id = 3 */
-
+create type user_status as enum('active', 'inactive', 'blocked');
 create table users(
        id serial primary key
        ,created_at timestamp with time zone not null default current_timestamp
@@ -64,7 +43,7 @@ create table users(
        ,password text not null
        ,first_name text
        ,last_name text
-       ,status integer not null default 1 references enum_user_status(id)
+       ,status user_status not null default 'inactive'
 );
 
 create unique index idx_users_username on users(lower(username));
@@ -149,7 +128,8 @@ create table products(
        ,name text not null
        ,description text
        ,url_slug text not null
-       ,tags text[] not null default '{}'
+       -- ,tags text[] not null default '{}'
+       ,tags text not null default ''
        ,currency char(3) not null
        ,advertised_price numeric not null
        ,comparison_price numeric not null
@@ -167,7 +147,7 @@ create unique index idx_products_url_sluf on products(tenant_id, lower(url_slug)
 create index idx_products_created_at on products(created_at);
 create index idx_products_updated_at on products(updated_at);
 create index idx_products_comparison_price on products(comparison_price);
-create index idx_products_tags on products using gin(tags);
+create index idx_products_tags on products(tags); -- products using gin(tags);
 create index idx_product_type on products(type);
 create index idx_product_is_published on products(is_published);
 

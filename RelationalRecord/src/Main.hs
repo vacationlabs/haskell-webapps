@@ -10,7 +10,6 @@ import Relations.Role   hiding (getRole, assignRole, removeRole)
 import Types.Tenant     as Tenant
 import Types.Role       as Role
 import Types.AuditLog
-import Types.EnumDummy
 import DBInterface
 
 import Data.Aeson       (ToJSON(..))
@@ -36,7 +35,7 @@ randomText onlyDigits = do
     len     <- randomRIO (12, 20)
     pack    <$> replicateM len ((chars !!) <$> randomRIO (0, length chars - 1))
   where
-    chars = (if onlyDigits then [] else ['a'..'z']) ++ ['0'..'9']
+    chars   = (if onlyDigits then [] else ['a'..'z']) ++ ['0'..'9']
 
 printJson :: ToJSON a => DBUniqueResult a -> IO ()
 printJson (Left err)  = print err
@@ -52,9 +51,6 @@ main = do
     conn    <- getDataSource
     let conn' = DBConnector (Just 1) Nothing conn
 
-    dbQuery conn' enumDummy () >>= print 
-
-    {-
     putStrLn "creating some user..."
     un <- randomText False
     u1 <- createUser conn' someUser {iUsername = un}
@@ -89,6 +85,5 @@ main = do
     nm <- randomText False
     ph <- randomText True
     _  <- updateTenant conn' t3 t3 {Tenant.phone = ph, Tenant.name = nm}
-    -}
 
     putStrLn "...done"

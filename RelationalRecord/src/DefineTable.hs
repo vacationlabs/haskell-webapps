@@ -16,7 +16,8 @@ module  DefineTable
 
 
 import  DataSource
-import  Types.Enum
+import  Types.TenantStatus
+import  Types.UserStatus
 
 import  Language.Haskell.TH                 (Q, Dec)
 
@@ -40,8 +41,9 @@ defineTable tableName =
   where
     withAdditionalTypes driver =
         driver { typeMap =
-            [ ("jsonb", [t| ByteString |])
-            , ("text", [t| Text |])
-            , ("test_enum", [t| TestEnum |])
+            [ ("jsonb",         [t| ByteString |])
+            , ("text",          [t| Text |])
+            , ("tenant_status", [t| TenantStatus |])
+            , ("user_status",   [t| UserStatus |])
             ] ++ typeMap driver
             }

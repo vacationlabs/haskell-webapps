@@ -3,7 +3,8 @@
 
 module  Relations.Tenant where
 
-import  Types.Tenant as Tenant
+import  Types.Tenant                        as Tenant
+import  Types.TenantStatus
 import  Types.DB
 import  Relations.DB
 
@@ -65,7 +66,7 @@ data TenantUpdate = TenantUpdate
     , uLastName     :: VariadicArg Text
     , uPhone        :: VariadicArg Text
     , uEmail        :: VariadicArg Text
-    , uStatus       :: VariadicArg Int32
+    , uStatus       :: VariadicArg TenantStatus
     , uOwnerId      :: VariadicArg (Maybe Int32)
     }
     deriving (Generic, Default)

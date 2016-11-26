@@ -7,13 +7,13 @@ import  Types.User                          as User
 import  qualified Types.Tenant              as Tenant
 import  qualified Types.Role                as Role
 import  qualified Types.UsersRoles          as UsersRoles
+import  Types.UserStatus
 import  Types.DB
 import  Relations.DB
 
 import  Database.Relational.Query
 import  Database.HDBC.Query.TH              (makeRecordPersistableDefault)
 
-import  Data.Int                            (Int32)
 import  GHC.Generics                        (Generic)
 import  Data.Default
 
@@ -77,7 +77,7 @@ data UserUpdate = UserUpdate
     , uUsername     :: VariadicArg Text
     , uFirstName    :: VariadicArg (Maybe Text)
     , uLastName     :: VariadicArg (Maybe Text)
-    , uStatus       :: VariadicArg Int32
+    , uStatus       :: VariadicArg UserStatus
     }
     deriving (Generic, Default)
 
