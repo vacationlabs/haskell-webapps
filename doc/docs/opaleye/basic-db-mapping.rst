@@ -323,9 +323,3 @@ If you're curious, this is what the TH splice expands to (not literally, but con
              Default p (TenantPoly key0 createdAt0 updatedAt0 name0 status0 ownerId0 backofficeDomain0) 
                        (TenantPoly key1 createdAt1 updatedAt1 name1 status ownerId1 backofficeDomain1) where
       def = pTenant (Tenant def def def def def def def)
-
-HRR
----
-
-Persistent
-----------

@@ -1,4 +1,4 @@
-Inserting rows
+Updating rows
 ==============
 
 SQL for table creation
@@ -93,4 +93,4 @@ TODO:
 Multi-table updates (updates with JOINs)
 ----------------------------------------
 
-TODO: Does Opaleye even support them? If not, what's the escape hatch
+TODO: Does Opaleye even support them? If not, what's the escape hatch?
