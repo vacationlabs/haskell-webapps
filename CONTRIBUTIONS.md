@@ -1,7 +1,7 @@
 # How to contribute
 
 1. Pick a [database library](#database-libraries) that no one is working on.
-2. State your goals for the first cut of the domain API. 
+2. State your goals for the first cut of the domain API.
 3. Pick a limited set of [higher-order design goals](#higher-order-design-goals) that you would like to in the first cut of the domain API.
 4. Quickly get a working implementation of **at least** the following APIs: tenant, user, role, permission.
   * Refer to the [Domain module in the skeleton folder](https://github.com/vacationlabs/haskell-webapps/tree/master/skeleton/src/Domain) to get a working idea. The type signatures will need to be modified depending on your DB library and design goals.
@@ -21,7 +21,7 @@ The central idea is to NOT deviate from the goals stated at the beginning of a d
 * Put a timeline to the sprint -- try to keep sprints short enough so that they fit within a week.
 * Keep committing to your branch - the PR will keep getting updated automatically.
 * Comment on the PR when you feel it's ready to be merged (or you'd like someone to quickly review it).
-* Get it merged. 
+* Get it merged.
 * Close the PR with a comment that answers the following:
   * What got done in this sprint
   * What got pushed to the next sprint
@@ -43,7 +43,7 @@ The central idea is to NOT deviate from the goals stated at the beginning of a d
 | Persistent | [wz1000](https://github.com/sudhirvkumar) |
 | Opaleye | [sras](https://github.com/sras) |
 | HDBC | [jfoutz](https://github.com/jfoutz) |
-| Haskell Relational Record | no one, yet |
+| Haskell Relational Record | [mgmeier](https://github.com/mgmeier) |
 | HASQL | no one, yet |
 
 ## Web libraries
@@ -78,7 +78,7 @@ A lot of people are excited about building a JSON API in Servant and everyone se
 * Best way to deal with housekeeping columns, like `createdAt`, `updatedAt`
 * Implementing audit logs
 * Ensuring type-safety in the create/edit/update calls for each DB model, such that an accidental write of a "protected" field is not possible. Example of such fields: `createdAt`, `updatedAt`, `id`, `status`, `type`, etc. (fields that need some side-effects or workflow to change)
-* How to deal with DB updates? 
+* How to deal with DB updates?
   * Should the domain API take the complete record as an argument? Who should be responsible for loading the record from the DB? How many times will we be loading the same record from the DB, if we need to chain/compose different update APIs together?
   * Should the domain API take a *diff* as an argument? How do we represent a diff in a typesafe manner?
 * Implementing validations
@@ -123,3 +123,13 @@ TODO
 ## Zubin Duggal
 
 TODO
+
+## Michael Karg
+
+Started coding on a C64, then later on an Intel 286 and then 486. I mostly used C and Assembler, did some small games and had a brief excursion into the demoscene coding a music tracker and creating some tunes with it.
+
+Came in contact with functional programming during my Masters Degree (General Linguistics and Computer Science) at University, where we used typed lambda calculus to model a natural language syntax / semantics interface.
+
+I've been using Haskell ever since both professionally and for private projects. Additionally, I have experience with professional projects in PureScript, JavaScript, Python, C / C++ and Java.
+
+[Github](https://github.com/mgmeier)
