@@ -29,11 +29,6 @@ selectByEmail conn email = runQuery conn $ proc () ->
       restrict -< (em .== constant email)
       returnA -< row
 
-updateRowByEmail :: Connection -> (Int, String, String) -> IO ()
-updateRowByEmail conn row@(id, name, email) = do
-  runUpdate conn userTable (\_ -> constant row) (\(_,_,em) -> em .== constant email)
-  return ()
-
 updateRow :: Connection -> (Int, String, String) -> IO ()
 updateRow conn row@(key, name, email) = do
   runUpdate 
@@ -60,7 +55,7 @@ main = do
   row <- selectByEmail conn "saurabhnanda@gmail.com"
   print row
 
-  updateRowByEmail conn (4, "Don", "corleone@puzo.com")
+  updateRow conn (4, "Don", "corleone@puzo.com")
 
   allRows <- selectAllRows conn
   print allRows
