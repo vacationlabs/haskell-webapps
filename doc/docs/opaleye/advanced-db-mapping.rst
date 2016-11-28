@@ -243,9 +243,44 @@ list for the *tag* fields.
 Handling JSONB
 --------------
 
-The Json type 
+The type that represents *jsonb* postgresql columns in Opaleye is PGJsonb.
+You can
+It will support any type that has a ToJSON/FromJSON instances defined for it.
 
+ToJSON/FromJSON typeclasses are exported by the Aeson json library.
 
+This is how it is done. Let us change the *properties* field of the *Product* type
+we saw earlier into a record in see how we can store it in a jsonb field. 
+
+.. literalinclude:: code/opaleye-products-with-json-properties.hs
+  :linenos:
+  :emphasize-lines: 263-284
+
+In the emphasized lines in code above, we are defining instances to support json conversion.
+The binary operators *.:* and *.=* that you see are
+stuff exported by the Aeson json library.
+The basis of Json decoding/encoding is the aeson's Value type. This type can represent
+any json value. It is defined as  ::
+
+  data Value
+    = Object !Object
+    | Array !Array
+    | String !Text
+    | Number !Scientific
+    | Bool !Bool
+    | Null
+
+The Object type is an alias for a HashMap, and Array for a Vector and so on.
+
+The instances are our usual type conversion instances. The *Value* type has the instances built in, so
+we will use them for defining instances for ProductProperties.
+So when we define a *FromField* instance for ProductProperties, we use the fromField instance of the *Value*
+type. We are also handling errors that might occur while parsing and reporting via postgresql's error reporting functions.
+
+In the last instance, we are using the Default instance of the aforementioned *Value* type to implement instance
+for *ProductProperties*. The toJSON converts our ProductProperties to *Value* type, and since there are already
+built in Default instance for *Value* type, we were able to call the *constant* function on it, to return the
+appropriate opaleye's column type.
 
 Making columns read-only
 ------------------------
