@@ -1,3 +1,5 @@
+.. _advanced_mapping:
+
 Advanced DB Mappings
 ====================
 

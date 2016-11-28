@@ -1,4 +1,6 @@
-Introduction
+.. _instant_gratification:
+
+Instant Gratification
 =====================
 
 Overview
