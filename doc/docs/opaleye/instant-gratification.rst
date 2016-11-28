@@ -120,4 +120,22 @@ Inserting a row
 
   So, what does ``constant row`` do? It converts Haskell => DB types, i.e. ``(Int, String, String)`` => ``(Column PGInt4, Column PGText, Column PGText)`` This is because we clearly told Opaleye that we will be writing rows of type ``(Column PGInt4, Column PGText, Column PGText)`` to ``userTable``, so we need to convert ``(Int, String, String)`` to ``(Column PGInt4, Column PGText, Column PGText)`` before we hand it over to Opaleye.
 
-  .. note:: Strangely, while ``runQuery`` converts DB => Haskell types automagically, ``runInsertMany`` and ``runUpdate`` refuse to do Haskell => DB conversions on their own. Hence the need to do it explicitly here.
+  .. note:: Strangely, while ``runQuery`` converts DB => Haskell types automagically, ``runInsertMany`` and ``runUpdate`` refuse to do Haskell => DB conversions on their own. Hence the need to do it explicitly when using these functions.
+
+Updating a row
+--------------
+
+  .. code-block:: haskell
+
+    updateRow :: Connection -> (Int, String, String) -> IO ()
+    updateRow conn row@(key, name, email) = do
+      runUpdate 
+        conn 
+        userTable 
+        (\_ -> constant row) -- what should the matching row be updated to
+        (\ (k, _, _) -> k .== constant key) -- which rows to update?
+      return ()
+
+* As you can see from this function, updating rows in Opaleye is not very pretty! The biggest pain is that you cannot define which columns to update. You are forced to update the **entire row**. More about this in :ref:`updating-rows`.
+* You already know what ``constant row`` does - it converts a Haskell datatype to its corresponding PG data type, which for some strange reason, Opaleye refuses to do here automagically.
+* The comparison operator ``.==`` is what gets translated to equality operator in SQL. We cannot use Haskell's native equality operator because it represents equality in Haskell-land, whereas we need to represent equality when it gets convert to SQL-land. You will come across a lot of such special operators that map to their correspnding SQL parts.
