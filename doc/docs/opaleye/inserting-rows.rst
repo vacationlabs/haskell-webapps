@@ -42,8 +42,8 @@ TODO
 - Explanation of the code and how it corresponds to the type-signature of ``runInsertMany``
 
 
-Getting the ID of newly inserted row
-------------------------------------
+Getting the ID of a newly inserted row
+--------------------------------------
 
 TODO
 
@@ -70,8 +70,8 @@ TODO:
 - Take the example of ``idx_unique_tenants_backoffice_domain``
 
 
-Using a different record-type for inserting new rows
-----------------------------------------------------
+Using a different record-type for INSERTs
+-----------------------------------------
 
 TODO
 
