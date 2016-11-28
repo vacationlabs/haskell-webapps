@@ -32,7 +32,7 @@ Prelimiaries
 * Install ``opaleye`` using your favourite package management tool
 * Fire up your favourite text editor and copy-paste the code snippet below, and make sure it compiles without any errors.
 
-  .. literalinclude:: code/opaleye-select-basic.hs
+  .. literalinclude:: code/instant-gratification.hs
 
 
 **Now read on to understand what this code is doing...**
@@ -62,7 +62,7 @@ Here's what it is basically teaching Opaleye:
 
 We will need to use ``userTable`` to SELECT, INSERT, UPDATE, or DELETE from the ``users`` table via Opaleye.
 
-To learn more about how to map your DB schema to Opaleye's ``Table`` types, please read `Basic DB mapping`_ and `Advanced DB mapping`_ chapters.
+To learn more about how to map your DB schema to Opaleye's ``Table`` types, please read :ref:`basic-db-mapping` and :ref:`advanced-db-mapping` chapters.
 
 Connecting to the Postgresql database
 ---------------------------------------

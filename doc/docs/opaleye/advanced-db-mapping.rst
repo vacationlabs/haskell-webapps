@@ -81,11 +81,7 @@ Code that we'll run through
 .. literalinclude:: code/opaleye-tenants-and-products.hs
   :linenos:
 
-A WARNING
-=========
-
-In the above code, we are using floats to represent money values. We use them because Opaleye's support for postgres numeric column
-`is not really complete. <https://github.com/tomjaguarpaw/haskell-opaleye/issues/230>`_
+  .. warning:: In the above code, we are using floats to represent money values. We use them because Opaleye's support for postgres numeric column `is not really complete. <https://github.com/tomjaguarpaw/haskell-opaleye/issues/230>`_
 
 
 Core mechanism for mapping custom Haskell types to PG types
