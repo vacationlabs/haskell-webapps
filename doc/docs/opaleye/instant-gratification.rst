@@ -15,8 +15,8 @@ We'll start by quickly running through the following DB operations, which should
 * Updating a row
 * Selecting a single row
 
-Prelimiaries
-------------
+Preliminaries
+-------------
 
 * Install PostgreSQL. Create a database. Run the table creation script given below.
 
@@ -101,7 +101,7 @@ which calls ``selectAllRows``:
     selectAllRows :: Connection -> IO [(Int, String, String)]
     selectAllRows conn = runQuery conn $ queryTable userTable
 
-This uses ``runQuery``, which is basically ``SELECT`` in Opaleye. Please take **special note** of the type signature of this function. It evaluates to ``IO [(Int, String, String)]``, whereas we clearly said that we will be reading rows of type ``(Column PGInt4, Column PGText, ColumnPGText)``. So, why doesn't this function evaluate to ``IO [(Column PGInt4, Column PGText, ColumnPGText)]``?
+This uses ``runQuery``, which is basically ``SELECT`` in Opaleye. Please take **special note** of the type signature of this function. It evaluates to ``IO [(Int, String, String)]``, whereas we clearly told Opaleye that we will be reading rows of type ``(Column PGInt4, Column PGText, ColumnPGText)``. So, why doesn't this function evaluate to ``IO [(Column PGInt4, Column PGText, ColumnPGText)]``?
 
 This is because Opaleye knows how to convert most basic data types from DB => Haskell (eg. ``PGInt4`` => ``Int``). And also vice versa. 
 
@@ -117,7 +117,7 @@ Inserting a row
       runInsertMany conn userTable [(constant row)]
       return ()
 
-  This function uses ``runInsertMany`` which is basically Opaleye's version of ``INSERT``, **but** it only supports inserting *multiple rows*. This is why it is called ``runInsertMany`` instead of ``runInsert`` and the third argument is a list of rows.
+  This function uses ``runInsertMany`` which is basically Opaleye's version of ``INSERT``, **but** it only supports inserting *multiple rows*. This is why it is called ``runInsertMany`` instead of ``runInsert`` and the third argument is a *list* of rows.
 
   So, what does ``constant row`` do? It converts Haskell => DB types, i.e. ``(Int, String, String)`` => ``(Column PGInt4, Column PGText, Column PGText)`` This is because we clearly told Opaleye that we will be writing rows of type ``(Column PGInt4, Column PGText, Column PGText)`` to ``userTable``, so we need to convert ``(Int, String, String)`` to ``(Column PGInt4, Column PGText, Column PGText)`` before we hand it over to Opaleye.
 
