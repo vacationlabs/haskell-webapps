@@ -57,7 +57,7 @@ Let's tackle the cryptic ``userTable`` definition at the very beginning of this 
 Here's what it is basically teaching Opaleye:
 
 * We will be reading rows of the type ``(Column PGInt4, Column PGText, Column PGText)`` from the table.
-* We will be writing rows of the same type to the table. (Opaleye allows you to read and write rows of *different* types for very valid reasons. Read `Basic DB Mapping`_ for more details on this.)
+* We will be writing rows of the same type to the table. (Opaleye allows you to read and write rows of *different* types for very valid reasons. Read :ref:`basic_mapping` for more details on this.)
 * The table's name is ``users``
 * The first column in the table is called ``id``; it is *required*; and it maps to the first value of the tuple.
 * The second column in the table is called ``name``; it is *required*; and it maps to the second value of the tuple.
@@ -65,7 +65,7 @@ Here's what it is basically teaching Opaleye:
 
 We will need to use ``userTable`` to SELECT, INSERT, UPDATE, or DELETE from the ``users`` table via Opaleye.
 
-To learn more about how to map your DB schema to Opaleye's ``Table`` types, please read :ref:`basic_mapping` and :ref:`advanced-db-mapping` chapters.
+To learn more about how to map your DB schema to Opaleye's ``Table`` types, please read :ref:`basic_mapping` and :ref:`advanced_mapping` chapters.
 
 Connecting to the Postgresql database
 ---------------------------------------
@@ -105,7 +105,7 @@ This uses ``runQuery``, which is basically ``SELECT`` in Opaleye. Please take **
 
 This is because Opaleye knows how to convert most basic data types from DB => Haskell (eg. ``PGInt4`` => ``Int``). And also vice versa. 
 
-However, here's a **gotcha!** Try compiling ths function *without* the type signature. The compiler will fail to infer the types. This is also due to the underlying infrastructure that Opaleye uses to convert DB => Haskell types. To understand this further, please read `Advanced DB mapping`_.
+However, here's a **gotcha!** Try compiling ths function *without* the type signature. The compiler will fail to infer the types. This is also due to the underlying infrastructure that Opaleye uses to convert DB => Haskell types. To understand this further, please read :ref:`advanced_mapping`.
 
 Inserting a row
 ---------------
@@ -137,7 +137,7 @@ Updating a row
         (\ (k, _, _) -> k .== constant key) -- which rows to update?
       return ()
 
-* As you can see from this function, updating rows in Opaleye is not very pretty! The biggest pain is that you cannot define which columns to update. You are forced to update the **entire row**. More about this in :ref:`updating-rows`.
+* As you can see from this function, updating rows in Opaleye is not very pretty! The biggest pain is that you cannot specicy which columns to update. You are forced to update the **entire row**. More about this in :ref:`updating_rows`.
 * You already know what ``constant row`` does - it converts a Haskell datatype to its corresponding PG data type, which for some strange reason, Opaleye refuses to do here automagically.
 * The comparison operator ``.==`` is what gets translated to equality operator in SQL. We cannot use Haskell's native equality operator because it represents equality in Haskell-land, whereas we need to represent equality when it gets convert to SQL-land. You will come across a lot of such special operators that map to their correspnding SQL parts.
 
