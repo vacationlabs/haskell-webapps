@@ -146,7 +146,7 @@ Selecting a single row
 
   .. warning:: **Caution!** Extreme hand-waving lies ahead. This is probably an incorrect explanation, but should work well-enough to serve your intuition for some time.
 
-  .. code-block::: haskell
+  .. code-block:: haskell
 
     selectByEmail :: Connection -> String -> IO [(Int, String, String)]
     selectByEmail conn email = runQuery conn $ proc () ->
