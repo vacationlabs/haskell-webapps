@@ -100,9 +100,9 @@ type ProductTableW = ProductPoly
   (Column PGText)
   (Column (PGArray PGText))
   (Column PGText)
-  (Column PGNumeric)
-  (Column PGNumeric)
-  (Maybe (Column (Nullable PGNumeric)))
+  (Column PGFloat8)
+  (Column PGFloat8)
+  (Maybe (Column (Nullable PGFloat8)))
   (Column PGText)
   (Column PGBool)
   (Column PGJsonb)
@@ -117,9 +117,9 @@ type ProductTableR = ProductPoly
   (Column PGText)
   (Column (PGArray PGText))
   (Column PGText)
-  (Column PGNumeric)
-  (Column PGNumeric)
-  (Column (Nullable PGNumeric))
+  (Column PGFloat8)
+  (Column PGFloat8)
+  (Column (Nullable PGFloat8))
   (Column PGText)
   (Column PGBool)
   (Column PGJsonb)
@@ -127,7 +127,6 @@ type ProductTableR = ProductPoly
 -- Table defs
 
 $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
-
 tenantTable :: Table TenantTableW TenantTableR
 tenantTable = Table "tenants" (pTenant
    Tenant {
@@ -149,7 +148,7 @@ productTable = Table "products" (pProduct
     Product {
       product_id = (optional "id"),
       product_created_at = (optional "created_at"),
-      product_updated_at = (optional "created_at"),
+      product_updated_at = (optional "updated_at"),
       product_tenant_id = (required "tenant_id"),
       product_name = (required "name"),
       product_description = (optional "description"),
@@ -209,7 +208,8 @@ instance QueryRunnerColumnDefault PGInt4 TenantId where
 
 -- For Scientific we didn't have to implement instance of fromField
 -- because it is already defined in postgresql-simple
-instance QueryRunnerColumnDefault PGNumeric Scientific where
+
+instance QueryRunnerColumnDefault PGFloat8 Scientific where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
 
 -- Default instance definitions for custom datatypes for converison to
@@ -238,7 +238,22 @@ instance Default Constant ProductType (Column PGText) where
       def' ProductPhysical = pgStrictText "physical"
 
 instance Default Constant ProductId (Maybe (Column PGInt4)) where
-  def = Constant (\(ProductId x) -> Just $ pgInt4 x)
+  def = Constant (\(ProductId x) -> Just $ constant x)
+
+instance Default Constant Scientific (Column PGFloat8) where
+  def = Constant (pgDouble.toRealFloat)
+
+instance Default Constant Scientific (Column (Nullable PGFloat8)) where
+  def = Constant (toNullable.constant)
+
+instance Default Constant Text (Column (Nullable PGText)) where
+  def = Constant (toNullable.pgStrictText)
+
+instance Default Constant UTCTime (Maybe (Column PGTimestamptz)) where
+  def = Constant ((Just).pgUTCTime)
+
+instance Default Constant TenantId (Column PGInt4) where
+  def = Constant (\(TenantId x) -> constant x)
 
 getProducts :: IO [Product]
 getProducts = do
@@ -255,15 +270,29 @@ insertTenant = do
   conn <- connect defaultConnectInfo { connectDatabase = "scratch"}
   runInsertManyReturning conn tenantTable [constant getTestTenant] (\x -> x) :: IO [Tenant]
   return ()
+
+insertProduct :: IO ()
+insertProduct = do
+  conn <- connect defaultConnectInfo { connectDatabase = "scratch"}
+  product <- getTestProduct
+  runInsertManyReturning conn productTable [constant product] (\x -> x) :: IO [Product]
+  return ()
   
 getTestTenant :: Tenant
-getTestTenant = Tenant (TenantId 5) "Tenant Jackie" "Sagar" "Alias" "sagar@mail.com" "2255" TenantStatusInActive "sagar.com"
+getTestTenant = Tenant (TenantId 5) "Tenant Bob" "Bobby" "Bob" "bob@mail.com" "2255" TenantStatusInActive "bob.com"
+
+getTestProduct :: IO Product
+getTestProduct = do
+  time <- getCurrentTime
+  let (Just properties) =  decode "{\"weight\": \"200gm\"}" :: Maybe Value
+  return $ Product (ProductId 5) time time (TenantId 5) "snacks" (Just "") "" ["tag1", "tag2"] "INR" 30 45 Nothing ProductPhysical False properties
 
 main :: IO ()
 main = do
+  insertTenant
+  insertProduct
   tenants <- getTenants
   products <- getProducts
-  insertTenant
   putStrLn $ show tenants
   putStrLn $ show products
 

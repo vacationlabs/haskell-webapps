@@ -232,19 +232,19 @@ For Writing ::
 Handing Postgres Arrays
 -----------------------
 
-TODO: 
+Postgresql Array column are represented by the PGArray type. It can take
+an additional type to represent the kind of the array. So if the column
+is text[], the type needs to be *PGArray PGText*.
 
-- Code snippet for handling ``tags text[]`` and its explanation
-- Fetch a record by primary-key to show that we are indeed getting an array out. 
+If you look at the earlier code, you can see that the output contains a
+list for the *tag* fields.
+
 
 Handling JSONB
 --------------
 
-TODO:
+The Json type 
 
-- Code snippet for handling ``properties`` column
-- Some recommendation about using strict vs lazy JSON. Is it possible to force usage of only one kind, while setting up the types for the table?
-- Fetch a record by primary-key to show how the JSONB column will look-like in Haskell land.
 
 
 Making columns read-only
