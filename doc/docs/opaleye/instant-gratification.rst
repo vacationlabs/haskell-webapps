@@ -56,13 +56,13 @@ Here's what it is basically teaching Opaleye:
 * We will be reading rows of the type ``(Column PGInt4, Column PGText, Column PGText)`` from the table.
 * We will be writing rows of the same type to the table. (Opaleye allows you to read and write rows of *different* types for very valid reasons. Read `Basic DB Mapping`_ for more details on this.)
 * The table's name is ``users``
-* The first column in the table is called ``id``; it is *required*; and it maps to the first value of the tuple type.
-* The second column in the table is called ``name``; it is *required*; and it maps to the second value of the tuple type.
-* The third column in the table is called ``email``; it is *required*; and it maps to the third value of the tuple type.
+* The first column in the table is called ``id``; it is *required*; and it maps to the first value of the tuple.
+* The second column in the table is called ``name``; it is *required*; and it maps to the second value of the tuple.
+* The third column in the table is called ``email``; it is *required*; and it maps to the third value of the tuple.
 
 We will need to use ``userTable`` to SELECT, INSERT, UPDATE, or DELETE from the ``users`` table via Opaleye.
 
-To learn more about how to map your DB schema to Opaleye's ``Table`` types, please read :ref:`basic-db-mapping` and :ref:`advanced-db-mapping` chapters.
+To learn more about how to map your DB schema to Opaleye's ``Table`` types, please read :ref:`opaleye/basic-db-mapping` and :ref:`advanced-db-mapping` chapters.
 
 Connecting to the Postgresql database
 ---------------------------------------
@@ -88,8 +88,8 @@ Next we fetch and print all the rows from the ``users`` table:
 
   .. code-block:: haskell
 
-  allRows <- selectAllRows conn
-  print allRow
+    allRows <- selectAllRows conn
+    print allRow
 
 which calls ``selectAllRows``:
 
@@ -98,7 +98,7 @@ which calls ``selectAllRows``:
     selectAllRows :: Connection -> IO [(Int, String, String)]
     selectAllRows conn = runQuery conn $ queryTable userTable
 
-This uses ``runQuery``, which is basically ``SELECT`` in Opaleye. Please take special **note** of the type signature of this function. It evaluates to ``IO [(Int, String, String)]``, whereas we clearly said that we will be reading rows of type ``(Column PGInt4, Column PGText, ColumnPGText)``. So, why doesn't this function evaluate to ``IO [(Column PGInt4, Column PGText, ColumnPGText)]``?
+This uses ``runQuery``, which is basically ``SELECT`` in Opaleye. Please take **special note** of the type signature of this function. It evaluates to ``IO [(Int, String, String)]``, whereas we clearly said that we will be reading rows of type ``(Column PGInt4, Column PGText, ColumnPGText)``. So, why doesn't this function evaluate to ``IO [(Column PGInt4, Column PGText, ColumnPGText)]``?
 
 This is because Opaleye knows how to convert most basic data types from DB => Haskell (eg. ``PGInt4`` => ``Int``). And also vice versa. 
 
