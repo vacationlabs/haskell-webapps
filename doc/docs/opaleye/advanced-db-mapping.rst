@@ -78,18 +78,112 @@ SQL for table creation
 Code that we'll run through
 ---------------------------
 
-TODO:
-
-- Complete code with polymorphic records, etc (complete boilerplate) for ``tenats`` and ``products``
+.. literalinclude:: code/opaleye-tenants-and-products.hs
+  :linenos:
 
 Core mechanism for mapping custom Haskell types to PG types
-----------------------
+-----------------------------------------------------------
 
-TODO:
+There are three typeclasses at play in converting values between Haskell values (like Int, Text and user defined types)
+and values that are read from the database (like PGInt4, PGText etc). Let us see about these
 
-- General commentary on how Haskell<=>DB mapping workds
-- Details about all the type-classes AND TH functions involved
-- Tutorial flow should treat the following sections as example of how the machinery is to be used in practice
+1. FromField
+------------
+
+This is a typeclass defined by the postgresql-simple library. This typeclass decides how values read from database are
+converted to their Haskell counterparts. It is defined as ::
+
+  class FromField a where
+    fromField :: FieldParser a
+
+and a FieldParser is  ::
+
+  type FieldParser a = Field -> Maybe ByteString -> Conversion a
+
+The type *Conversion* is a functor, so you can define instances for custom types in terms of existing *FromField* instances.
+For example, if you have a type that wraps an Int, like
+
+  data ProductId = ProductId Int
+
+You can make a field parser instance for *ProductId* as follows ::
+
+  instance FromField ProductId where
+    fromField field mb_bytestring = ProductId <$> fromField field mb_bytestring
+
+While doing the above method, you have to make sure that the *FromField* instance that you are depending on
+can actually accept data from the underlying database column. This is relavant if you want to do this for
+enum types. 
+
+If you depend on the *FromField* instance of a String to read the data coming from an Enum field, it will error out
+because the *FromField* instance of String checks if the data is coming from a Varchar or Char field (using the first argument
+to the *fromField* function), and errors out if it is not.
+
+Since the second argument to the fromField functon is a *Maybe Bytestring*,
+for a data type *TenantStatus* defined as  ::
+
+  data TenantStatus = TenantStatusActive | TenantStatusInActive | TenantStatusNew
+
+we could do the following ::
+
+  instance FromField TenantStatus where
+    fromField field mb_bytestring = makeTenantStatus mb_bytestring
+      where
+      makeTenantStatus :: Maybe ByteString -> Conversion TenantStatus
+      makeTenantStatus (Just "active") = return TenantStatusActive
+      makeTenantStatus (Just "inactive") = return TenantStatusInActive
+      makeTenantStatus (Just "new") = return TenantStatusNew
+      makeTenantStatus (Just _) = returnError ConversionFailed field "Unrecognized tenant status"
+      makeTenantStatus Nothing = returnError UnexpectedNull field "Empty tenant status"
+
+With OverloadedStrings extension enabled, we could pattern match on Bystrings using normal String literals, and return the proper value.
+You can also see how we are handling unexpected values or a null coming from the column.
+
+2. QueryRunnerColumnDefault
+--------------------------
+  
+This typeclass is used by Opaleye to do the conversion from postgres types defined by Opaleye, into Haskell types. It is defined as ::
+
+  class QueryRunnerColumnDefault pgType haskellType where
+    queryRunnerColumnDefault :: QueryRunnerColumn pgType haskellType
+
+Opaleye provides with a function  ::
+
+  fieldQueryRunnerColumn:: FromField haskell => QueryRunnerColumn pgType haskell
+
+As the type signature shows, *fieldQueryRunnerColumn* can return a value of type *QueryRunnerColumn a b* as long as *b* is an instance
+of *FromField* typeclass. So once we define an instance of FromField for our type, all we have to do is the following.
+
+For the data type *TenantStatus* that we saw earlier, ::
+
+  instance QueryRunnerColumnDefault PGText TenantStatus where
+    queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+3. Default
+----------
+
+This is a typeclass that Opaleye uses to convert Haskell values to postgresql values
+while writing to the database. It is defined as  ::
+
+  class Default (p :: * -> * -> *) a b where
+    def :: p a b
+
+You see a type variable p, that this definition required. Opaleye
+provided with a type *Constant* that can be used here. It is defined as ::
+
+  newtype Constant haskells columns
+    = Constant {constantExplicit :: haskells -> columns}
+
+So if we are
+defining a Default instance for the *TenantStatus* we saw earlier, it 
+would be something like this. ::
+
+  instance Default Constant TenantStatus (Column PGText) where
+    def = Constant def'
+      where
+        def' :: TenantStatus -> (Column PGText)
+        def' TenantStatusActive = pgStrictText "active"
+        def' TenantStatusInActive = pgStrictText "inactive"
+        def' TenantStatusNew = pgStrictText "new"
 
 Newtypes for primary keys
 -------------------------
@@ -104,11 +198,36 @@ TODO:
 Mapping ENUMs to Haskell ADTs
 -----------------------------
 
-TODO: 
+For Reading ::
 
-- Code snippet for mapping ``tenant_status`` and its explanation. 
-- Fetch a record by primary-key to show that we are indeed getting a Haskell ADT out.
-- What happens in failure case, where we have some DB valeus that cannot be parsed to the ADT value?
+  instance FromField TenantStatus where
+    fromField field mb_bytestring = makeTenantStatus mb_bytestring
+      where
+      makeTenantStatus :: Maybe ByteString -> Conversion TenantStatus
+      makeTenantStatus (Just "active") = return TenantStatusActive
+      makeTenantStatus (Just "inactive") = return TenantStatusInActive
+      makeTenantStatus (Just "new") = return TenantStatusNew
+      makeTenantStatus (Just _) = returnError ConversionFailed field "Unrecognized tenant status"
+      makeTenantStatus Nothing = returnError UnexpectedNull field "Empty tenant status"
+
+  instance QueryRunnerColumnDefault PGText TenantStatus where
+    queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+As we saw in the Typeclasses section, Opaleye requires the QueryRunnerColumnDefault
+typeclass instances for converting from data read from Database to Haskell values. the function
+*fieldQueryRunnerColumn* can return the value of the required type as long as there is a FromField
+instance for the required type.
+
+For Writing ::
+
+  instance Default Constant TenantStatus (Column PGText) where
+    def = Constant def'
+      where
+        def' :: TenantStatus -> (Column PGText)
+        def' TenantStatusActive = pgStrictText "active"
+        def' TenantStatusInActive = pgStrictText "inactive"
+        def' TenantStatusNew = pgStrictText "new"
+
 
 Handing Postgres Arrays
 -----------------------
