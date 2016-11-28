@@ -81,6 +81,13 @@ Code that we'll run through
 .. literalinclude:: code/opaleye-tenants-and-products.hs
   :linenos:
 
+A WARNING
+=========
+
+In the above code, we are using floats to represent money values. We use them because Opaleye's support for postgres numeric column
+`is not really complete. <https://github.com/tomjaguarpaw/haskell-opaleye/issues/230>`_
+
+
 Core mechanism for mapping custom Haskell types to PG types
 -----------------------------------------------------------
 
@@ -188,12 +195,11 @@ would be something like this. ::
 Newtypes for primary keys
 -------------------------
 
-TODO:
+Ideally, we would like to represent our primary keys using newtypes that wrap around an Int.
+We do it so that we can have some additional type safety while building queries. For example,
+if we try to compare two different types, both that wraps an Int, it would be a compiler error.
 
-- Code snippet to deal with ``ProductID`` and ``TenantID``
-- Example of joining ``tenants`` and ``products`` on ``tenants.ids=products.tenant_id`` thus resulting in correctly compiling code.
-- Example of joining ``tenants`` and ``products`` on ``tenants.id=products.id`` thus resulting in code that wont compile.
-
+But it seems that Opaleye's support for this feature is not really ready. So we will skip it for now.
 
 Mapping ENUMs to Haskell ADTs
 -----------------------------
@@ -285,8 +291,5 @@ appropriate opaleye's column type.
 Making columns read-only
 ------------------------
 
-TODO:
-
-- Code snippet for making ``id`` and ``createdAt`` readonly and its explanation
-- Note about why would you want to make a columnn read-only.
-- Quick example of inserting a row with a read-only column.
+Sometimes we will want to make a certain column read only, accepting only values generated from the database.
+Here is how we can do it.
