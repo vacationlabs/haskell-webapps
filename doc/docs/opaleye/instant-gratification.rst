@@ -9,10 +9,11 @@ Overview
 We'll start by quickly running through the following DB operations, which should give you a sense of "instant gratification" (as the title says!) However, **do not** start writing apps with Opaleye just after reading this. As they say, a little knowledge is a dangerous thing! We **strongly encourage** you to read all the chapters in this tutorial before using Opaleye in any serious project.
 
 * Connecting to the Postgres DB
+* Selecting multiple rows
 * Selecting a row
 * Inserting a row
 * Updating a row
-* Selecting multiple rows
+* Selecting a single row
 
 Prelimiaries
 ------------
@@ -139,3 +140,27 @@ Updating a row
 * As you can see from this function, updating rows in Opaleye is not very pretty! The biggest pain is that you cannot define which columns to update. You are forced to update the **entire row**. More about this in :ref:`updating-rows`.
 * You already know what ``constant row`` does - it converts a Haskell datatype to its corresponding PG data type, which for some strange reason, Opaleye refuses to do here automagically.
 * The comparison operator ``.==`` is what gets translated to equality operator in SQL. We cannot use Haskell's native equality operator because it represents equality in Haskell-land, whereas we need to represent equality when it gets convert to SQL-land. You will come across a lot of such special operators that map to their correspnding SQL parts.
+
+Selecting a single row
+----------------------
+
+  .. warning:: **Caution!** Extreme hand-waving lies ahead. This is probably an incorrect explanation, but should work well-enough to serve your intuition for some time.
+
+  .. code-block::: haskell
+
+    selectByEmail :: Connection -> String -> IO [(Int, String, String)]
+    selectByEmail conn email = runQuery conn $ proc () ->
+        do
+          row@(_, _, em) <- queryTable userTable -< ()
+          restrict -< (em .== constant email)
+          returnA -< row
+
+And finally, the last section of this chapter introduces you to a weird arrow notation ``-<``, which we have absolutely no clue about! All we know is that it works... mostly!
+
+Check the type of ``row@(_, _, em)`` in your editor. It should be ``(Column PGInt4, Column PGText, Column PGText)``, which means that if we do some hand-waving, here's what's happening in this function:
+
+* ``queryTable userTable -< ()`` maps to a ``SELECT`` clause in SQL-land. 
+* The columns selected are *conceptually* capurted in ``row@(_, _, em)`` in SQL-land (which is why the row is a PG type instead of a Haskell type).
+* ``restrict`` maps to ``WHERE`` in SQL. The condition refers to ``email`` which is a Haskell-type and hence, we need to convert it to a PG type via ``constant email`` before comparing it to ``em``
+* Finally ``returnA`` does some magic to return all the *captured* columns back to Haskell-land.
+
