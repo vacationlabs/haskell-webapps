@@ -119,7 +119,7 @@ Inserting a row
 
   This function uses ``runInsertMany`` which is basically Opaleye's version of ``INSERT``, **but** it only supports inserting *multiple rows*. This is why it is called ``runInsertMany`` instead of ``runInsert`` and the third argument is a *list* of rows.
 
-  So, what does ``constant row`` do? It converts Haskell => DB types, i.e. ``(Int, String, String)`` => ``(Column PGInt4, Column PGText, Column PGText)`` This is because we clearly told Opaleye that we will be writing rows of type ``(Column PGInt4, Column PGText, Column PGText)`` to ``userTable``, so we need to convert ``(Int, String, String)`` to ``(Column PGInt4, Column PGText, Column PGText)`` before we hand it over to Opaleye.
+  **So, what does ``constant row`` do?** It converts Haskell => DB types, i.e. ``(Int, String, String)`` => ``(Column PGInt4, Column PGText, Column PGText)`` This is because we clearly told Opaleye that we will be writing rows of type ``(Column PGInt4, Column PGText, Column PGText)`` to ``userTable``. However, we doubt that you will ever write a program that deals with values of type ``Column PGText`` or ``Column PGInt4`` directly. So, the function gets a regular ``(Int, String, String)`` tuple and we use ``constant`` to convert it to ``(Column PGInt4, Column PGText, Column PGText)`` before we hand it over to Opaleye.
 
   .. note:: Strangely, while ``runQuery`` converts DB => Haskell types automagically, ``runInsertMany`` and ``runUpdate`` refuse to do Haskell => DB conversions on their own. Hence the need to do it explicitly when using these functions.
 
