@@ -260,7 +260,7 @@ we saw earlier into a record in see how we can store it in a jsonb field.
 
 .. literalinclude:: code/opaleye-products-with-json-properties.hs
   :linenos:
-  :emphasize-lines: 263-284
+  :emphasize-lines: 267-288
 
 In the emphasized lines in code above, we are defining instances to support json conversion.
 The binary operators *.:* and *.=* that you see are
@@ -293,3 +293,10 @@ Making columns read-only
 
 Sometimes we will want to make a certain column read only, accepting only values generated from the database.
 Here is how we can do it.
+
+We have to define a new function *readOnly*, which will make the required field of type (), in the write types
+so we won't be able to provide a value for writing.
+
+.. literalinclude:: code/opaleye-readonly.hs
+  :linenos:
+  :emphasize-lines: 31-32, 56, 317, 142

@@ -277,15 +277,40 @@ insertProduct = do
   product <- getTestProduct
   runInsertManyReturning conn productTable [constant product] (\x -> x) :: IO [Product]
   return ()
-  
-getTestTenant :: Tenant
-getTestTenant = Tenant (TenantId 5) "Tenant Bob" "Bobby" "Bob" "bob@mail.com" "2255" TenantStatusInActive "bob.com"
+
+getTestTenant :: TenantIncoming
+getTestTenant = Tenant {
+  tenant_id = (),
+  tenant_name = "Tenant Bob",
+  tenant_firstname = "Bobby",
+  tenant_lastname = "Bob",
+  tenant_email = "bob@gmail.com",
+  tenant_phone = "2255",
+  tenant_status = TenantStatusInActive,
+  tenant_backofficedomain = "bob.com"
+}
 
 getTestProduct :: IO Product
 getTestProduct = do
   time <- getCurrentTime
   let (Just properties) =  decode "{\"weight\": \"200gm\"}" :: Maybe Value
-  return $ Product (ProductId 5) time time (TenantId 5) "snacks" (Just "") "" ["tag1", "tag2"] "INR" 30 45 Nothing ProductPhysical False properties
+  return $ Product {
+    product_id = (ProductId 5),
+    product_created_at = time,
+    product_updated_at = time,
+    product_tenant_id = (TenantId 5),
+    product_name = "snacks",
+    product_description = Just "",
+    product_url_slug = "",
+    product_tags = ["tag1", "tag2"],
+    product_currency = "INR",
+    product_advertised_price = 30,
+    product_comparison_price = 45,
+    product_cost_price = Nothing,
+    product_product_type = ProductPhysical,
+    product_is_published = False,
+    product_properties = properties
+  }
 
 main :: IO ()
 main = do

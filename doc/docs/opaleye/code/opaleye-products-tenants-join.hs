@@ -256,8 +256,17 @@ insertTenant = do
   runInsertManyReturning conn tenantTable [constant getTestTenant] (\x -> x) :: IO [Tenant]
   return ()
   
-getTestTenant :: Tenant
-getTestTenant = Tenant (TenantId 5) "Tenant Jackie" "Chan" "Alias" "jackie@mail.com" "2255" TenantStatusInActive "jackie.com"
+getTestTenant :: TenantIncoming
+getTestTenant = Tenant {
+  tenant_id = (),
+  tenant_name = "Tenant Bob",
+  tenant_firstname = "Bobby",
+  tenant_lastname = "Bob",
+  tenant_email = "bob@gmail.com",
+  tenant_phone = "2255",
+  tenant_status = TenantStatusInActive,
+  tenant_backofficedomain = "bob.com"
+}
 
 main :: IO ()
 main = do

@@ -8,6 +8,7 @@ module Main where
 
 import           Data.Aeson
 import           Data.Aeson.Types
+import           Data.Profunctor
 import           Data.Profunctor.Product
 import           Data.Profunctor.Product.Default
 import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
@@ -49,9 +50,10 @@ data TenantPoly key name fname lname email phone status b_domain = Tenant
   } deriving (Show)
 
 type Tenant = TenantPoly TenantId Text Text Text Text Text TenantStatus Text
+type TenantIncoming = TenantPoly () Text Text Text Text Text TenantStatus Text
 
 type TenantTableW = TenantPoly
-  (Maybe (Column PGInt4))
+  ()
   (Column PGText)
   (Column PGText)
   (Column PGText)
@@ -137,7 +139,7 @@ $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
 tenantTable :: Table TenantTableW TenantTableR
 tenantTable = Table "tenants" (pTenant
    Tenant {
-     tenant_id = (optional "id"),
+     tenant_id = (readOnly "id"),
      tenant_name = (required "name"),
      tenant_firstname = (required "first_name"),
      tenant_lastname = (required "last_name"),
@@ -310,14 +312,39 @@ insertProduct = do
   runInsertManyReturning conn productTable [constant product] (\x -> x) :: IO [Product]
   return ()
   
-getTestTenant :: Tenant
-getTestTenant = Tenant (TenantId 5) "Tenant Bob" "Bobby" "Bob" "bob@mail.com" "2255" TenantStatusInActive "bob.com"
+getTestTenant :: TenantIncoming
+getTestTenant = Tenant {
+  tenant_id = (),
+  tenant_name = "Tenant Bob",
+  tenant_firstname = "Bobby",
+  tenant_lastname = "Bob",
+  tenant_email = "bob@gmail.com",
+  tenant_phone = "2255",
+  tenant_status = TenantStatusInActive,
+  tenant_backofficedomain = "bob.com"
+}
 
 getTestProduct :: IO Product
 getTestProduct = do
   time <- getCurrentTime
   let properties =  ProductProperties { product_color = "red", product_weight = "200gm"}
-  return $ Product (ProductId 5) time time (TenantId 5) "snacks" (Just "") "" ["tag1", "tag2"] "INR" 30 45 Nothing ProductPhysical False properties
+  return $ Product {
+    product_id = (ProductId 5),
+    product_created_at = time,
+    product_updated_at = time,
+    product_tenant_id = (TenantId 5),
+    product_name = "snacks",
+    product_description = Just "",
+    product_url_slug = "",
+    product_tags = ["tag1", "tag2"],
+    product_currency = "INR",
+    product_advertised_price = 30,
+    product_comparison_price = 45,
+    product_cost_price = Nothing,
+    product_product_type = ProductPhysical,
+    product_is_published = False,
+    product_properties = properties
+  }
 
 main :: IO ()
 main = do
