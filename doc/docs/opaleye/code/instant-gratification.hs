@@ -34,6 +34,14 @@ updateRowByEmail conn row@(id, name, email) = do
   runUpdate conn userTable (\_ -> constant row) (\(_,_,em) -> em .== constant email)
   return ()
 
+updateRow :: Connection -> (Int, String, String) -> IO ()
+updateRow conn row@(key, name, email) = do
+  runUpdate 
+    conn 
+    userTable 
+    (\_ -> constant row) -- what should the matching row be updated to
+    (\ (k, _, _) -> k .== constant key) -- which rows to update?
+  return ()
 
 main :: IO ()
 main = do
