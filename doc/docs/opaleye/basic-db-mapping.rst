@@ -220,24 +220,18 @@ Now, coming back to the subtle differences in ``TenantPGWrite`` and ``TenantPGRe
 * While writing, we may **omit** the ``key`` and ``createdAt`` columns (because their type is ``(Maybe (Column x))`` in ``TenantPGWrite`` - as opposed to simply ``Column x``)
 * However, we are telling Opaleye, that while reading from the DB, we guarantee that ``key`` and ``createdAt`` will both be ``NOT NULL``. This is because in ``TenantPGRead`` their types are ``(Column x)`` (as opposed to ``Maybe (Column x)``)
 
-.. topic:: Here's a small exercise
-
-  What if ``ownerId`` had the following types. What would it mean?
+.. note:: **Here's a small exercise:** What if ``ownerId`` had the following types. What would it mean?
 
   * ``TenantPGWrite``: (Maybe (Column (Nullable PGInt8)))
   * ``TenantPGRead``: (Column (Nullable PGInt8))
     
-.. topic:: Here's another small exercise
-
-  What if ``ownerId`` had the following types. What would it mean?
+.. note:: **Here's another small exercise:** What if ``ownerId`` had the following types. What would it mean?
 
   * ``TenantPGWrite``: (Maybe (Column PGInt8))
   * ``TenantPGRead``: (Column (Nullable PGInt8))
 
     
-.. topic:: Here's more to think about
-
-  What if ``ownerId`` had the following types. What would it mean? What does having a ``(Maybe (Column x))`` during ``SELECT`` operations really mean? Does it mean anything in regular ``SELECT`` operations? What about ``LEFT JOIN`` operations?
+.. note:: **Here's more to think about:** What if ``ownerId`` had the following types. What would it mean? What does having a ``(Maybe (Column x))`` during ``SELECT`` operations really mean? Does it mean anything in regular ``SELECT`` operations? What about ``LEFT JOIN`` operations?
 
   * ``TenantPGWrite``: (Maybe (Column PGInt8))
   * ``TenantPGRead``: (Maybe (Column PGInt8))
