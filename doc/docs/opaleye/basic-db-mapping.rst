@@ -231,12 +231,14 @@ Now, coming back to the subtle differences in ``TenantPGWrite`` and ``TenantPGRe
   * ``TenantPGRead``: (Column (Nullable PGInt8))
 
     
-.. note:: **Here's more to think about:** What if ``ownerId`` had the following types. What would it mean? What does having a ``(Maybe (Column x))`` during ``SELECT`` operations really mean? Does it mean anything in regular ``SELECT`` operations? What about ``LEFT JOIN`` operations?
+.. note:: **Here's more to think about:** What if ``ownerId`` had the following types. What would it mean? 
 
   * ``TenantPGWrite``: (Maybe (Column PGInt8))
   * ``TenantPGRead``: (Maybe (Column PGInt8))
 
-**Making things even more typesafe:** If you notice, ``TenantPGWrite`` has the ``key`` field as ``(Maybe (Column PGInt8))``, which makes it *omittable*, but it also makes it *definable*. Is there really any use of sending across the primary-key value from Haskell to the DB? In most cases, we think not. So, if we want to make this interface ultra typesafe, Opaleye allows us to do the following as well (notice the type of ``key``): ::
+  What does having a ``(Maybe (Column x))`` during ``SELECT`` operations really mean? Does it mean anything in regular ``SELECT`` operations? What about ``LEFT JOIN`` operations?
+
+**Making things even more typesafe:** If you notice, ``TenantPGWrite`` has the ``key`` field as ``(Maybe (Column PGInt8))``, which makes it *omittable*, but it also makes it *definable*. Is there really any use of sending the primary-key's value from Haskell to the DB? In most cases, we think not. So, if we want to make this interface uber typesafe, Opaleye allows us to do the following as well (notice the type of ``key``): ::
 
   type TenantPGWrite = TenantPoly
     () -- key
@@ -274,7 +276,7 @@ The TH splice - ``makeAdaptorAndInstance`` - does two very important things:
 
 Right now, we don't need to be bothered with the internals of ``pTenant`` and ``Default``, but we *will* need them when we want to do some advanced DB<=>Haskell mapping. Right now, what we need to be bothered about is ``tenantTable``. That is what we've been waiting for! This is what represents the ``tenants`` table in the Haskell land. Every SQL operation on the ``tenants`` table will need to reference ``tenantsTable``. And while defining ``tenantsTable`` we've finally assembled the last piece of the puzzle: field-name <=> column-name mappings AND the name of the table! (did you happen to forget about them?)
 
-**Note:** We're not really clear why we need to specify ``optional`` and ``required`` in the table definition when ``TenantPGWrite`` has already defined which columns are optional and which are required.
+.. note:: We're not really clear why we need to specify ``optional`` and ``required`` in the table definition when ``TenantPGWrite`` has already defined which columns are optional and which are required.
 
 And, one last thing. We've been talking about ``PGText``, ``PGTimestamptz``, and ``PGInt8`` till now. These aren't the regular Haskell types that we generally deal with! These are representations of native PG types in Haskell. You would generally not build your app with these types. Instead, you would use something like ``Tenant``, defined below: ::
 
