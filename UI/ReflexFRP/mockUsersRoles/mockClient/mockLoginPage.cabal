@@ -32,7 +32,6 @@ executable mockClient
                      , reflex-ui-elements
                      , servant-router
                      , time
-                     , ghcjs-base==0.2.0.0
 
   default-language:  Haskell2010
   if impl(ghcjs)

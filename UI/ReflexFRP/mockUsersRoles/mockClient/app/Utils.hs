@@ -15,7 +15,7 @@ import qualified Data.Dependent.Map     as DMap
 import           Data.GADT.Compare
 import           Data.Proxy             (Proxy (..))
 
-import GHCJS.Foreign
+-- import GHCJS.Foreign
 
 type ServerState = Roles
 type ClientState = Roles
