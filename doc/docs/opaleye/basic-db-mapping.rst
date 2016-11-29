@@ -217,23 +217,25 @@ Different types for read & write - again
 
 Now, coming back to the subtle differences in ``TenantPGWrite`` and ``TenantPGRead``:
 
-* While writing, we may **omit** the ``key`` and ``createdAt`` columns (because their type is ``(Maybe (Column x))`` in ``TenantPGWrite``)
-* However, we are telling Opaleye, that while reading from the DB, we guarantee that ``key`` and ``createdAt`` will be of type ``NUMERIC NOT NULL`` and ``TIME WITH TIME ZONE NOT NULL``, respectively. This is because in ``TenantPGRead`` their types are ``(Column x)``
+* While writing, we may **omit** the ``key`` and ``createdAt`` columns (because their type is ``(Maybe (Column x))`` in ``TenantPGWrite`` - as opposed to simply ``Column x``)
+* However, we are telling Opaleye, that while reading from the DB, we guarantee that ``key`` and ``createdAt`` will both be ``NOT NULL``. This is because in ``TenantPGRead`` their types are ``(Column x)`` (as opposed to ``Maybe (Column x)``)
 
-**Here's a small exercise:** What if ``ownerId`` had the following types. What would it mean?
+  .. note::
 
-* ``TenantPGWrite``: (Maybe (Column (Nullable PGInt8)))
-* ``TenantPGRead``: (Column (Nullable PGInt8))
+    **Here's a small exercise:** What if ``ownerId`` had the following types. What would it mean?
 
-**Here's another small exercise:** What if ``ownerId`` had the following types. What would it mean?
+    * ``TenantPGWrite``: (Maybe (Column (Nullable PGInt8)))
+    * ``TenantPGRead``: (Column (Nullable PGInt8))
 
-* ``TenantPGWrite``: (Maybe (Column PGInt8))
-* ``TenantPGRead``: (Column (Nullable PGInt8))
+    **Here's another small exercise:** What if ``ownerId`` had the following types. What would it mean?
 
-**Here's more to think about:** What if ``ownerId`` had the following types. What would it mean? What does having a ``(Maybe (Column x))`` during ``SELECT`` operations really mean? Does it mean anything in regular ``SELECT`` operations? What about ``LEFT JOIN`` operations?
+    * ``TenantPGWrite``: (Maybe (Column PGInt8))
+    * ``TenantPGRead``: (Column (Nullable PGInt8))
 
-* ``TenantPGWrite``: (Maybe (Column PGInt8))
-* ``TenantPGRead``: (Maybe (Column PGInt8))
+    **Here's more to think about:** What if ``ownerId`` had the following types. What would it mean? What does having a ``(Maybe (Column x))`` during ``SELECT`` operations really mean? Does it mean anything in regular ``SELECT`` operations? What about ``LEFT JOIN`` operations?
+
+    * ``TenantPGWrite``: (Maybe (Column PGInt8))
+    * ``TenantPGRead``: (Maybe (Column PGInt8))
 
 **Making things even more typesafe:** If you notice, ``TenantPGWrite`` has the ``key`` field as ``(Maybe (Column PGInt8))``, which makes it *omittable*, but it also makes it *definable*. Is there really any use of sending across the primary-key value from Haskell to the DB? In most cases, we think not. So, if we want to make this interface ultra typesafe, Opaleye allows us to do the following as well (notice the type of ``key``): ::
 
