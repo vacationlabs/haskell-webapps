@@ -253,7 +253,7 @@ Now, coming back to the subtle differences in ``TenantPGWrite`` and ``TenantPGRe
     (Column (Nullable PGInt8)) -- ownerId
     (Column PGText) -- backofficeDomain
 
-.. seealso:: You'll need to do some special setup for this to work as described in :ref:`readonly_column`
+.. seealso:: You'll need to do some special setup for this to work as described in :ref:`readonly_columns`
 
 Wrapping-up
 -----------
