@@ -220,24 +220,27 @@ Now, coming back to the subtle differences in ``TenantPGWrite`` and ``TenantPGRe
 * While writing, we may **omit** the ``key`` and ``createdAt`` columns (because their type is ``(Maybe (Column x))`` in ``TenantPGWrite`` - as opposed to simply ``Column x``)
 * However, we are telling Opaleye, that while reading from the DB, we guarantee that ``key`` and ``createdAt`` will both be ``NOT NULL``. This is because in ``TenantPGRead`` their types are ``(Column x)`` (as opposed to ``Maybe (Column x)``)
 
-  .. note::
+.. note:: Here's a small exercise
 
-    **Here's a small exercise:** What if ``ownerId`` had the following types. What would it mean?
+  What if ``ownerId`` had the following types. What would it mean?
 
-    * ``TenantPGWrite``: (Maybe (Column (Nullable PGInt8)))
-    * ``TenantPGRead``: (Column (Nullable PGInt8))
+  * ``TenantPGWrite``: (Maybe (Column (Nullable PGInt8)))
+  * ``TenantPGRead``: (Column (Nullable PGInt8))
+    
+.. note:: Here's another small exercise
+
+  What if ``ownerId`` had the following types. What would it mean?
+
+  * ``TenantPGWrite``: (Maybe (Column PGInt8))
+  * ``TenantPGRead``: (Column (Nullable PGInt8))
 
     
-    **Here's another small exercise:** What if ``ownerId`` had the following types. What would it mean?
+.. Note:: Here's more to think about
 
-    * ``TenantPGWrite``: (Maybe (Column PGInt8))
-    * ``TenantPGRead``: (Column (Nullable PGInt8))
+  What if ``ownerId`` had the following types. What would it mean? What does having a ``(Maybe (Column x))`` during ``SELECT`` operations really mean? Does it mean anything in regular ``SELECT`` operations? What about ``LEFT JOIN`` operations?
 
-    
-    **Here's more to think about:** What if ``ownerId`` had the following types. What would it mean? What does having a ``(Maybe (Column x))`` during ``SELECT`` operations really mean? Does it mean anything in regular ``SELECT`` operations? What about ``LEFT JOIN`` operations?
-
-    * ``TenantPGWrite``: (Maybe (Column PGInt8))
-    * ``TenantPGRead``: (Maybe (Column PGInt8))
+  * ``TenantPGWrite``: (Maybe (Column PGInt8))
+  * ``TenantPGRead``: (Maybe (Column PGInt8))
 
 **Making things even more typesafe:** If you notice, ``TenantPGWrite`` has the ``key`` field as ``(Maybe (Column PGInt8))``, which makes it *omittable*, but it also makes it *definable*. Is there really any use of sending across the primary-key value from Haskell to the DB? In most cases, we think not. So, if we want to make this interface ultra typesafe, Opaleye allows us to do the following as well (notice the type of ``key``): ::
 
@@ -250,7 +253,7 @@ Now, coming back to the subtle differences in ``TenantPGWrite`` and ``TenantPGRe
     (Column (Nullable PGInt8)) -- ownerId
     (Column PGText) -- backofficeDomain
 
-.. important:: You'll need to do some special setup for this to work as described in :ref:`readonly_column`
+.. seealso:: You'll need to do some special setup for this to work as described in :ref:`readonly_column`
 
 Wrapping-up
 -----------
