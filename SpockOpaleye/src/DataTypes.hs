@@ -38,7 +38,7 @@ getCurrentUser = do
   (_, _, user) <- R.ask
   return user
 
-data ValidationResult = Valid | Invalid
+data ValidationResult = Valid | Invalid String
   deriving (Eq, Show)
 
 newtype TenantId = TenantId Int

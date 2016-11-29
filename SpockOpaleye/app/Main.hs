@@ -46,7 +46,7 @@ runAppM x conn = do
   return item
 
 getTestTenant :: Tenant
-getTestTenant = Tenant (TenantId 44) tz tz "tjhon" "John" "Jacob" "john@gmail.com" "2342424" TenantStatusNew Nothing "Bo domain"
+getTestTenant = Tenant (TenantId 1) tz tz "tjhon" "John" "Jacob" "john@gmail.com" "2342424" TenantStatusNew Nothing "Bo domain"
   where
       tz = UTCTime {
         utctDay = ModifiedJulianDay {
@@ -58,7 +58,7 @@ getTestTenant = Tenant (TenantId 44) tz tz "tjhon" "John" "Jacob" "john@gmail.co
 getTestUser :: IO User
 getTestUser = do
   Just password_ <- bcryptPassword "adsasda"
-  return $ User (UserId 27) tz tz (TenantId 44) "John" password_  (Just "2342424") (Just "asdada") UserStatusActive
+  return $ User (UserId 1) tz tz (TenantId 1) "John" password_  (Just "2342424") (Just "asdada") UserStatusActive
   where
       tz = UTCTime {
         utctDay = ModifiedJulianDay {
@@ -81,5 +81,5 @@ app = do
                   let updatedTenant = newTenant & firstname .~ "Jake"
                   _ <- runQuery $ runAppM $ updateTenant updatedTenant
                   json newTenant
-             _ -> json $ T.pack "Validation fail"
+             Invalid err -> json $ T.pack ("Validation fail with " <> err)
          Nothing -> json $ T.pack "Unrecognized input"
