@@ -286,6 +286,9 @@ for *ProductProperties*. The toJSON converts our ProductProperties to *Value* ty
 built in Default instance for *Value* type, we were able to call the *constant* function on it, to return the
 appropriate opaleye's column type.
 
+.. _readonly_columns:
+
+
 Making columns read-only
 ------------------------
 
