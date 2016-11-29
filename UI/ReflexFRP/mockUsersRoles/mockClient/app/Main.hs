@@ -33,11 +33,11 @@ import Control.Lens
 import Control.Lens.Wrapped
 
 import Data.Time.Clock
--- main :: IO ()
--- main = mainWidget $ do
---   rec rendererAndSwitch <- domMorph app currentState
---       currentState      <- holdDyn BootApp rendererAndSwitch
---   return ()
+main :: IO ()
+main = mainWidget $ do
+  rec rendererAndSwitch <- domMorph app currentState
+      currentState      <- holdDyn BootApp rendererAndSwitch
+  return ()
 
 app :: MonadWidget t m => AppState -> m (Event t AppState)
 app BootApp = do
@@ -65,18 +65,18 @@ drivenDelay e =  performEventAsync . ffor e $ \(dt,a) cb -> liftIO . void . fork
   cb a
 
 
-main :: IO ()
-main = routeSite $ \uri -> do
-  let handler = overviewPage :<|> editPage'
-  result <- runRoute uri (Proxy @Navigation) handler
-  case result of
-    Left _ -> do
-      el "div" $ text "Incorrect address"
-      return never
-    Right e -> do
-      let e' = traceEvent "sono in main: " e
-      performEvent_ $ ffor e $ \t -> liftIO (setWindowLocationHref t)
-      return e'
+-- main :: IO ()
+-- main = routeSite $ \uri -> do
+--   let handler = overviewPage :<|> editPage'
+--   result <- runRoute uri (Proxy @Navigation) handler
+--   case result of
+--     Left _ -> do
+--       el "div" $ text "Incorrect address"
+--       return never
+--     Right e -> do
+--       let e' = traceEvent "sono in main: " e
+--       performEvent_ $ ffor e $ \t -> liftIO (setWindowLocationHref t)
+--       return e'
 
 overviewPage :: forall t m. MonadWidget t m => m (Event t Text)
 overviewPage = do
