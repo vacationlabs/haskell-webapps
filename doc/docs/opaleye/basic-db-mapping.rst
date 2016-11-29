@@ -270,7 +270,7 @@ Coming to the last part of setting up DB<=>Haskell mapping with Opaleye, we need
 The TH splice - ``makeAdaptorAndInstance`` - does two very important things:
 
 * Defines the ``pTenant`` function, which is subsequently used in ``tenantTable``
-* Defines the ``Default`` instance for ``TenantPoly`` (this is not ``Data.Default``, but the `poorly named ``Data.Profunctor.Product.Default`` <https://github.com/tomjaguarpaw/haskell-opaleye/issues/225#issuecomment-258441089>`_
+* Defines the ``Default`` instance for ``TenantPoly`` (this is not ``Data.Default``, but the `poorly named *Data.Profunctor.Product.Default* <https://github.com/tomjaguarpaw/haskell-opaleye/issues/225#issuecomment-258441089>`_
 
 Right now, we don't need to be bothered with the internals of ``pTenant`` and ``Default``, but we *will* need them when we want to do some advanced DB<=>Haskell mapping. Right now, what we need to be bothered about is ``tenantTable``. That is what we've been waiting for! This is what represents the ``tenants`` table in the Haskell land. Every SQL operation on the ``tenants`` table will need to reference ``tenantsTable``. And while defining ``tenantsTable`` we've finally assembled the last piece of the puzzle: field-name <=> column-name mappings AND the name of the table! (did you happen to forget about them?)
 
