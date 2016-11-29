@@ -227,11 +227,13 @@ Now, coming back to the subtle differences in ``TenantPGWrite`` and ``TenantPGRe
     * ``TenantPGWrite``: (Maybe (Column (Nullable PGInt8)))
     * ``TenantPGRead``: (Column (Nullable PGInt8))
 
+    
     **Here's another small exercise:** What if ``ownerId`` had the following types. What would it mean?
 
     * ``TenantPGWrite``: (Maybe (Column PGInt8))
     * ``TenantPGRead``: (Column (Nullable PGInt8))
 
+    
     **Here's more to think about:** What if ``ownerId`` had the following types. What would it mean? What does having a ``(Maybe (Column x))`` during ``SELECT`` operations really mean? Does it mean anything in regular ``SELECT`` operations? What about ``LEFT JOIN`` operations?
 
     * ``TenantPGWrite``: (Maybe (Column PGInt8))
@@ -248,7 +250,7 @@ Now, coming back to the subtle differences in ``TenantPGWrite`` and ``TenantPGRe
     (Column (Nullable PGInt8)) -- ownerId
     (Column PGText) -- backofficeDomain
 
-  .. important:: You'll need to do some special setup for this to work as described in :ref:`Making columns read-only`
+.. important:: You'll need to do some special setup for this to work as described in :ref:`Making columns read-only`
 
 Wrapping-up
 -----------
