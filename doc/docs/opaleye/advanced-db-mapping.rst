@@ -163,6 +163,16 @@ For the data type *TenantStatus* that we saw earlier, ::
   instance QueryRunnerColumnDefault PGText TenantStatus where
     queryRunnerColumnDefault = fieldQueryRunnerColumn
 
+But since the type *QueryRunnerColumn* is a Functor, we can make instances of custom data types without implementing FromField instances.
+For eg, if a data type ::
+
+  newtype UserId = UserId Int deriving (Show)
+
+We can define a *QueryRunnerColumnDefault* instance as follows,
+
+  instance QueryRunnerColumnDefault PGInt4 UserId where
+    queryRunnerColumnDefault = UserId <$> queryRunnerColumnDefault
+
 3. Default
 ----------
 
@@ -172,8 +182,9 @@ while writing to the database. It is defined as  ::
   class Default (p :: * -> * -> *) a b where
     def :: p a b
 
-You see a type variable p, that this definition required. Opaleye
-provided with a type *Constant* that can be used here. It is defined as ::
+You see a type variable p, that this definition require. Opaleye
+provides us with a type *Constant* that should be used here.
+It is defined as ::
 
   newtype Constant haskells columns
     = Constant {constantExplicit :: haskells -> columns}
