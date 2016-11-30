@@ -38,13 +38,13 @@ removeRawDbRows table matchFunc = do
 createDbRows :: (Show columnsW, D.Default QueryRunner columnsR haskells) 
     =>  Table columnsW columnsR -> [columnsW] -> AppM [haskells]
 createDbRows table pgrows = do
-  auditLog $ "Create : " ++ (show pgrows)
+  --auditLog $ "Create : " ++ (show pgrows)
   conn <- getConnection
   liftIO $ runInsertManyReturning conn table pgrows (\x -> x)
 
 updateDbRow :: (Show columnsW, HasId columnsR (Column PGInt4)) => Table columnsW columnsR -> Column PGInt4 -> columnsW -> AppM columnsW
 updateDbRow table row_id item = do
-  auditLog $ "Update :" ++ (show item)
+  --auditLog $ "Update :" ++ (show item)
   conn <- getConnection
   _ <- liftIO $ runUpdate conn table (\_ -> item) (matchFunc row_id) 
   return item
@@ -60,7 +60,7 @@ createRow ::(
     D.Default Constant incoming columnsW, D.Default QueryRunner returned row)
     => Table columnsW returned -> incoming -> AppM row
 createRow table item = do
-  auditLog $ "Create : " ++ (show item)
+  --auditLog $ "Create : " ++ (show item)
   currentTime <- liftIO $ fmap pgUTCTime getCurrentTime
   let itemPg = (constant item) & createdat .~ (Just currentTime) & updatedat .~ (currentTime)
   fmap (head) $ createDbRows table [itemPg] 
@@ -76,7 +76,7 @@ updateRow :: (
     )
     => Table columnsW columnsR -> haskells -> AppM haskells
 updateRow table item = do
-  auditLog $ "Update : " ++ (show item)
+  --auditLog $ "Update : " ++ (show item)
   let itId = item ^. id
   currentTime <- liftIO getCurrentTime
   let updatedItem = (putUpdatedTimestamp currentTime) item
@@ -139,7 +139,7 @@ removeRow :: (
     , HasId columnsR (Column PGInt4)
     ) => Table columnsW columnsR -> haskells -> AppM GHC.Int.Int64
 removeRow table item = do
-  auditLog $ "Remove : " ++ (show item)
+  --auditLog $ "Remove : " ++ (show item)
   conn <- getConnection
   liftIO $ do
     runDelete conn table $ matchFunc $ item ^. id

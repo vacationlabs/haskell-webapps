@@ -40,6 +40,7 @@ main = do
 
 runAppM :: AppM a -> Connection -> IO a
 runAppM x conn = do
+  putStrLn "request"
   user <- getTestUser
   (item, lg) <- runReaderT (runWriterT x) (conn, Just $ auditable getTestTenant, Just $ auditable user)
   putStrLn lg
@@ -70,6 +71,9 @@ getTestUser = do
 
 app :: SpockM Connection MySession MyAppState ()
 app = do
+  get ("tenants") $ do
+    tenants <- runQuery $ runAppM $ readTenants
+    json tenants
   post ("tenants/new") $
     do maybeTenantIncoming <- jsonBody
        case maybeTenantIncoming of
