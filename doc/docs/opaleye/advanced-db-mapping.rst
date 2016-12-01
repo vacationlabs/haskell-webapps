@@ -100,7 +100,7 @@ FromField
 *********
 
 This is a typeclass defined by the postgresql-simple library. This typeclass decides how values read from database are
-converted to their Haskell counterparts. It is defined as ::
+converted to their Haskell counterparts. It is defined as:
 
 .. code-block:: haskell
 
@@ -205,7 +205,17 @@ But it seems that Opaleye's support for this feature is `not really ready <https
 Mapping ENUMs to Haskell ADTs
 -----------------------------
 
-For Reading ::
+Here's what our ADT for ``TenantStatus`` looks like:
+
+.. code-block:: haskell
+
+  data TenantStatus = TenantStatusActive | TenantStatusInActive | TenantStatusNew
+    deriving (Show)
+
+
+Here's how we would setup the DB => Haskell conversion. If you notice, we didn't really need to bother with how to build ``Conversion TenantStatus`` because once we know what the incoming ByteString is, we know exactly which ADT value it should map to. We simply ``return`` that value, since ``Conversion`` is a Monad.
+
+.. code-block:: haskell
 
   instance FromField TenantStatus where
     fromField field mb_bytestring = makeTenantStatus mb_bytestring
@@ -220,12 +230,11 @@ For Reading ::
   instance QueryRunnerColumnDefault PGText TenantStatus where
     queryRunnerColumnDefault = fieldQueryRunnerColumn
 
-As we saw in the Typeclasses section, Opaleye requires the QueryRunnerColumnDefault
-typeclass instances for converting from data read from Database to Haskell values. the function
-*fieldQueryRunnerColumn* can return the value of the required type as long as there is a FromField
-instance for the required type.
+**TODO:** As we saw in the Typeclasses section, Opaleye requires the QueryRunnerColumnDefault typeclass instances for converting from data read from Database to Haskell values. the function *fieldQueryRunnerColumn* can return the value of the required type as long as there is a FromField instance for the required type.
 
-For Writing ::
+Now, let's look at how to setup the Haskell => DB conversion.
+
+.. code-block:: haskell 
 
   instance Default Constant TenantStatus (Column PGText) where
     def = Constant def'
@@ -241,18 +250,16 @@ Handing Postgres Arrays
 
 Postgresql Array column are represented by the PGArray type. It can take
 an additional type to represent the kind of the array. So if the column
-is text[], the type needs to be *PGArray PGText*.
+is ``text[]``, the type needs to be ``PGArray PGText``.
 
 If you look at the earlier code, you can see that the output contains a
-list for the *tag* fields.
+list for the ``tag`` fields.
 
 
 Handling JSONB
 --------------
 
-The type that represents *jsonb* postgresql columns in Opaleye is PGJsonb.
-You can
-It will support any type that has a ToJSON/FromJSON instances defined for it.
+The type that represents ``jsonb`` postgresql columns in Opaleye is ``PGJsonb``.  It will support any type that has a ToJSON/FromJSON instances defined for it.
 
 ToJSON/FromJSON typeclasses are exported by the Aeson json library.
 
