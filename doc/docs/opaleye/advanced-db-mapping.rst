@@ -109,6 +109,7 @@ converted to their Haskell counterparts. It is defined as ::
 
   type FieldParser a = Field -> Maybe ByteString -> Conversion a
 
+
 The basic idea of this typeclass is simple. It wants you to define a function ``fromField`` which will be passed the following: 
 
 * ``Field`` -  a record holding a lot of metadata about the underlying Postgres column 
@@ -132,49 +133,11 @@ Diligent readers will immediately have the following questions:
 
 **How does one write a (Conversion a) action?**
 
-Good question! The answer is that we (the authors of this tutorial) don't know! And we didn't feel the need to find out as well. Because you already have the ``fromField`` functions (which means the ``Conversion a`` actions) for a lot of pre-defined Haskell types. In practice, you usually compose them to define your desired ``Conversion``. Read the other sections in this chapter to find exampler of how to do this.
+Good question! The answer is that we (the authors of this tutorial) don't know! And we didn't feel the need to find out as well. Because you already have the ``fromField`` functions for a lot of pre-defined Haskell types. In practice, you usually compose them to obtain your desired ``Conversion`` action. Read the other sections in this chapter to find exampler of how to do this.
 
 
-The type *Conversion* is a functor, so you can define instances for custom types in terms of existing *FromField* instances.
-For example, if you have a type that wraps an Int, like
-
-  data ProductId = ProductId Int
-
-You can make a field parser instance for *ProductId* as follows ::
-
-  instance FromField ProductId where
-    fromField field mb_bytestring = ProductId <$> fromField field mb_bytestring
-
-While doing the above method, you have to make sure that the *FromField* instance that you are depending on
-can actually accept data from the underlying database column. This is relavant if you want to do this for
-enum types. 
-
-If you depend on the *FromField* instance of a String to read the data coming from an Enum field, it will error out
-because the *FromField* instance of String checks if the data is coming from a Varchar or Char field (using the first argument
-to the *fromField* function), and errors out if it is not.
-
-Since the second argument to the fromField functon is a *Maybe Bytestring*,
-for a data type *TenantStatus* defined as  ::
-
-  data TenantStatus = TenantStatusActive | TenantStatusInActive | TenantStatusNew
-
-we could do the following ::
-
-  instance FromField TenantStatus where
-    fromField field mb_bytestring = makeTenantStatus mb_bytestring
-      where
-      makeTenantStatus :: Maybe ByteString -> Conversion TenantStatus
-      makeTenantStatus (Just "active") = return TenantStatusActive
-      makeTenantStatus (Just "inactive") = return TenantStatusInActive
-      makeTenantStatus (Just "new") = return TenantStatusNew
-      makeTenantStatus (Just _) = returnError ConversionFailed field "Unrecognized tenant status"
-      makeTenantStatus Nothing = returnError UnexpectedNull field "Empty tenant status"
-
-With OverloadedStrings extension enabled, we could pattern match on Bystrings using normal String literals, and return the proper value.
-You can also see how we are handling unexpected values or a null coming from the column.
-
-2. QueryRunnerColumnDefault
---------------------------
+QueryRunnerColumnDefault
+************************
   
 This typeclass is used by Opaleye to do the conversion from postgres types defined by Opaleye, into Haskell types. It is defined as ::
 
@@ -193,24 +156,24 @@ For the data type *TenantStatus* that we saw earlier, ::
   instance QueryRunnerColumnDefault PGText TenantStatus where
     queryRunnerColumnDefault = fieldQueryRunnerColumn
 
-3. Default
-----------
+Default
+*******
 
-This is a typeclass that Opaleye uses to convert Haskell values to postgresql values
-while writing to the database. It is defined as  ::
+.. note:: This is **not** the ``Data.Default`` that you *may* be familiar with. This is ``Data.Profunctor.Product.Default``
+
+This is a typeclass that Opaleye uses to convert Haskell values to Postgres values while writing to the database. It is defined as:
+
+.. code-block:: haskell
 
   class Default (p :: * -> * -> *) a b where
     def :: p a b
 
-You see a type variable p, that this definition required. Opaleye
-provided with a type *Constant* that can be used here. It is defined as ::
+You see a type variable ``p``, that this definition required. Opaleye provided with a type *Constant* that can be used here. It is defined as ::
 
   newtype Constant haskells columns
     = Constant {constantExplicit :: haskells -> columns}
 
-So if we are
-defining a Default instance for the *TenantStatus* we saw earlier, it 
-would be something like this. ::
+So if we are defining a Default instance for the *TenantStatus* we saw earlier, it would be something like this. ::
 
   instance Default Constant TenantStatus (Column PGText) where
     def = Constant def'
@@ -223,11 +186,21 @@ would be something like this. ::
 Newtypes for primary keys
 -------------------------
 
-Ideally, we would like to represent our primary keys using newtypes that wrap around an Int.
-We do it so that we can have some additional type safety while building queries. For example,
-if we try to compare two different types, both that wraps an Int, it would be a compiler error.
+Ideally, we would like to represent our primary keys using newtypes that wrap around an ``Int``. For example:
 
-But it seems that Opaleye's support for this feature is not really ready. So we will skip it for now.
+.. code-block:: haskell
+
+  newtype TenantId = TenantId Int
+  newtype ProductId = ProductId Int
+
+
+This is generally done to extract greater type-safety out of the system. For instance, doing this would prevent the following class of errors:
+
+* Comparing a ``TenantId`` to a ``ProductId``, which would rarely make sense.
+* Passing a ``TenantId`` to a function which is expecting a ``ProductId``
+* At an SQL level, joining the ``tenantTable`` with the ``productTable`` by matching ``tenants.id`` to ``products.id``
+
+But it seems that Opaleye's support for this feature is `not really ready <https://github.com/tomjaguarpaw/haskell-opaleye/issues/242>`_. So we will skip it for now.
 
 Mapping ENUMs to Haskell ADTs
 -----------------------------
@@ -331,3 +304,46 @@ so we won't be able to provide a value for writing.
 .. literalinclude:: code/opaleye-readonly.hs
   :linenos:
   :emphasize-lines: 31-32, 56, 317, 142
+
+
+
+
+========
+
+The type *Conversion* is a functor, so you can define instances for custom types in terms of existing *FromField* instances.
+For example, if you have a type that wraps an Int, like
+
+  data ProductId = ProductId Int
+
+You can make a field parser instance for *ProductId* as follows ::
+
+  instance FromField ProductId where
+    fromField field mb_bytestring = ProductId <$> fromField field mb_bytestring
+
+While doing the above method, you have to make sure that the *FromField* instance that you are depending on
+can actually accept data from the underlying database column. This is relavant if you want to do this for
+enum types. 
+
+If you depend on the *FromField* instance of a String to read the data coming from an Enum field, it will error out
+because the *FromField* instance of String checks if the data is coming from a Varchar or Char field (using the first argument
+to the *fromField* function), and errors out if it is not.
+
+Since the second argument to the fromField functon is a *Maybe Bytestring*,
+for a data type *TenantStatus* defined as  ::
+
+  data TenantStatus = TenantStatusActive | TenantStatusInActive | TenantStatusNew
+
+we could do the following ::
+
+  instance FromField TenantStatus where
+    fromField field mb_bytestring = makeTenantStatus mb_bytestring
+      where
+      makeTenantStatus :: Maybe ByteString -> Conversion TenantStatus
+      makeTenantStatus (Just "active") = return TenantStatusActive
+      makeTenantStatus (Just "inactive") = return TenantStatusInActive
+      makeTenantStatus (Just "new") = return TenantStatusNew
+      makeTenantStatus (Just _) = returnError ConversionFailed field "Unrecognized tenant status"
+      makeTenantStatus Nothing = returnError UnexpectedNull field "Empty tenant status"
+
+With OverloadedStrings extension enabled, we could pattern match on Bystrings using normal String literals, and return the proper value.
+You can also see how we are handling unexpected values or a null coming from the column.
