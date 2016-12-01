@@ -83,27 +83,54 @@ Code that we'll run through
 .. literalinclude:: code/opaleye-tenants-and-products.hs
   :linenos:
 
-  .. warning:: In the above code, we are using floats to represent money values. We use them because Opaleye's support for postgres numeric column `is not really complete. <https://github.com/tomjaguarpaw/haskell-opaleye/issues/230>`_
+.. warning:: In the code given above, we are using ``PGFloat8`` to represent monetary values. This is a **bad idea** and absolutely **not recommended.** We are forced to do this because Opaleye's support for Postgres ``NUMERIC`` datatype `is not really complete. <https://github.com/tomjaguarpaw/haskell-opaleye/issues/230>`_
 
 
 Core mechanism for mapping custom Haskell types to PG types
 -----------------------------------------------------------
 
-There are three typeclasses at play in converting values between Haskell values (like Int, Text and user defined types)
-and values that are read from the database (like PGInt4, PGText etc). Let us see about these
+There are three typeclasses at play in converting values between Haskell types (like Int, Text and other user defined types)
+and PG types (like PGInt4, PGText etc). These are:
 
-1. FromField
-------------
+* ``FromField``
+* ``QueryRunnerColumnDefault``
+* ``Default`` (*not* ``Data.Default``)
+
+FromField
+*********
 
 This is a typeclass defined by the postgresql-simple library. This typeclass decides how values read from database are
 converted to their Haskell counterparts. It is defined as ::
 
+  .. code-block:: haskell
+
   class FromField a where
     fromField :: FieldParser a
 
-and a FieldParser is  ::
-
   type FieldParser a = Field -> Maybe ByteString -> Conversion a
+
+The basic idea of this typeclass is simple. It wants you to define a function ``fromField`` which will be passed the following: 
+
+* ``Field`` -  a record holding a lot of metadata about the underlying Postgres column 
+* ``Maybe ByteString`` - the raw value of that column
+
+You are expected to return a ``Conversion a`` which is conceptually an *action*, which when evaluated will do the conversion from ``Maybe ByteString`` to your desired type ``a``.
+
+Diligent readers will immediately have the following questions:
+
+**What kind of metadata does ``Field`` have?**
+
+.. code-block:: haskell
+  
+  name :: Field -> Maybe ByteString
+  tableOid :: Field -> Maybe Oid
+  tableColumn :: Field -> Int
+  format :: Field -> Format
+  typeOid :: Field -> Oid
+  -- and more
+
+
+
 
 The type *Conversion* is a functor, so you can define instances for custom types in terms of existing *FromField* instances.
 For example, if you have a type that wraps an Int, like
