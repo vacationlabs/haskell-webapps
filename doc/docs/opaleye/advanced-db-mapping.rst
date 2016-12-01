@@ -102,7 +102,7 @@ FromField
 This is a typeclass defined by the postgresql-simple library. This typeclass decides how values read from database are
 converted to their Haskell counterparts. It is defined as ::
 
-  .. code-block:: haskell
+.. code-block:: haskell
 
   class FromField a where
     fromField :: FieldParser a
@@ -118,7 +118,7 @@ You are expected to return a ``Conversion a`` which is conceptually an *action*,
 
 Diligent readers will immediately have the following questions:
 
-**What kind of metadata does ``Field`` have?**
+**What kind of metadata does Field have?**
 
 .. code-block:: haskell
   
@@ -130,6 +130,9 @@ Diligent readers will immediately have the following questions:
   -- and more
 
 
+**How does one write a (Conversion a) action?**
+
+Good question! The answer is that we (the authors of this tutorial) don't know! And we didn't feel the need to find out as well. Because you already have the ``fromField`` functions (which means the ``Conversion a`` actions) for a lot of pre-defined Haskell types. In practice, you usually compose them to define your desired ``Conversion``. Read the other sections in this chapter to find exampler of how to do this.
 
 
 The type *Conversion* is a functor, so you can define instances for custom types in terms of existing *FromField* instances.
