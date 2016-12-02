@@ -10,13 +10,22 @@ maintainer:          example@example.com
 copyright:           2016 Author name here
 category:            Web
 build-type:          Simple
-extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
+  exposed-modules:     OpaleyeBm, PersistenceBm
   build-depends:       base >= 4.7 && < 5
+                       , opaleye
+                       , criterion
+                       , persistent
+                       , persistent-postgresql
+                       , persistent-template
+                       , postgresql-simple
+                       , product-profunctors
+                       , transformers
+                       , resourcet
+                       , monad-logger
   default-language:    Haskell2010
 
 executable benchmarks-exe

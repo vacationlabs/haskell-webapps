@@ -2,6 +2,7 @@
 module OpaleyeBm
     ( 
      opaleye_benchmark
+     ,clearTables
     ) where
 
 
@@ -60,6 +61,11 @@ twowayJoin conn = do
       restrict -< (t_uid .== u_id)
       returnA -< (u_name, u_email, t_name, t_email)
 
+clearTables :: Connection -> IO ()
+clearTables conn = do
+  runDelete conn userTable (\(id', _, _) -> (id' .> constant (1::Int)))
+  return ()
+
 opaleye_benchmark :: Connection -> IO ()
 opaleye_benchmark conn = do
   conn <- connect defaultConnectInfo { connectDatabase = "benchmark"}
@@ -70,4 +76,7 @@ opaleye_benchmark conn = do
     , bench "updateRowReturning" $ nfIO $ updateRowReturning conn (Nothing, "Bob", "max@mail.com")
     , bench "twowayJoin" $ nfIO $ twowayJoin conn 
     ]
+  clearTables conn
+
+
 

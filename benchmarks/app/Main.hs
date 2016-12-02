@@ -10,5 +10,8 @@ import PersistenceBm
 main :: IO ()
 main = do
   conn <- connect defaultConnectInfo { connectDatabase = "benchmark"}
+  clearTables conn
   opaleye_benchmark conn
+  clearTables conn
   persistence_benchmark
+  clearTables conn

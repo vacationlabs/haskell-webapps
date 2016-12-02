@@ -53,7 +53,7 @@ instance MonadLogger IO where
 getRows :: SqlBackend -> IO [Entity Users]
 getRows backend = do
   flip runSqlPersistM backend $ do
-    selectList [] [LimitTo 1]  :: ReaderT SqlBackend (Control.Monad.Logger.NoLoggingT (Control.Monad.Trans.Resource.ResourceT IO)) [Entity Users]
+    selectList [] [LimitTo 1]  :: SqlPersistM [Entity Users]
 
 insertRow :: SqlBackend -> IO (Key Users)
 insertRow backend = do
