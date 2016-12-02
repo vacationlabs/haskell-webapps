@@ -11,7 +11,7 @@ import qualified Data.Map as Map
 
 type RoleName = Text
 
-newtype Roles = Roles { unRoles :: Map RoleName RoleAttributes } deriving (Show, Eq, Ord, Generic)
+newtype Roles = Roles { unRoles :: Map RoleName RoleAttributes } deriving (Show, Read, Eq, Ord, Generic)
 
 instance Wrapped Roles where
   type Unwrapped Roles = Map RoleName RoleAttributes

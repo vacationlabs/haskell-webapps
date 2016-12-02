@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE GADTs, ScopedTypeVariables, DataKinds, FlexibleContexts, Rank2Types, ConstraintKinds, TypeFamilies, MultiParamTypeClasses, FlexibleInstances, NoMonomorphismRestriction, NoImplicitPrelude, CPP #-}
 
 {-# LANGUAGE TypeApplications, OverloadedStrings, PartialTypeSignatures #-}
@@ -10,6 +11,8 @@ import ClassyPrelude
 import Reflex.Dom
 import Servant.API
 import Servant.Reflex
+import Web.Routes.PathInfo
+import GHC.Generics
 
 import qualified Data.Dependent.Map     as DMap
 import           Data.GADT.Compare
@@ -20,10 +23,20 @@ import           Data.Proxy             (Proxy (..))
 type ServerState = Roles
 type ClientState = Roles
 
-
 data AppState = BootApp
               | Overview ServerState ClientState
               | Edit ServerState ClientState (RoleName, RoleAttributes)
+              | OverviewInit
+              | EditInit
+              | NotFound
+              | Dispatcher Text
+              deriving (Eq, Show, Read, Generic)
+
+showForUrl :: AppState -> Text
+showForUrl (Overview _ _) = "overwiew"
+showForUrl (Edit _ _ (rn,_)) = "edit/" ++ rn
+showForUrl (Dispatcher t) = t
+showForUrl other = trace ("In the function showForUrl I received " <> show other) "overview"
 
 textLink :: AppState -> Text
 textLink (Overview _ _) = "/overview"

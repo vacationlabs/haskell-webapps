@@ -16,7 +16,7 @@ import Data.String.Conversions
 type Email = Text
 
 data User = User { userMail :: Email
-  } deriving (Show, Eq, Ord, Generic)
+  } deriving (Show, Read, Eq, Ord, Generic)
 
 -- @ Instances
 

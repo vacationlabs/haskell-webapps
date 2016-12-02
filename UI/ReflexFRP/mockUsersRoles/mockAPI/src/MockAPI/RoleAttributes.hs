@@ -10,7 +10,7 @@ import MockAPI.User
 data RoleAttributes = RoleAttributes
   { _rolePermission      :: Set Permission
   , _roleAssociatedUsers :: Set User
-  } deriving (Show, Eq, Ord, Generic)
+  } deriving (Show, Read, Eq, Ord, Generic)
 
 emptyRoleAttributes :: RoleAttributes
 emptyRoleAttributes = RoleAttributes mempty mempty

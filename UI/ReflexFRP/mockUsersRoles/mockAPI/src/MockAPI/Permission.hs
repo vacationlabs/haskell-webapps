@@ -7,7 +7,7 @@ import MockAPI.Prelude
 -- A permission can be a permission in several ambiti
 
 data Permission = PP ProductPermission | OP OrderPermission | UP UserPermission
-                deriving (Show, Eq, Ord, Generic)
+                deriving (Show, Read, Eq, Ord, Generic)
 
 data ProductPermission
   = ViewAllProductDetails
@@ -15,7 +15,7 @@ data ProductPermission
   | EditProdPhotos
   | EditProdProperties
   | EditProdPrice
-  deriving (Show, Eq, Ord, Generic, Bounded, Enum)
+  deriving (Show, Read, Eq, Ord, Generic, Bounded, Enum)
 
 data OrderPermission
   = ViewAllOrderDetails
@@ -24,13 +24,13 @@ data OrderPermission
   | ApplyDiscounts
   | CancelOrder
   | ChangeOrderContactDetails
-  deriving (Show, Eq, Ord, Generic, Bounded, Enum)
+  deriving (Show, Eq, Read, Ord, Generic, Bounded, Enum)
 
 data UserPermission
   = ViewUserDetails
   | EditUserDetails
   | ChangeUserRole
-  deriving (Show, Eq, Ord, Generic, Bounded, Enum)
+  deriving (Show, Read, Eq, Ord, Generic, Bounded, Enum)
 
 -- Generated JSON instances
 

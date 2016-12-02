@@ -28,6 +28,8 @@ type MockApi = --"server" :>
 
 type Navigation = "overview" :> View
              :<|> "edit" :> Capture "roleName" RoleName :> View
+             :<|> "dog" :> Capture "age" Int :> View
+             :<|> "cat" :> View
 
 type NavigationServer = ViewTransform Navigation (Get '[HTML] Html)
 
