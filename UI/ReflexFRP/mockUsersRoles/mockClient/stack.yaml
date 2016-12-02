@@ -14,8 +14,7 @@ packages:
   extra-dep: true
 - location:
     git: https://github.com/reflex-frp/reflex-dom-contrib/
-    # commit: c3849fc2012137ec98b33d0e280f86b870f68d33
-    commit: 742fb7ed9468e9418754cae3e15d96f4656693e8
+    commit: f3389931d4a5896582dd7210080bba2579a067d4
   extra-dep: true
 - location:
     git: https://github.com/imalsogreg/servant-reflex
