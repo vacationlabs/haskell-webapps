@@ -32,9 +32,9 @@ initialPage = docTypeHtml $ do
         link ! rel "stylesheet" ! href "/assets/bootstrap/css/bootstrap.min.css"
         link ! rel "stylesheet" ! href "/assets/fonts/ionicons.min.css"
         link ! rel "stylesheet" ! href "/assets/css/Login-Form-Clean.css"
-        script ! language "javascript" ! src "/js/all.min.js" $ mempty
         link ! rel "stylesheet" ! href "/assets/css/styles.min.css"
-    body mempty
+    body $
+        script ! defer "defer" ! language "javascript" ! src "/js/all.min.js" $ mempty
 
 data Config = Config { rolesTVar :: TVar Roles }
 
