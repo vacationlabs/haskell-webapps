@@ -139,7 +139,7 @@ Updating a row
 
 * As you can see from this function, updating rows in Opaleye is not very pretty! The biggest pain is that you cannot specicy which columns to update. You are forced to update the **entire row**. More about this in :ref:`updating_rows`.
 * You already know what ``constant row`` does - it converts a Haskell datatype to its corresponding PG data type, which for some strange reason, Opaleye refuses to do here automagically.
-* The comparison operator ``.==`` is what gets translated to equality operator in SQL. We cannot use Haskell's native equality operator because it represents equality in Haskell-land, whereas we need to represent equality when it gets convert to SQL-land. You will come across a lot of such special operators that map to their correspnding SQL parts.
+* The comparison operator ``.==`` is what gets translated to equality operator in SQL. We cannot use Haskell's native equality operator because it represents equality in Haskell-land, whereas we need to represent equality when it gets converted to SQL-land. You will come across a lot of such special operators that map to their correspnding SQL parts.
 
 Selecting a single row
 ----------------------
