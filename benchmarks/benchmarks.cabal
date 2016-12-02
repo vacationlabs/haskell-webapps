@@ -27,8 +27,14 @@ executable benchmarks-exe
                      , benchmarks
                      , opaleye
                      , criterion
+                     , persistent
+                     , persistent-postgresql
+                     , persistent-template
                      , postgresql-simple
                      , product-profunctors
+                     , transformers
+                     , resourcet
+                     , monad-logger
   default-language:    Haskell2010
 
 test-suite benchmarks-test
