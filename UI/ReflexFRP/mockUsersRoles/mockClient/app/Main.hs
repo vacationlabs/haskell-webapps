@@ -41,23 +41,30 @@ import Web.Routes.PathInfo
 
 main :: IO ()
 main = mainWidget $ mdo
-  -- pb <- getPostBuild
+  Just initialUrl <- stripPrefix "http://localhost:8081" <$> getUrlText'
+  putStrLn $ "The initial url is: " <> initialUrl
+
   r :: Route _ Text <- partialPathRoute "" $ def { _routeConfig_pushState = transl <$> renderAndSwitch }
+  let routeValue = traceDyn "routeValue: " $ uniqDyn $ value r
+
   renderAndSwitch <- domMorph app currentState
-  currentState    <- holdDyn BootApp $ leftmost
+
+  currentState    <- traceDyn "pagui "<$> (holdDyn (BootApp initialUrl) $ leftmost
     [ renderAndSwitch
-    , fmapMaybe viewSwitcher $ updated (uniqDyn (value r))
-    ]
+    , fmapMaybe viewSwitcher $ updated routeValue
+    ])
+
   return ()
 
 transl :: AppState -> Text
-transl (BootApp)         = "bootApp"
-transl (Overview _ _)    = "overview"
-transl (Edit _ _ (rn,_)) = "edit/" <> rn
+transl (BootApp _)       = "/bootApp"
+transl (Overview _ _)    = "/overview"
+transl (Edit _ _ (rn,_)) = "/edit/" <> rn
 transl _                 = "Not yet defined in transl"
 
 viewSwitcher :: Either Text Text -> Maybe AppState
-viewSwitcher (Right "overview") = Just BootApp
+viewSwitcher (Right "/overview") = Just (BootApp "/overview")
+viewSwitcher (Right "/edit/AccountAdministrator") = Just (BootApp "/edit/AccountAdministrator")
 viewSwitcher _ = Nothing
 
 run :: forall t m . MonadWidget t m => m ()
@@ -77,19 +84,27 @@ run = mdo
 --       currentState      <- holdDyn BootApp rendererAndSwitch
 --   return ()
 
-internalRouting :: Text -> AppState
-internalRouting "http://localhost:8081/overwiew" = BootApp
-internalRouting "http://localhost:8081/edit/" = Dispatcher "http://localhost:8081/overwiew"
-internalRouting other = traceShow other NotFound
-
+-- internalRouting :: Text -> AppState
+-- internalRouting "http://localhost:8081/overwiew" = BootApp
+-- internalRouting "http://localhost:8081/edit/" = Dispatcher "http://localhost:8081/overwiew"
+-- internalRouting other = traceShow other NotFound
 
 app :: MonadWidget t m => AppState -> m (Event t AppState)
-app BootApp = do
+app (BootApp "/overview") = do
+  putStrLn $ "Hey I got the overview page"
   text "Collecting roles..."
   e <- getPostBuild
   roles <- parseR <$$> showRoles e
   return $ leftmost [ (\r -> Overview r r) <$> pick Success roles
-                    , const BootApp        <$> pick Failure roles]
+                    , const (BootApp "")   <$> pick Failure roles]
+
+app (BootApp "/edit/AccountAdministrator") = do
+  putStrLn $ "Hey I got the AccountAdministrator edit page"
+  text "Collecting roles..."
+  e <- getPostBuild
+  roles <- parseR <$$> showRoles e
+  return $ leftmost [ (\r -> Edit r r ("AccountAdministrator", emptyRoleAttributes)) <$> pick Success roles
+                    , const (BootApp "") <$> pick Failure roles ]
 
 app (Overview serverState clientState) = do
   overview serverState clientState
@@ -181,10 +196,10 @@ translateCat (Just (Dog n)) = Just $ "dog" <> tshow n
 --   dynText $ value r
 --   return ()
 
-translate1 :: Text -> Maybe AppState
-translate1 "http://localhost:8081/overviewInit" = Just OverviewInit
-translate1 "http://localhost:8081/editInit"     = Just EditInit
-translate1 _ = Just BootApp
+-- translate1 :: Text -> Maybe AppState
+-- translate1 "http://localhost:8081/overviewInit" = Just OverviewInit
+-- translate1 "http://localhost:8081/editInit"     = Just EditInit
+-- translate1 _ = Just BootApp
 
 -- translate2 :: Maybe AppState -> Text
 -- translate2 (Just OverviewInit) = "overviewInit"
@@ -211,9 +226,6 @@ behavior (Left t) = do
 behavior (Right r) = do
   a <- overview r r
   return $ fmap textLink a
-
--- flattening :: Event t (Event t a) -> Event t a
--- flattening ee = V
 
 editPage' :: MonadWidget t m => RoleName -> m (Event t Text)
 editPage' roleName = do
