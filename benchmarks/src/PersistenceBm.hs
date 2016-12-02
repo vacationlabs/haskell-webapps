@@ -65,9 +65,3 @@ updateRow :: SqlBackend -> IO ()
 updateRow backend = do
   flip runSqlPersistM backend $ do
     update (toSqlKey 1) [ UsersName =. "John" ]
-
---persistence_benchmark conn = runNoLoggingT $ withPostgresqlConn "" $ \backend ->
---     liftIO $ flip runSqlConn backend $ do
---        printMigration migrateAll
---        res  :: [Entity Person] <- selectList [] [LimitTo 1] 
---        liftIO $ print res
