@@ -11,7 +11,9 @@ main :: IO ()
 main = do
   conn <- connect defaultConnectInfo { connectDatabase = "benchmark"}
   clearTables conn
+  putStrLn "Opaleye:"
   opaleye_benchmark conn
   clearTables conn
+  putStrLn "Persistence:"
   persistence_benchmark
   clearTables conn

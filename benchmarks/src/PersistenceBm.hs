@@ -28,6 +28,8 @@ import qualified Database.PostgreSQL.Simple as PSimple
 import Criterion.Main
 import Criterion.Types (Config(..))
 
+import Control.Monad
+
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase| 
 Users
     name String 
@@ -40,10 +42,12 @@ persistence_benchmark :: IO ()
 --persistence_benchmark = return ()
 persistence_benchmark = do
   withPostgresqlConn "host=localhost port=5432 user=postgres dbname=benchmark password=test" (\backend -> do
-    defaultMainWith defaultConfig {resamples = 10000} [
-       bench "getRows" $ whnfIO $ getRows backend 
-      ,bench "insertRows" $ whnfIO $ insertRow backend 
-      ,bench "updateRows" $ whnfIO $ updateRow backend 
+    defaultMainWith defaultConfig {resamples = 1000} [
+       bench "Persistence: getRows" $ whnfIO $ replicateM_ 1000 $ getRows backend 
+      ,bench "Persistence: insertRows" $ whnfIO $ replicateM_ 1000 $ insertRow backend 
+      ,bench "Persistence: insertRowsReturning" $ whnfIO $ replicateM_ 1000 $ insertRowReturning backend 
+      ,bench "Persistence: updateRows" $ whnfIO $ replicateM_ 1000 $ updateRow backend 
+      ,bench "Persistence: updateRowsReturning" $ whnfIO $ replicateM_ 1000 $ updateRowReturning backend 
       ]
     )
 
@@ -61,7 +65,17 @@ insertRow backend = do
     michaelId <- insert $ Users "Michael" "michael@mail.com"
     return michaelId
 
+insertRowReturning :: SqlBackend -> IO (Entity Users)
+insertRowReturning backend = do
+  flip runSqlPersistM backend $ do
+    insertEntity $ Users "Michael" "michael@mail.com"
+
 updateRow :: SqlBackend -> IO ()
 updateRow backend = do
   flip runSqlPersistM backend $ do
     update (toSqlKey 1) [ UsersName =. "John" ]
+
+updateRowReturning :: SqlBackend -> IO Users
+updateRowReturning backend = do
+  flip runSqlPersistM backend $ do
+    updateGet (toSqlKey 1) [ UsersName =. "John" ]
