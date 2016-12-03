@@ -10,30 +10,33 @@
 {-# LANGUAGE ScopedTypeVariables               #-}
 module PersistenceBm
     ( 
-     persistence_benchmark,
-     Users
+     persistence_benchmark
     ) where
 
 
-import           Control.Monad.Trans.Reader
-import           Control.Monad.Trans.Resource
-import           Control.Monad.IO.Class  (liftIO)
-import           Control.Monad.Trans.Class  (lift)
 import           Database.Persist
 import           Database.Persist.Postgresql
 import           Database.Persist.TH
 import Control.Monad.Logger
-import qualified Database.PostgreSQL.Simple as PSimple
 
 import Criterion.Main
 import Criterion.Types (Config(..))
 
 import Control.Monad
+import Control.Monad.IO.Class
+
+import qualified Database.Esqueleto as E
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase| 
 Users
     name String 
     email String
+    deriving Show
+
+Tenants
+    name String
+    email String
+    ownerId (Key Users)
     deriving Show
 |]
 
@@ -48,6 +51,7 @@ persistence_benchmark = do
       ,bench "Persistence: insertRowsReturning" $ whnfIO $ replicateM_ 1000 $ insertRowReturning backend 
       ,bench "Persistence: updateRows" $ whnfIO $ replicateM_ 1000 $ updateRow backend 
       ,bench "Persistence: updateRowsReturning" $ whnfIO $ replicateM_ 1000 $ updateRowReturning backend 
+      ,bench "Persistence: twowayJoin" $ whnfIO $ replicateM_ 1000 $ twowayJoin backend 
       ]
     )
 
@@ -79,3 +83,17 @@ updateRowReturning :: SqlBackend -> IO Users
 updateRowReturning backend = do
   flip runSqlPersistM backend $ do
     updateGet (toSqlKey 1) [ UsersName =. "John" ]
+
+twowayJoin :: SqlBackend -> IO [Entity Users]
+twowayJoin backend = do
+  flip runSqlPersistM backend twowayJoin'
+  where
+    twowayJoin' :: SqlPersistM [Entity Users]
+    twowayJoin' = 
+      do 
+        users <- E.select $
+                 E.from $ \(users `E.InnerJoin` tenants) -> do
+                 let k = (tenants E.^. TenantsOwnerId)
+                 E.on ((users E.^. UsersId) E.==. k)
+                 return users
+        return users

@@ -1,6 +1,7 @@
 {-# LANGUAGE Arrows                #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE OverloadedStrings       #-}
 
@@ -13,6 +14,7 @@ module OpaleyeBm
 
 import Opaleye
 import Database.PostgreSQL.Simple
+import Database.PostgreSQL.Simple.FromField
 import Data.Profunctor.Product (p3, p4)
 import Data.Profunctor.Product.Default
 import Data.Profunctor.Product.TH (makeAdaptorAndInstance)
@@ -38,14 +40,26 @@ data TenantPoly id name email owner_id = Tenant { tenant_id :: id, tenant_name :
 instance Default Constant UserId (Column PGInt4) where
   def = Constant (\(UserId x) -> pgInt4 x)
 
+instance Default Constant (Maybe UserId) (Maybe (Column PGInt4)) where
+  def = Constant def'
+    where
+      def' (Just x) = Just $ constant x
+      def' Nothing =  Nothing
+
 instance Default Constant UserId (Maybe (Column PGInt4)) where
   def = Constant (\x -> Just $ constant x)
 
+instance FromField UserId where
+  fromField field mb = UserId <$> fromField field mb
+
 instance QueryRunnerColumnDefault PGInt4 (Maybe UserId) where
-  queryRunnerColumnDefault = ((Just).UserId) <$> fieldQueryRunnerColumn
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+instance FromField TenantId where
+  fromField field mb = TenantId <$> fromField field mb
 
 instance QueryRunnerColumnDefault PGInt4 (Maybe TenantId) where
-  queryRunnerColumnDefault = ((Just).TenantId) <$> fieldQueryRunnerColumn
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
 
 $(makeAdaptorAndInstance "pUser" ''UserPoly)
 $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
@@ -79,11 +93,16 @@ getRows conn = do
 
 insertRow :: Connection -> User -> IO Int64
 insertRow conn u = do
-  runInsertMany conn userTable [(constant u)] 
+  runInsert conn userTable (constant u) 
 
 insertRowReturning :: Connection -> User -> IO [User]
 insertRowReturning conn u = do
-  runInsertManyReturning conn userTable [(constant u)] (\x -> x)
+  runInsertReturning conn userTable (constant u) (\x -> x)
+
+updateRow :: Connection -> User -> IO Int64
+updateRow conn row = do
+  runUpdate conn userTable (\_ -> constant row) (\(User id _ _) -> id .== (pgInt4 1))
+
 
 updateRowReturning :: Connection -> User -> IO [User]
 updateRowReturning conn row = do
@@ -106,6 +125,7 @@ opaleye_benchmark conn = do
       bench "Opaleye: getRows" $ nfIO $ replicateM_ 1000 $ getRows conn
     , bench "Opaleye: insertRow" $ nfIO $ replicateM_ 1000 $ insertRow conn user
     , bench "Opaleye: insertRowReturning" $ nfIO $ replicateM_ 1000 $ insertRowReturning conn user
+    , bench "Opaleye: updateRow" $ nfIO $ replicateM_ 1000 $ updateRow conn user
     , bench "Opaleye: updateRowReturning" $ nfIO $ replicateM_ 1000 $ updateRowReturning conn user
     , bench "Opaleye: twowayJoin" $ nfIO $ replicateM_ 1000 $ twowayJoin conn 
     ]

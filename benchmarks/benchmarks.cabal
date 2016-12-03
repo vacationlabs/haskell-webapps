@@ -15,12 +15,13 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     OpaleyeBm, PersistenceBm
-  build-depends:       base >= 4.7 && < 5
+  build-depends:       base >= 4.7 && < 4.9
                        , opaleye
                        , criterion
                        , persistent
                        , persistent-postgresql
                        , persistent-template
+                       , esqueleto
                        , postgresql-simple
                        , product-profunctors
                        , transformers
@@ -32,12 +33,13 @@ executable benchmarks-exe
   hs-source-dirs:      app
   main-is:             Main.hs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
-  build-depends:       base
+  build-depends:       base >= 4.7 && < 4.9
                      , benchmarks
                      , opaleye
                      , criterion
-                     , persistent
-                     , persistent-postgresql
+                     , esqueleto
+                     , persistent 
+                     , persistent-postgresql 
                      , persistent-template
                      , postgresql-simple
                      , product-profunctors
@@ -50,7 +52,7 @@ test-suite benchmarks-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  build-depends:       base
+  build-depends:       base >= 4.7 && < 4.9
                      , benchmarks
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
