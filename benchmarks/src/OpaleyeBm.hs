@@ -27,20 +27,36 @@ import Control.Arrow
 
 import Control.Monad
 import Data.Monoid
+import Prelude hiding (id)
+
+data UserId = UserId Int
+data TenantId = TenantId Int
 
 data UserPoly id name email = User { id :: id, name :: name, email :: email }
+data TenantPoly id name email owner_id = Tenant { tenant_id :: id, tenant_name :: name, tenant_email :: email, tenant_owner_id :: owner_id }
 
-instance Default Constant Int (Maybe (Column PGInt4)) where
-  def = Constant (\x -> Just $ pgInt4 x)
+instance Default Constant UserId (Column PGInt4) where
+  def = Constant (\(UserId x) -> pgInt4 x)
 
-instance QueryRunnerColumnDefault PGInt4 (Maybe Int) where
-  queryRunnerColumnDefault = Just <$> fieldQueryRunnerColumn
+instance Default Constant UserId (Maybe (Column PGInt4)) where
+  def = Constant (\x -> Just $ constant x)
+
+instance QueryRunnerColumnDefault PGInt4 (Maybe UserId) where
+  queryRunnerColumnDefault = ((Just).UserId) <$> fieldQueryRunnerColumn
+
+instance QueryRunnerColumnDefault PGInt4 (Maybe TenantId) where
+  queryRunnerColumnDefault = ((Just).TenantId) <$> fieldQueryRunnerColumn
 
 $(makeAdaptorAndInstance "pUser" ''UserPoly)
+$(makeAdaptorAndInstance "pTenant" ''TenantPoly)
 
 type UserPW = UserPoly (Maybe (Column PGInt4)) (Column PGText) (Column PGText)
 type UserPR = UserPoly (Column PGInt4) (Column PGText) (Column PGText)
-type User = UserPoly (Maybe Int) String String
+type User = UserPoly (Maybe UserId) String String
+
+type TenantPW = TenantPoly (Maybe (Column PGInt4)) (Column PGText) (Column PGText) (Column PGInt4)
+type TenantPR = TenantPoly (Column PGInt4) (Column PGText) (Column PGText) (Column PGInt4)
+type Tenant = TenantPoly (Maybe TenantId) String String Int
 
 userTable :: Table UserPW UserPR
 userTable = Table "users" (pUser (User
@@ -49,15 +65,13 @@ userTable = Table "users" (pUser (User
   (required "email")
   ))
 
-tenantTable :: Table 
-  (Maybe (Column PGInt4), Column PGText, Column PGText, Column PGInt4) 
-  (Column PGInt4, Column PGText, Column PGText, Column PGInt4)
-tenantTable = Table "tenants" (p4 (
-  optional "id",
-  required "name",
-  required "email",
-  required "owner_id"
-  ))
+tenantTable :: Table TenantPW TenantPR
+tenantTable = Table "tenants" (pTenant Tenant {
+  tenant_id = optional "id",
+  tenant_name = required "name",
+  tenant_email = required "email",
+  tenant_owner_id = required "owner_id"
+  })
 
 getRows :: Connection -> IO [User]
 getRows conn = do
@@ -75,14 +89,14 @@ updateRowReturning :: Connection -> User -> IO [User]
 updateRowReturning conn row = do
   runUpdateReturning conn userTable (\_ -> constant row) (\(User id _ _) -> id .== (pgInt4 1)) (\x -> x)
 
-twowayJoin :: Connection -> IO [(String, String, String, String)]
+twowayJoin :: Connection -> IO [(User, Tenant)]
 twowayJoin conn = do
   runQuery conn $ proc () ->
     do
-      User u_id u_name u_email <- queryTable userTable -< ()
-      (t_id, t_name, t_email, t_uid) <- queryTable tenantTable -< ()
+      user@User { id=u_id } <- queryTable userTable -< ()
+      tenant@Tenant { tenant_owner_id = t_uid } <- queryTable tenantTable -< ()
       restrict -< (t_uid .== u_id)
-      returnA -< (u_name, u_email, t_name, t_email)
+      returnA -< (user, tenant)
 
 
 opaleye_benchmark :: Connection -> IO ()
