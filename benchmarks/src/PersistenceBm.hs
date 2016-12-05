@@ -46,12 +46,12 @@ persistence_benchmark :: IO ()
 persistence_benchmark = do
   withPostgresqlConn "host=localhost port=5432 user=postgres dbname=benchmark password=test" (\backend -> do
     defaultMainWith defaultConfig {resamples = 1000} [
-       bench "Persistence: getRows" $ whnfIO $ replicateM_ 1000 $ getRows backend 
-      ,bench "Persistence: insertRows" $ whnfIO $ replicateM_ 1000 $ insertRow backend 
+       bench "Persistence: getRows" $ nfIO $ replicateM_ 1000 $ getRows backend 
+      ,bench "Persistence: insertRows" $ nfIO $ replicateM_ 1000 $ insertRow backend 
       ,bench "Persistence: insertRowsReturning" $ whnfIO $ replicateM_ 1000 $ insertRowReturning backend 
-      ,bench "Persistence: updateRows" $ whnfIO $ replicateM_ 1000 $ updateRow backend 
+      ,bench "Persistence: updateRows" $ nfIO $ replicateM_ 1000 $ updateRow backend 
       ,bench "Persistence: updateRowsReturning" $ whnfIO $ replicateM_ 1000 $ updateRowReturning backend 
-      ,bench "Persistence: twowayJoin" $ whnfIO $ replicateM_ 1000 $ twowayJoin backend 
+      ,bench "Persistence: twowayJoin" $ nfIO $ replicateM_ 1000 $ twowayJoin backend 
       ]
     )
 
@@ -84,16 +84,16 @@ updateRowReturning backend = do
   flip runSqlPersistM backend $ do
     updateGet (toSqlKey 1) [ UsersName =. "John" ]
 
-twowayJoin :: SqlBackend -> IO [Entity Users]
+twowayJoin :: SqlBackend -> IO [(Entity Users, Entity Tenants)]
 twowayJoin backend = do
   flip runSqlPersistM backend twowayJoin'
   where
-    twowayJoin' :: SqlPersistM [Entity Users]
+    twowayJoin' :: SqlPersistM [(Entity Users, Entity Tenants)]
     twowayJoin' = 
       do 
         users <- E.select $
                  E.from $ \(users `E.InnerJoin` tenants) -> do
                  let k = (tenants E.^. TenantsOwnerId)
                  E.on ((users E.^. UsersId) E.==. k)
-                 return users
+                 return (users, tenants)
         return users

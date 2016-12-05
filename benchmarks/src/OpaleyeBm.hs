@@ -97,7 +97,10 @@ insertRow conn u = do
 
 insertRowReturning :: Connection -> User -> IO [User]
 insertRowReturning conn u = do
-  runInsertReturning conn userTable (constant u) (\x -> x)
+  runInsertReturning conn userTable (constant u) cb
+  where
+    cb :: UserPR -> UserPR
+    cb User {id = id'} = (constant u::UserPW) {id = id'}
 
 updateRow :: Connection -> User -> IO Int64
 updateRow conn row = do
