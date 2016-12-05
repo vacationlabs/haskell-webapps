@@ -20,54 +20,67 @@
      that a component might change triggered by whoever fires that signal,
      inside or outside the store.
 *** Investigate how testing is (or could be) done in the various domains, re-interpreting the type of test commonly used in web development (Unit, Controller, Integration tests) if necessary, to write them in idiomatic ways.
-*** Create documentation for successful workflows/techniques.
+**** reflex-frp:
+     The testing is mainly done with the function for tracing signals (analogues to the ~trace~ functions in base). You can inspect the values of your signals as they change. In practice, a large quantity of errors is eliminated by having to comply with the type system.
+**** react-flux
+     Testing is mainly done within the js console, using ~putStrLn~ statements (or maybe I misused the library).
+     It has been my experience than a weird behaviour of a component can be quite messy to find.
 ** Architectural concerns
 *** Create a reusable collection of abstractions for most used ui components (forms etc.)
 **** reflex-frp:
-     abstraction is at his fullest here
+     You have the full power of abstraction given by the haskell language.
 **** react-flux:
-     abstraction ok, but you will hit the store ceiling
+     You have ways of abstracting your workflow, but you cannot subvert the
+     mechanism around store creation. If you want to create stores in a
+     programmatic way, you have to resort to template haskell, even if using
+     reflex you would have used a simple list.
 *** Develop a coherent story on how to share data structures with backend.
 **** reflex-frp:
-     maximum sharing
+     You can perfectly share data, widgets, abstractions between server and client.
 **** react-flux:
-     sharing ok, but you will hit the store ceiling
+     You can share all the things that don't touch the store implementation.
 *** Investigate the tradeoff of doing all the implementation in haskell vs. interface, via haskell, to html templates.
 **** reflex-frp:
-     we wrote an html quasiquoter that separates logic from markup.
+     We wrote an html quasiquoter that separates logic from markup.
 **** react-flux:
-     it's surely possible to write a quasiquoter along the line, but there is no
+     It's surely possible to write a quasiquoter along the line, but there is no
      existing library to improve upon.
 *** Investigate how to integrate with existing jQuery widgets (calendar, accordion, search/sort tables, editable grids, etc)
 **** reflex-frp
      I feel this is not useful for small widget. However, it's surely useful for
-     greater things like google maps, or the text editor.
+     greater things like google maps, or the text editor. Examples are present
+     in this area.
 **** react-flux:
-     The author says that it's easy to bind to external libraries
+     The author says that it's easy to bind to external libraries, via js ffi.
 *** Forms relying only on server side validation or with mixed client/server side validation
 **** reflex-frp
-     We got around implementing our solution for validation
+     We got around implementing our solution for validation, with which we can
+     validate on the client and on the server side in a denotative way.
 **** react-flux:
-     Validation is done dumbly: can it be abstracted away?
+     Validation is done dumbly: for each server request you have to add two
+     actions for your store, and a datatype if you want some feedback. Again,
+     the ability of generalizing is blocked by the Store mechanism.
 *** Investigate the preferred way to architecture an application. How powerful, and how general, is it?
 **** reflex-frp:
-     You can implement whatever you want: in a sense this is also a source of problems.
+     You can implement whatever you want: in a sense this is also a source of
+     problems: the framework, per se, gives little guidance on the way things
+     should be done.
 **** react-flux:
-     There is a way to architect your application, but that's given, and forces
-     you. For example, how to prerender
+     There is a common way to architect your application.
 *** Find a simple and elegant way to do client-side routing. Bonus points if it's easily integrable with the server.
 **** reflex-frp:
      There is now a fairly simple abstraction in Reflex.Dom.Contrib. Also, a
      more high level way to do routing will happen with servant-router when we
      get around fixing it.
 **** react-flux:
-     You can do routing via a store - But the author's suggestion for more
+     You can do routing via a store - but the author's suggestion for more
      complex routing needs is to bind to a js library.
 *** Analyze, in the case of a language barrier to cross, the tradeoffs involved. In particular if is it possible to automatically reutilize the same structures (like the description of an API) on both frontend and backend.
 **** reflex-frp:
-     maximum sharing
+     You have full sharing capabilities.
 **** react-flux:
-     some things cannot be shared
+     You can share all the things except for the abstractions that would require
+     a modification of the concept of store.
 
 ** Deployment concerns
 *** Minification toolchain to reduce the final JS size (closure compiler, specific ghcjs compilation options etc.)
@@ -76,20 +89,21 @@
      compiling, but I asked luite and it seems that I should be able to do that
      if I use a more recent version of ghcjs (nightly at the time of writing).
 **** react-flux:
-     The minification works also with advanced optimization flag turned on (the author has been quite careful with this).
-     One thing to be said is that you still need to send the react library (probably cached). If you sum the size of react and the size of the generated js, it's comparable to the size of the reflex executable.
+     The minification works also with advanced optimization flag turned on (the
+     author has been quite careful with this). One thing to be said is that you
+     still need to send the react library (probably cached). If you sum the size
+     of react and the size of the generated js, it's comparable to the size of
+     the reflex executable.
 *** Progressive loading of JS files to reduce initial page-load time
     I need more context on this question. Is this not the same as the second one?
-**** reflex-frp:
-**** react-flux:
 *** Server-side rendering of initial page-load
 **** reflex-frp:
-     It's possible, with the right tools (see staticRender etc)
+     It's possible, with the right tools (see staticRender etc).
 **** react-flux:
      Bind to a js library (flummox?).
 *** Benchmarking how well the generated app fares on mobile
 **** reflex-frp:
-     I have no data for this. Will try and fill up this spot
+     I have no data for this. Will try and fill up this spot.
 **** react-flux:
      I have no data for this. Will try and fill up this spot. It's also probably
      possible to bind to react-native to generate a native app.
