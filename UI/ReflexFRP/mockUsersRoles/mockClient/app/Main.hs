@@ -2,7 +2,7 @@
 {-# LANGUAGE RankNTypes, RecursiveDo, ScopedTypeVariables                   #-}
 {-# LANGUAGE TypeApplications, TypeOperators                                #-}
 
-{-# LANGUAGE PartialTypeSignatures #-}
+-- {-# LANGUAGE PartialTypeSignatures #-}
 {-# OPTIONS_GHC -fno-warn-name-shadowing #-}
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
@@ -18,22 +18,81 @@ import Pages.Overview
 import Pages.Edit
 import Utils
 
+import URI.ByteString
+
+main'' :: IO ()
+main'' = mainWidget $ mdo
+  initialURI <- getURI
+  let initialUrl = initialURI ^. pathL . to decodeUtf8
+  -- currentState <- foldDyn mix (BootApp initialUrl) upd
+  renderAndSwitch <- domMorph app currentState
+  a <- route (appStateToText <$> renderAndSwitch)
+  let routeValue = uniqDyn $ (view (pathL . to decodeUtf8)) <$> a
+  -- let routeValue = (view (pathL . to decodeUtf8)) <$> a
+  let upd = updated routeValue
+  currentState    <- uniqDyn <$> (holdDyn (BootApp initialUrl) $ leftmost
+    [ renderAndSwitch
+    -- , attachPromptlyDynWith (flip mix) currentState upd
+    , attachWith (flip mix) (current currentState) upd
+    -- , fmapMaybe textToAppState $ updated routeValue
+    ])
+  return ()
+
+type InternalAddress = Text
+
+mix :: InternalAddress -> AppState -> AppState
+mix "/edit/AccountAdministrator" (Overview ss cs)
+  = Edit ss cs ("AccountAdministrat.", cs ^?! to unRoles . at "AccountAdministrator" . _Just)
+mix _ _ = NotFound
+
+mix2 :: MonadWidget t m => Text -> AppState -> m (Event t AppState)
+mix2 "/overview" (BootApp _) = do
+  e <- getPostBuild
+  roles <- parseR <$$> showRoles e
+  return $ leftmost [ (\r -> Overview r r) <$> pick Success roles
+                    , const (BootApp "")   <$> pick Failure roles]
+mix2 "/overview" o@(Overview _ _) = app o
+mix2 str appSt = terror $ "mix2 called with " <> str <> " and " <> tshow appSt
+
 main :: IO ()
 main = mainWidget $ mdo
-  Just initialUrl <- stripPrefix "http://localhost:8081" <$> getUrlText'
-  putStrLn $ "The initial url is: " <> initialUrl
-
-  r :: Route _ Text <- partialPathRoute "" $ def { _routeConfig_pushState = appStateToText <$> renderAndSwitch }
-  let routeValue = traceDyn "routeValue: " $ uniqDyn $ value r
-
-  renderAndSwitch <- domMorph app currentState
-
-  currentState    <- traceDyn "pagui "<$> (holdDyn (BootApp initialUrl) $ leftmost
-    [ renderAndSwitch
-    , fmapMaybe textToAppState $ updated routeValue
-    ])
-
+  initialURI <- getURI
+  let initialUrl = initialURI ^. pathL . to decodeUtf8
+  appState <- holdDyn (BootApp initialUrl) update
+  -- update <- dyn (mix2 <$> rut <*> appState) >>= switchPromptly never
+  update <- (holdDyn (return never) $ attachPromptlyDynWith (flip mix2) appState (updated rut))
+         >>= dyn
+         >>= switchPromptly never
+  rut <- (view (pathL . to decodeUtf8)) <$$> route (appStateToText <$> update)
   return ()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 appStateToText :: AppState -> Text
 appStateToText (BootApp _)       = "/bootApp"
@@ -41,10 +100,10 @@ appStateToText (Overview _ _)    = "/overview"
 appStateToText (Edit _ _ (rn,_)) = "/edit/" <> rn
 appStateToText _                 = "Not yet defined in appStateToText"
 
-textToAppState :: Either Text Text -> Maybe AppState
-textToAppState (Right "/overview") = Just (BootApp "/overview")
-textToAppState (Right "/edit/AccountAdministrator") = Just (BootApp "/edit/AccountAdministrator")
-textToAppState _ = Nothing
+textToAppState :: Text -> Maybe AppState
+textToAppState "/overview"                  = Just (BootApp "/overview")
+textToAppState "/edit/AccountAdministrator" = Just (BootApp "/edit/AccountAdministrator")
+textToAppState _                            = Nothing
 
 app :: MonadWidget t m => AppState -> m (Event t AppState)
 app (BootApp "/overview") = do
@@ -62,6 +121,11 @@ app (BootApp "/edit/AccountAdministrator") = do
   roles <- parseR <$$> showRoles e
   return $ leftmost [ (\r -> Edit r r ("AccountAdministrator", emptyRoleAttributes)) <$> pick Success roles
                     , const (BootApp "") <$> pick Failure roles ]
+
+app (BootApp _) = do
+  putStrLn $ "HELP!"
+  text $ "HELP!"
+  return never
 
 app (Overview serverState clientState) = do
   overview serverState clientState
@@ -83,9 +147,9 @@ overviewPage :: forall t m. MonadWidget t m => m (Event t Text)
 overviewPage = do
   e <- getPostBuild
   roles <- parseR' <$$> showRoles e
-  let a = fmap behavior (traceEvent "Roles e' stato usato " roles)
+  let a = fmap behavior roles
   b <- widgetHold (return never) a
-  let c = traceEvent "b e' adesso: " $ switchPromptlyDyn b
+  let c = switchPromptlyDyn b
   return c
 
 behavior :: MonadWidget t m => Either Text Roles -> m (Event t Text)

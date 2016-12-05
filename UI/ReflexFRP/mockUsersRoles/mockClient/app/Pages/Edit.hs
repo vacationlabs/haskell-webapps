@@ -99,12 +99,12 @@ form roleName roleAttrs = do
                     </div>|]
 
       (roleNameWithError, rolePermsWithError, updatedUsers, saveEvent) <-
-        [jsx| <form>
+        [jsx| <div>
                   {roleNameWidget roleName (() <$ saveEvent)}
                   {rolePermsWidget roleAttrs}
                   {updateUsers (roleAttrs^.roleAssociatedUsers)}
                   {saveButtonWidget roleNameWithError attributesWithError}
-              </form>|]
+              </div>|]
 
       dangerText <-
         heldSignalWithTrigger

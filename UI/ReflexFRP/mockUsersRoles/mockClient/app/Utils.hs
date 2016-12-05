@@ -68,6 +68,19 @@ domMorph ::     MonadWidget t m
                 -> m (Event t b)         -- signal the happened rewriting
 domMorph = mapMorph dyn
 
+domMorph' ::     MonadWidget t m
+                 => (a -> m (Event t b))  -- widget rewriter
+                 -> Dynamic t a           -- driver for rewritings
+                 -> m (Event t b)         -- signal the happened rewriting
+-- domMorph' f d = dyn (f <$> d) >>= joinE
+domMorph' f d = dyn (f <$> d) >>= switchPromptly never
+
+-- domMorph'' ::     MonadWidget t m
+--                  => (a -> m (Event t b))  -- widget rewriter
+--                  -> Dynamic t a           -- driver for rewritings
+--                  -> m (Event t b)         -- signal the happened rewriting
+-- domMorph'' f d = dyn ((\a -> _what) <$> d) >>= switchPromptly never
+
 ----------------------------- ENDPOINT DELL'API
 
 url :: BaseUrl
