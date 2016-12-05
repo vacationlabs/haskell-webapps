@@ -95,9 +95,9 @@ insertRow :: Connection -> User -> IO Int64
 insertRow conn u = do
   runInsert conn userTable (constant u) 
 
-insertRowReturning :: Connection -> User -> IO [User]
+insertRowReturning :: Connection -> User -> IO [Int]
 insertRowReturning conn u = do
-  runInsertReturning conn userTable (constant u) (\x -> x)
+  runInsertReturning conn userTable (constant u) id
 
 updateRow :: Connection -> User -> IO Int64
 updateRow conn row = do
