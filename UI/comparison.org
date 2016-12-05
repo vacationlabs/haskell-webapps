@@ -1,7 +1,24 @@
 * Comparison between reflex-frp, react-flux and the js react approach
 ** General principles
-*** Make nonsensical states non-representible in the domain model. eg. product can have only two types -- physical and digital. Status can have only few values. Basically a lot of ADT usage.
+*** Make nonsensical states non-representible in the domain model. Basically a lot of ADT usage.
+    Being haskell libraries, they fare equally here.
 *** Lift more invariants to the type-level.
+**** reflex-frp:
+     You can write normal haskell in all aspects of your architecture, so you
+     can decide how much invariant encode and where. You are talking about pure
+     types anywhere, so there is no unrestricted IO in the basic framework.
+     Also, you can guarantee exactly what types of signal arrive to your
+     components: there is no global store in which all the signals arrive.
+**** react-flux:
+     The action you can take on a store depends from the type of the store, so
+     you can't accidentally pass a message of the wrong type. On the other hand,
+     the ~transform~ function has type:
+     #+BEGIN_SRC haskell
+     transform -> StoreAction -> StoreData -> IO StoreData
+     #+END_SRC
+     which makes unrestricted communication possible. The global store means
+     that a component might change triggered by whoever fires that signal,
+     inside or outside the store.
 *** Investigate how testing is (or could be) done in the various domains, re-interpreting the type of test commonly used in web development (Unit, Controller, Integration tests) if necessary, to write them in idiomatic ways.
 *** Create documentation for successful workflows/techniques.
 ** Architectural concerns
