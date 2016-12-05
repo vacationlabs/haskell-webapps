@@ -24,13 +24,18 @@ library
                        CryptoDef,
                        JsonInstances,
                        Validations,
+                       Email,
                        TH
   build-depends:       base >= 4.7 && < 5
+                      ,smtp-mail
+                      ,mime-mail
                       ,product-profunctors
                       ,profunctors
                       ,bytestring
                       ,opaleye
                       ,time
+                      ,old-time
+                      ,network
                       ,postgresql-simple
                       ,bcrypt
                       ,text
@@ -51,6 +56,10 @@ executable SpockOpaleye-exe
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -fwarn-tabs -fwarn-unused-imports -fwarn-missing-signatures -fwarn-incomplete-patterns
   build-depends:       base
                      , postgresql-simple
+                     , mime-mail
+                     , smtp-mail
+                     , network
+                     , old-time
                      , SpockOpaleye
                      , Spock >=0.11
                      , mtl
