@@ -23,25 +23,20 @@ import           Data.Proxy             (Proxy (..))
 type ServerState = Roles
 type ClientState = Roles
 
-data AppState = BootApp Text
-              | Overview ServerState ClientState
-              | Edit ServerState ClientState (RoleName, RoleAttributes)
-              | OverviewInit
-              | EditInit
-              | NotFound
-              | Dispatcher Text
+data AppState = BootApp
+              | Overview
+              | Edit RoleName
               deriving (Eq, Show, Read, Generic)
 
 showForUrl :: AppState -> Text
-showForUrl (Overview _ _) = "overwiew"
-showForUrl (Edit _ _ (rn,_)) = "edit/" ++ rn
-showForUrl (Dispatcher t) = t
+showForUrl Overview = "overwiew"
+showForUrl (Edit rn) = "edit/" ++ rn
 showForUrl other = trace ("In the function showForUrl I received " <> show other) "overview"
 
 textLink :: AppState -> Text
-textLink (Overview _ _) = "/overview"
-textLink (Edit _ _ (roleName,_)) = "/edit/" <> roleName
-textLink (BootApp _) = "Non ci dovrebbe essere"
+textLink Overview = "/overview"
+textLink (Edit roleName) = "/edit/" <> roleName
+textLink BootApp = "Non ci dovrebbe essere"
 
 -------------- These four functions are being used after a discussion with Paolo -------------
 type Morph t m a = Dynamic t (m a) -> m (Event t a)

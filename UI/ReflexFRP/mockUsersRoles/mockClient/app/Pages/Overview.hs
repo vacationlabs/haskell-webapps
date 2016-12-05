@@ -12,8 +12,8 @@ import Control.Lens
 
 import Utils
 
-overview :: MonadWidget t m => Roles -> Roles -> m (Event t AppState)
-overview serverState clientState = el "body" $ do
+overview :: MonadWidget t m => Roles -> m (Event t AppState)
+overview state = el "body" $ do
   pageHeader
   el "div" $ divClass "container" $ divClass "row" $ do
     lateralNavigation
@@ -21,28 +21,28 @@ overview serverState clientState = el "body" $ do
       sitePosition ["Account Settings", "Roles"]
       newRole <- buttonClass "btn btn-primary pull-right" "New Role"
       elClass "h1" "page-heading" $ text "Roles"
-      change <- divClass "table-responsive" $ (tableSection serverState clientState)
-      return $ leftmost [change, Edit serverState clientState ("", emptyRoleAttributes) <$ newRole]
+      change <- divClass "table-responsive" $ (tableSection state)
+      return $ leftmost [change, Edit "" <$ newRole]
 
-tableSection :: MonadWidget t m => Roles -> Roles -> m (Event t AppState)
-tableSection serverState clientState = elClass "table" "table" $ do
+tableSection :: MonadWidget t m => Roles -> m (Event t AppState)
+tableSection state = elClass "table" "table" $ do
   el "thead" $ do
     el "tr" $ do
       el "th" $ text "Role name"
       el "th" $ text "Permissions"
       el "th" $ text "Users"
   el "tbody" $ do
-    leftmost <$> mapM (roleSection serverState clientState) (clientState ^. _Wrapped' . to mapToList)
+    leftmost <$> mapM (roleSection state) (state ^. _Wrapped' . to mapToList)
 
-roleSection :: MonadWidget t m => Roles -> Roles -> (RoleName, RoleAttributes) -> m (Event t AppState)
-roleSection serverState clientState (rolename, roleattrs) = el "tr" $ do
+roleSection :: MonadWidget t m => Roles -> (RoleName, RoleAttributes) -> m (Event t AppState)
+roleSection _ (rolename, roleattrs) = el "tr" $ do
   edit <- el "td" $ do
     text rolename
     elAttr "a" ("href"=:("/edit/" <> rolename)) (text "fuggi")
     link " (edit)"
   _ <- el "td" $ el "em" $ permissionList (roleattrs ^. rolePermission)
   _ <- el "td" $ el "ul" $ listComponent (rolename, roleattrs)
-  return (Edit serverState clientState (rolename, roleattrs) <$ _link_clicked edit)
+  return (Edit rolename <$ _link_clicked edit)
 
 permissionList :: MonadWidget t m => Set Permission  -> m (Dynamic t [((), Event t ())])
 permissionList ps =

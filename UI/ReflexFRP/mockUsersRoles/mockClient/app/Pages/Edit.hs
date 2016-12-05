@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# OPTIONS_GHC -fdefer-typed-holes #-}
+-- {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Pages.Edit where
 
