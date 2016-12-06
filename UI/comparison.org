@@ -34,7 +34,7 @@
      example, the equivalent function is indeed pure). The global store means
      that a component might change triggered by whoever fires that signal,
      inside or outside the store.
-*** Investigate how testing is (or could be) done in the various domains, re-interpreting the type of test commonly used in web development (Unit, Controller, Integration tests) if necessary, to write them in idiomatic ways.
+*** Investigate how testing is (or could be) done in the various domains
 **** reflex-frp:
      The testing is mainly done with the function for tracing signals (analogues
      to the ~trace~ functions in base). You can inspect the values of your
@@ -44,6 +44,20 @@
      Testing is mainly done within the js console, using ~putStrLn~ statements
      (or maybe I misused the library). It has been my experience than a weird
      behaviour of a component can be quite messy to find.
+*** User base and support; libraries
+**** reflex-frp:
+     Has a quite friendly user base on #reflex-frp. The author of reflex and the
+     regular partecipants have been very responsive and helpful on every
+     question I asked there. There are libraries which try to integrate reflex
+     with the other part of the haskell web ecosystem (like servant).
+**** react-flux:
+     This library is mainly maintained by the author, and there isn't a
+     significant community around it. While the author is very thorough with
+     producing documentation, sometimes I would have liked to know how to do
+     something in this framework. There is also a general propension to write
+     binding libraries to js for structural part of the application (like eg
+     routing).
+*** 
 ** Architectural concerns
 *** Create a reusable collection of abstractions for most used ui components (forms etc.)
 **** reflex-frp:
