@@ -8,9 +8,9 @@ import           Database.PostgreSQL.Simple
 import           DataTypes
 import           JsonInstances              ()
 import           TenantApi
-import           Email
 import           Validations
 
+import           Email
 import           Web.Spock
 import           Web.Spock.Config
 
@@ -19,7 +19,6 @@ import           Control.Monad.Writer
 import qualified Data.Text                  as T
 import           Data.Time
 import           Prelude                    hiding (id)
-import Control.Lens
 import CryptoDef
 
 data MySession =
@@ -83,9 +82,7 @@ app = do
            case result of
              Valid -> do
                   newTenant <- runQuery $ runAppM $ createTenant incomingTenant
-                  liftIO $ sendTenantActivation (newTenant ^. email) "<a href='#'>Click here</a>"
-                  let updatedTenant = newTenant & firstname .~ "Jake"
-                  _ <- runQuery $ runAppM $ updateTenant updatedTenant
+                  liftIO $ sendTenantActivationMail newTenant
                   json newTenant
              Invalid err -> json $ T.pack ("Validation fail with " <> err)
          Nothing -> json $ T.pack "Unrecognized input"
