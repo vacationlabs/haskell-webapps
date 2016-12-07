@@ -4,21 +4,24 @@
 module Email where
 
 import           Network.Mail.Mime
-import           Network.Mail.SMTP hiding (simpleMail)
+import           Network.Mail.SMTP  hiding (simpleMail)
 
 import           ApiBase
-import           Conf              (apikey)
+import           Conf               (apikey)
+import           Control.Concurrent
 import           Control.Lens
-import           Data.ByteString   hiding (putStrLn)
+import           Data.ByteString    hiding (putStrLn)
 import           Data.Monoid
+import           Data.String
 import           Data.String.Here
-import qualified           Data.Text as T
-import qualified           Data.Text.Lazy as LT
+import qualified Data.Text          as T
+import qualified Data.Text.Lazy     as LT
 import           DataTypes
 
 sendgridMail :: Mail -> IO ()
 sendgridMail mail = do
-  sendMailWithLogin' "smtp.sendgrid.net" 587 "apikey" apikey mail
+  threadId <- forkIO $ sendMailWithLogin' "smtp.sendgrid.net" 587 "apikey" apikey mail
+  putStrLn $ show $ T.concat ["Sending main from thread ", fromString $ show threadId]
 
 setCid :: T.Text -> T.Text -> Mail -> Mail
 setCid filename cid mail@Mail {mailParts = alternatives} = mail { mailParts = (setCidInAlternative filename cid) <$> alternatives}
@@ -45,7 +48,7 @@ sendTenantActivationMail newTenant = do
     key :: T.Text
     key = "cmFuZG9tdyBlaXJqd28gZWlyandvZWlyaiB3b2VyaWpvd2Vpcmogb3F3ZWlyb3F3ZWl1aHIgb3dxZXVoaXJ3b2Vpcmggb3dldWZob2kgcmV1d2ZpcmVxdWZoaXFld3VyaG9wIHF3dWh3aQ=="
     activation_link :: T.Text
-    activation_link =  T.concat ["link-url/", key]
+    activation_link =  T.concat ["http://haskellwebapps.vacationlabs.com/activateTenantKey/", key]
     from = Address { addressName = Just "VacationLabs", addressEmail = "webapps@vacationlabs.com"}
     to = Address { addressName = Just $ T.concat [tenant_fname, " ", tenant_lname], addressEmail = tenant_email}
     tenant_fname = (newTenant ^. firstname )

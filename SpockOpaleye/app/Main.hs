@@ -16,10 +16,10 @@ import           Web.Spock.Config
 
 import           Control.Monad.Reader
 import           Control.Monad.Writer
+import           CryptoDef
 import qualified Data.Text                  as T
 import           Data.Time
 import           Prelude                    hiding (id)
-import CryptoDef
 
 data MySession =
   EmptySession
@@ -40,7 +40,6 @@ main = do
 
 runAppM :: AppM a -> Connection -> IO a
 runAppM x conn = do
-  putStrLn "request"
   user <- getTestUser
   (item, lg) <- runReaderT (runWriterT x) (conn, Just $ auditable getTestTenant, Just $ auditable user)
   putStrLn lg
@@ -75,14 +74,19 @@ app = do
     tenants <- runQuery $ runAppM $ readTenants
     json tenants
   post ("tenants/new") $
-    do maybeTenantIncoming <- jsonBody
-       case maybeTenantIncoming of
-         Just incomingTenant -> do
-           result <- runQuery $ runAppM $ validateIncomingTenant incomingTenant
-           case result of
-             Valid -> do
-                  newTenant <- runQuery $ runAppM $ createTenant incomingTenant
-                  liftIO $ sendTenantActivationMail newTenant
-                  json newTenant
-             Invalid err -> json $ T.pack ("Validation fail with " <> err)
-         Nothing -> json $ T.pack "Unrecognized input"
+    do
+      maybeTenantIncoming <- jsonBody
+      either_newtenant <- runQuery $ runAppM $ do
+        case maybeTenantIncoming of
+            Just incomingTenant -> do
+              result <- validateIncomingTenant incomingTenant
+              case result of
+                Valid -> do
+                     newTenant <- createTenant incomingTenant
+                     liftIO $ sendTenantActivationMail newTenant
+                     return $ Right newTenant
+                Invalid err -> return $ Left $ T.pack ("Validation fail with " <> err)
+            Nothing -> return $ Left $ T.pack "Unrecognized input"
+      case either_newtenant of
+        Right new_tenant -> json new_tenant
+        Left message     -> json message
