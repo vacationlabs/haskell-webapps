@@ -8,6 +8,7 @@ import           Database.PostgreSQL.Simple
 import           DataTypes
 import           JsonInstances              ()
 import           TenantApi
+import           Email
 import           Validations
 
 import           Web.Spock
@@ -82,6 +83,7 @@ app = do
            case result of
              Valid -> do
                   newTenant <- runQuery $ runAppM $ createTenant incomingTenant
+                  liftIO $ sendTenantActivation (newTenant ^. email) "<a href='#'>Click here</a>"
                   let updatedTenant = newTenant & firstname .~ "Jake"
                   _ <- runQuery $ runAppM $ updateTenant updatedTenant
                   json newTenant
