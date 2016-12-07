@@ -16,7 +16,10 @@ import qualified           Data.Text as T
 import           DataTypes
 
 sendgridMail :: Mail -> IO ()
-sendgridMail mail = sendMailWithLogin' "smtp.sendgrid.net" 587 "apikey" apikey mail
+sendgridMail mail = do
+  rb <- renderMail' mail
+  putStrLn $ show rb
+  sendMailWithLogin' "smtp.sendgrid.net" 587 "apikey" apikey mail
 
 setCid :: T.Text -> T.Text -> Mail -> Mail
 setCid filename cid mail@Mail {mailParts = alternatives} = mail { mailParts = (setCidInAlternative filename cid) <$> alternatives}
@@ -39,7 +42,11 @@ sendTenantActivationMail :: Auditable Tenant -> IO ()
 sendTenantActivationMail newTenant = do
   makeMail from to activation_link >>= addLogo >>= sendgridMail
   where
-    activation_link =  "<a href='#'>Click here</a>"
+    -- @TODO Make key random
+    key :: T.Text
+    key = "cmFuZG9tdyBlaXJqd28gZWlyandvZWlyaiB3b2VyaWpvd2Vpcmogb3F3ZWlyb3F3ZWl1aHIgb3dxZXVoaXJ3b2Vpcmggb3dldWZob2kgcmV1d2ZpcmVxdWZoaXFld3VyaG9wIHF3dWh3aQ=="
+    activation_link :: T.Text
+    activation_link =  T.Concat ["link-url/", key]
     from = Address { addressName = Just "VacationLabs", addressEmail = "webapps@vacationlabs.com"}
     to = Address { addressName = Just $ T.concat [tenant_fname, " ", tenant_lname], addressEmail = tenant_email}
     tenant_fname = (newTenant ^. firstname )
