@@ -13,12 +13,11 @@ import           Data.ByteString   hiding (putStrLn)
 import           Data.Monoid
 import           Data.String.Here
 import qualified           Data.Text as T
+import qualified           Data.Text.Lazy as LT
 import           DataTypes
 
 sendgridMail :: Mail -> IO ()
 sendgridMail mail = do
-  rb <- renderMail' mail
-  putStrLn $ show rb
   sendMailWithLogin' "smtp.sendgrid.net" 587 "apikey" apikey mail
 
 setCid :: T.Text -> T.Text -> Mail -> Mail
@@ -46,14 +45,14 @@ sendTenantActivationMail newTenant = do
     key :: T.Text
     key = "cmFuZG9tdyBlaXJqd28gZWlyandvZWlyaiB3b2VyaWpvd2Vpcmogb3F3ZWlyb3F3ZWl1aHIgb3dxZXVoaXJ3b2Vpcmggb3dldWZob2kgcmV1d2ZpcmVxdWZoaXFld3VyaG9wIHF3dWh3aQ=="
     activation_link :: T.Text
-    activation_link =  T.Concat ["link-url/", key]
+    activation_link =  T.concat ["link-url/", key]
     from = Address { addressName = Just "VacationLabs", addressEmail = "webapps@vacationlabs.com"}
     to = Address { addressName = Just $ T.concat [tenant_fname, " ", tenant_lname], addressEmail = tenant_email}
     tenant_fname = (newTenant ^. firstname )
     tenant_lname = (newTenant ^. lastname )
     tenant_email = (newTenant ^. email )
     makeMail :: Address -> Address -> T.Text -> IO Mail
-    makeMail from to activation_link  = simpleMail to from subject text html []
+    makeMail from to activation_link  = simpleMail to from subject text (LT.fromStrict html) []
       where
       subject = "Registration Email from abc.com"
       text = [iTrim|
@@ -63,4 +62,5 @@ sendTenantActivationMail newTenant = do
   Hope to see you soon.
   Regards,
   abc.com|]
+      html :: T.Text
       html = [template|email-templates/tenant-activation.tpl|]
