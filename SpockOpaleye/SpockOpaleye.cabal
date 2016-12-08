@@ -25,6 +25,7 @@ library
                        JsonInstances,
                        Validations,
                        Conf,
+                       UserServices,
                        Email,
                        TH
   build-depends:       base >= 4.7 && < 5

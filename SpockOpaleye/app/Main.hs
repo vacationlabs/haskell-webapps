@@ -20,6 +20,7 @@ import           CryptoDef
 import qualified Data.Text                  as T
 import           Data.Time
 import           Prelude                    hiding (id)
+import           UserServices
 
 data MySession =
   EmptySession
@@ -78,14 +79,7 @@ app = do
       maybeTenantIncoming <- jsonBody
       either_newtenant <- runQuery $ runAppM $ do
         case maybeTenantIncoming of
-            Just incomingTenant -> do
-              result <- validateIncomingTenant incomingTenant
-              case result of
-                Valid -> do
-                     newTenant <- createTenant incomingTenant
-                     liftIO $ sendTenantActivationMail newTenant
-                     return $ Right newTenant
-                Invalid err -> return $ Left $ T.pack ("Validation fail with " <> err)
+            Just incomingTenant -> doCreateTenant incomingTenant
             Nothing -> return $ Left $ T.pack "Unrecognized input"
       case either_newtenant of
         Right new_tenant -> json new_tenant
