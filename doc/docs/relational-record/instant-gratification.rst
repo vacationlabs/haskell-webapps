@@ -1,4 +1,4 @@
-Introduction
+Instant Gratification
 ==============================
 
 Connecting to the PostgreSQL database
@@ -80,15 +80,3 @@ executing it on the DB: ::
         runQuery conn (relationalQuery getUserEntry) "some.user@mailprovider.com"
 
 And that was your very first query in HRR!
-
-
-Type works
-----------
-
-TODO
-
-
-Reading into custom data types
-------------------------------
-
-TODO
