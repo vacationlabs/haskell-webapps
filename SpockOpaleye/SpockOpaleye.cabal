@@ -31,6 +31,7 @@ library
   build-depends:       base >= 4.7 && < 5
                       ,smtp-mail
                       ,here
+                      ,filepath
                       ,mime-mail
                       ,product-profunctors
                       ,profunctors
@@ -61,6 +62,7 @@ executable SpockOpaleye-exe
                      , postgresql-simple
                      , here
                      , mime-mail
+                     , filepath
                      , smtp-mail
                      , network
                      , old-time

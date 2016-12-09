@@ -283,7 +283,7 @@
                <!-- START MAIN CONTENT AREA -->                                                                                                            
                <tr>                                                                                                                                        
                  <td class="wrapper">                                                                                                                      
-                  <img src="cid:logocid"></img>
+                  <img src="cid:logocid@haskellwebapps.com"></img>
                    <table border="0" cellpadding="0" cellspacing="0">                                                                                      
                      <tr>                                                                                                                                  
                        <td>                                                                                                                                
@@ -296,7 +296,7 @@
                                  <table border="0" cellpadding="0" cellspacing="0">                                                                        
                                    <tbody>                                                                                                                 
                                      <tr>                                                                                                                  
-                                       <td> <a href="${activation_link}" target="_blank">Click here to activate</a> </td>                                         
+                                       <td> <a href="${activationLink}" target="_blank">Click here to activate</a> </td>                                         
                                      </tr>                                                                                                                 
                                    </tbody>                                                                                                                
                                  </table>                                                                                                                  
