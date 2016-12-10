@@ -22,7 +22,10 @@ Delete
 ------
 
 
-
+Where clauses
+-------------
+[illustrate some examples of clauses with comparison operators and boolean
+ expressions, e.g. IN, LIKE and such]
 
 
 [This chapter should cover the Haskell-side syntax of HRRs query DSL]

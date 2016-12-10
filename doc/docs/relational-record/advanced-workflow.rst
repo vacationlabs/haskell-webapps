@@ -21,6 +21,24 @@ Subqueries
 [provide examples of subselects]
 
 
+Union, Coalesce
+---------------
+
+[check if HRR supports these expressions, if so, give examples]
+
+
+Case ... when
+-------------
+
+[check if HRR supports that expression, if so, give an example]
+
+
+Functions
+---------
+
+[Say something about functions like e.g. char_length(), date_part(), ...]
+
+
 Housekeeping
 ------------
 
@@ -41,7 +59,3 @@ Bulk inserting / preparing statements
 
 [as before, this stuff has to be done one level below HRRs abstraction; HRR
  does not provide any mechanism for these cases]
-
-
-
-(some more paragraphs that would be of interest here?)

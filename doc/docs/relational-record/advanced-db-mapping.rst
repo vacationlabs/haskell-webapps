@@ -4,6 +4,14 @@ Advanced DB mapping
 [HRR is DB agnostic, meaning that user defined types or extensions are not supported, by choice of HRRs authors.
  This chapter should give an overview how to approach that topic]
 
+[This chapter includes a view on how HRR interoperates with postgres additions to the SQL standard]
+
+
+date/time types
+---------------
+
+[how are date/time values mapped by HRR? is there any special way necessary to deal with them?]
+
 
 JSON(B) type
 ------------
@@ -28,5 +36,8 @@ Arrays
  custom FromSql / ToSql instances - in short, proof of concept still missing]
 
 
+ Type Alias
+ ----------
 
-(anything else belonging in the advances section I might have missed?)
+ [Is it possible to use a type alias on the DB and generate a mapping to a Haskell 
+  newtype, for additional type safety?]

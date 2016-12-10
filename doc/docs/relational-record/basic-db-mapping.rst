@@ -15,7 +15,7 @@ Full example
 Projections
 -----------
 
-[Exlain HRRs projections (:: Pi a b) and what they're useful for]
+[Explain HRRs projections (:: Pi a b) and what they're useful for]
 
 
 TypeMap

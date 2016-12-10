@@ -18,5 +18,10 @@ Drawbacks you might be in for
  and reference examples becomes obvious later on]
 
 
+Integration
+-----------
 
-(some more paragraphs that should form part of a summary / conclusion?)
+[To live up to the promise of type-safety, a change in the underlying DB schema
+ must be reflected when (re)building a Haskell project which uses HRR. Say something
+ about how HRR can be integrated with a build system like stack so that data types
+ get derived anew in their respective Haskell modules when necessary]
