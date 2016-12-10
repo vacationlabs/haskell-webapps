@@ -89,7 +89,7 @@ allPermissions = concat [ map PP [minBound .. maxBound]
                         , map UP [minBound .. maxBound]
                         ]
 
-accountAdministrator = singletonMap "AccountAdministrator" (RoleAttributes roles users)
+accountAdministrator = singletonMap "Account Administrator" (RoleAttributes roles users)
   where
     roles = setFromList allPermissions
     users = setFromList [ User "admin@mydomain.com"

@@ -16,16 +16,17 @@ packages:
 - location: ../mockAPI
 - location: ../../reflex-ui-elements
 - location:
-    git: https://github.com/reflex-frp/reflex.git
-    commit: a63aba90bdea5ae5b3e1506d468613bdfedcdfa3
+    git: https://github.com/reflex-frp/reflex/
+    # commit: 91299fce0bb2caddfba35af6608df57dd31e3690
+    commit: 0356ce5f715707fbb4f01f28cae5adb357f22aa5
   extra-dep: true
 - location:
-    git: https://github.com/Arguggi/reflex-dom.git
-    commit: 767c9b7625c61208b552f64b95719edac18a6e29
+    git: https://github.com/reflex-frp/reflex-dom
+    commit: 66b6d35773fcb337ab38ebce02c4b23baeae721e
   extra-dep: true
 - location:
     git: https://github.com/reflex-frp/reflex-dom-contrib/
-    commit: 377e2c541cd360ee749e2fccaa4f087821bf120c
+    commit: 573212fd0c172b371fad2380125e67c67752dfed
   extra-dep: true
 - location:
     git: https://github.com/imalsogreg/servant-reflex
@@ -45,3 +46,4 @@ extra-deps:
 - ref-tf-0.4.0.1
 - zenc-0.1.1
 - digestive-functors-0.8.1.1
+- prim-uniq-0.1.0.1

@@ -5,7 +5,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 {-# LANGUAGE PartialTypeSignatures #-}
--- {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
 module Pages.Edit where
 
@@ -26,7 +25,7 @@ import ReflexJsx
 import Reflex.Dom.Contrib.Widgets.DynamicList
 
 
-editPage :: MonadWidget t m => RoleName -> RoleAttributes -> m (Event t (RoleName, RoleAttributes))
+editPage :: MonadWidget t m => RoleName -> RoleAttributes -> m (Event t AppState)
 editPage roleName roleAttrs = do
   el "body" $ do
     template
@@ -36,7 +35,7 @@ editPage roleName roleAttrs = do
           lateralNavigation
           divClass "col-md-9" $ do
             sitePosition ["Account Settings", "Roles", "Edit role: " <> roleName]
-            form roleName roleAttrs
+            (Overview <$) <$> form roleName roleAttrs
 
 saveButtonWidget :: MonadWidget t m
                  => Dynamic t (Either Text RoleName)
@@ -58,8 +57,7 @@ roleNameWidget roleName additionalTrigger = do
               & textInputConfig_attributes   .~ constDyn ("class"=:"form-control")}
             <span class="help-block">{dynText helpMsg}</span>
           </div>|]
-      let
-          validatedRoleName = ffor rawRoleName $ \r ->
+      let validatedRoleName = ffor rawRoleName $ \r ->
             bool (Left "Role name can't be blank") (Right r) (r /= "")
       helpMsg <- heldSignalWithTrigger "" rawRoleName additionalTrigger
             (\p -> if p == "" then "Role name can't be blank" else "")
@@ -133,20 +131,6 @@ form roleName roleAttrs = do
 
   return nameAndAttributes
 
-isReqSuccess :: ReqResult a -> Bool
-isReqSuccess (ResponseSuccess _ _) = True
-isReqSuccess _                     = False
-
-allRights :: Either e1 RoleName
-          -> Either e2 (Set Permission)
-          -> Either e3 (Set User)
-          -> Either Text (RoleName, RoleAttributes)
-allRights (Right a) (Right b) (Right c) = Right (a, RoleAttributes b c)
-allRights _ _ _ = Left "You did not enter a user in the form"
-
-heldSignal :: MonadWidget t m => b -> Dynamic t a -> (a -> b) -> m (Dynamic t b)
-heldSignal initialState dyn f = holdDyn initialState (f <$> updated dyn)
-
 heldSignalWithTrigger :: MonadWidget t m
                       => b -> Dynamic t a -> Event t c -> (a -> b) -> m (Dynamic t b)
 heldSignalWithTrigger initialState dyn additionalTrigger f =
@@ -212,15 +196,12 @@ updateUsers users = do
 updatedOnButton :: (MonadWidget t m) => Event t b -> a -> Dynamic t a -> m (Dynamic t a)
 updatedOnButton btn init dyn = holdDyn init (tagPromptlyDyn dyn btn)
 
-
 textInputClassValue :: MonadWidget t m => Text -> m (Dynamic t Text)
 textInputClassValue c = view textInput_value <$>
   textInput (def & textInputConfig_attributes .~ constDyn ("class"=:c))
 
-
+isRight :: Either b b1 -> Bool
 isRight = either (const False) (const True)
-
-type Markup = forall t m a. (MonadWidget t m) => m a -> m a
 
 permissionCheckboxes :: MonadWidget t m => Text -> Set Permission -> [Permission] -> m (Dynamic t (Set Permission))
 permissionCheckboxes groupName permissions groupToDisplay =

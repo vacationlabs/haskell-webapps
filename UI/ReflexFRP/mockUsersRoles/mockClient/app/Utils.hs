@@ -12,13 +12,11 @@ import Reflex.Dom
 import Servant.API
 import Servant.Reflex
 import Web.Routes.PathInfo
-import GHC.Generics
-
-import qualified Data.Dependent.Map     as DMap
-import           Data.GADT.Compare
+import Control.Lens
 import           Data.Proxy             (Proxy (..))
 
--- import GHCJS.Foreign
+import Reflex.Dom.Contrib.Router
+import URI.ByteString
 
 type ServerState = Roles
 type ClientState = Roles
@@ -28,47 +26,49 @@ data AppState = BootApp
               | Edit RoleName
               deriving (Eq, Show, Read, Generic)
 
-showForUrl :: AppState -> Text
-showForUrl Overview = "overwiew"
-showForUrl (Edit rn) = "edit/" ++ rn
-showForUrl other = trace ("In the function showForUrl I received " <> show other) "overview"
+instance PathInfo AppState
 
-textLink :: AppState -> Text
-textLink Overview = "/overview"
-textLink (Edit roleName) = "/edit/" <> roleName
-textLink BootApp = "Non ci dovrebbe essere"
+-- showForUrl :: AppState -> Text
+-- showForUrl Overview = "overwiew"
+-- showForUrl (Edit rn) = "edit/" ++ rn
+-- showForUrl other = trace ("In the function showForUrl I received " <> show other) "overview"
 
--------------- These four functions are being used after a discussion with Paolo -------------
-type Morph t m a = Dynamic t (m a) -> m (Event t a)
+-- textLink :: AppState -> Text
+-- textLink Overview = "/overview"
+-- textLink (Edit roleName) = "/edit/" <> roleName
+-- textLink BootApp = "Non ci dovrebbe essere"
 
-mapMorph  :: (MonadHold t m, Reflex t) => Morph t m (Event t b) -> (a -> m (Event t b)) -> Dynamic t a -> m (Event t b)
-mapMorph dyn' f d = dyn' (f <$> d) >>= joinE
+-- -------------- These four functions are being used after a discussion with Paolo -------------
+-- type Morph t m a = Dynamic t (m a) -> m (Event t a)
 
-joinE :: (Reflex t, MonadHold t f) => Event t (Event t a) -> f (Event t a)
-joinE = fmap switch . hold never
+-- mapMorph  :: (MonadHold t m, Reflex t) => Morph t m (Event t b) -> (a -> m (Event t b)) -> Dynamic t a -> m (Event t b)
+-- mapMorph dyn' f d = dyn' (f <$> d) >>= joinE
+
+-- joinE :: (Reflex t, MonadHold t f) => Event t (Event t a) -> f (Event t a)
+-- joinE = fmap switch . hold never
 
 -- Se ho un funtore comparabile che contiene un valore, e ho uno sparaeventi di
 -- mappe taggate (pensiamo ad una Gadt generalizzata), allora posso ridare un
 -- evento di a.
 
--- EventSelector t k ~~~ select :: forall a. k a -> Event t a
--- fan :: GCompare k => Event t (DMap k Identity) -> EventSelector t k
-pick :: (GCompare k, Reflex t) => k a -> Event t (DMap.DMap k Identity) -> Event t a
-pick x r = select (fan r) x
+-- -- EventSelector t k ~~~ select :: forall a. k a -> Event t a
+-- -- fan :: GCompare k => Event t (DMap k Identity) -> EventSelector t k
+-- pick :: (GCompare k, Reflex t) => k a -> Event t (DMap.DMap k Identity) -> Event t a
+-- pick x r = select (fan r) x
 
--- If I have a functions from a state, which renders
-domMorph ::     MonadWidget t m
-                => (a -> m (Event t b))  -- widget rewriter
-                -> Dynamic t a           -- driver for rewritings
-                -> m (Event t b)         -- signal the happened rewriting
-domMorph = mapMorph dyn
+-- -- If I have a functions from a state, which renders
+-- domMorph ::     MonadWidget t m
+--                 => (a -> m (Event t b))  -- widget rewriter
+--                 -> Dynamic t a           -- driver for rewritings
+--                 -> m (Event t b)         -- signal the happened rewriting
+-- domMorph = mapMorph dyn
 
-domMorph' ::     MonadWidget t m
-                 => (a -> m (Event t b))  -- widget rewriter
-                 -> Dynamic t a           -- driver for rewritings
-                 -> m (Event t b)         -- signal the happened rewriting
--- domMorph' f d = dyn (f <$> d) >>= joinE
-domMorph' f d = dyn (f <$> d) >>= switchPromptly never
+-- domMorph' ::     MonadWidget t m
+--                  => (a -> m (Event t b))  -- widget rewriter
+--                  -> Dynamic t a           -- driver for rewritings
+--                  -> m (Event t b)         -- signal the happened rewriting
+-- -- domMorph' f d = dyn (f <$> d) >>= joinE
+-- domMorph' f d = dyn (f <$> d) >>= switchPromptly never
 
 -- domMorph'' ::     MonadWidget t m
 --                  => (a -> m (Event t b))  -- widget rewriter
@@ -103,26 +103,26 @@ showRoles :: (MonadWidget t m)
 (deleteUser :<|> addRole :<|> showRoles :<|> _) = apiClients
 
 
----------------------------- Risposte del server
-data ServerResponse b a where
-  Success :: ServerResponse b b
-  Failure :: ServerResponse b Text
+-- ---------------------------- Risposte del server
+-- data ServerResponse b a where
+--   Success :: ServerResponse b b
+--   Failure :: ServerResponse b Text
 
-instance GEq (ServerResponse b) where
-  Success `geq` Success = Just Refl
-  Failure `geq` Failure   = Just Refl
-  _ `geq` _             = Nothing
+-- instance GEq (ServerResponse b) where
+--   Success `geq` Success = Just Refl
+--   Failure `geq` Failure   = Just Refl
+--   _ `geq` _             = Nothing
 
-instance GCompare (ServerResponse a) where
-  Success `gcompare` Failure = GLT
-  Failure `gcompare` Success = GGT
-  Success `gcompare` Success = GEQ
-  Failure `gcompare` Failure = GEQ
+-- instance GCompare (ServerResponse a) where
+--   Success `gcompare` Failure = GLT
+--   Failure `gcompare` Success = GGT
+--   Success `gcompare` Success = GEQ
+--   Failure `gcompare` Failure = GEQ
 
-parseR :: ReqResult a -> DMap.DMap (ServerResponse a) Identity
-parseR (ResponseSuccess a _) = DMap.singleton Success (Identity a)
-parseR (ResponseFailure t _) = DMap.singleton Failure (Identity $ "Response failure: " <> t)
-parseR (RequestFailure t)    = DMap.singleton Failure (Identity $ "Request failure: "  <> t)
+-- parseR :: ReqResult a -> DMap.DMap (ServerResponse a) Identity
+-- parseR (ResponseSuccess a _) = DMap.singleton Success (Identity a)
+-- parseR (ResponseFailure t _) = DMap.singleton Failure (Identity $ "Response failure: " <> t)
+-- parseR (RequestFailure t)    = DMap.singleton Failure (Identity $ "Request failure: "  <> t)
 
 parseR' :: ReqResult a -> Either Text a
 parseR' (ResponseSuccess a _) = Right a
@@ -133,13 +133,23 @@ parseR' (RequestFailure t)    = Left $ "Request failure: "  <> t
 (<$$>) = fmap . fmap
 infixl 4 <$$>
 
--- setWindowLocationHref :: Text -> IO ()
--- #ifdef ghcjs_HOST_OS
--- setWindowLocationHref = js_setWindowLocationHref . toJSString . unpack
+webRoute
+  :: (MonadWidget t m, PathInfo a)
+  => Text     -- ^ The part of the URL not related to SPA routing, starting with '/'
+  -> Event t a
+  -> m (Dynamic t (Either Text a))
+webRoute pathBase aUpdates = do
+  route' encoder decoder aUpdates
+ where
+   encoder u a = u & pathL .~ encodeUtf8 (pathBase <> toPathInfo a)
+   decoder u = first pack . fromPathInfo =<<
+     note (pathBase <> " is a Bad prefix for " <> decodeUtf8 (serializeURIRef' u))
+     (stripPrefix (encodeUtf8 pathBase) (u ^. pathL))
 
--- foreign import javascript unsafe
---   "window.location.href=$1"
---   js_setWindowLocationHref :: JSString -> IO ()
--- #else
--- setWindowLocationHref = error "setWindowLocationHref: only works in GHCJS"
--- #endif
+hush :: Either e a -> Maybe a
+hush (Right a) = Just a
+hush _         = Nothing
+
+note :: e -> Maybe a -> Either e a
+note _ (Just a) = Right a
+note e _        = Left e

@@ -38,7 +38,6 @@ roleSection :: MonadWidget t m => Roles -> (RoleName, RoleAttributes) -> m (Even
 roleSection _ (rolename, roleattrs) = el "tr" $ do
   edit <- el "td" $ do
     text rolename
-    elAttr "a" ("href"=:("/edit/" <> rolename)) (text "fuggi")
     link " (edit)"
   _ <- el "td" $ el "em" $ permissionList (roleattrs ^. rolePermission)
   _ <- el "td" $ el "ul" $ listComponent (rolename, roleattrs)
@@ -63,7 +62,8 @@ listComponent (rolename, roleattrs) =
 displayItem  :: MonadWidget t m => RoleName -> Int -> User -> Event t User -> m ((), Event t ())
 displayItem rolename _ u _ = el "li" $ do
   text (userMail u <> " ")
-  deleteEvent <- clickLabel "(revoke)"
+  -- deleteEvent <- clickLabel "(revoke)"
+  deleteEvent <- _link_clicked <$> link "(revoke)"
   deleteConfirmed <- const () <$$> deleteUser (constDyn $ Right rolename) (constDyn $ Right u) deleteEvent
   return ((), deleteConfirmed)
 
