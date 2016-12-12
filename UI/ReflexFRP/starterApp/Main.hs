@@ -73,7 +73,10 @@ The function is further commented in the code below:
 type Prompt = Text
 
 validateInput :: MonadWidget t m
-              => Prompt -> (Text -> Either Text a) -> Event t b -> m (Dynamic t (Maybe a))
+              => Prompt                  -- ^ The text on the label
+              -> (Text -> Either Text a) -- ^ A pure validation function
+              -> Event t b               -- ^ An event so syncronize the update with
+              -> m (Dynamic t (Maybe a)) -- ^ Returns a validated value
 validateInput prompt pureValidation event = do
   -- 1) Declaring the graphical interface: the prompt and the input field
   text prompt
