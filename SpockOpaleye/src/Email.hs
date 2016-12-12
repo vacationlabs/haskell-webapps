@@ -25,21 +25,6 @@ sendgridMail mail = do
   threadId <- forkIO $ sendMailWithLogin' "smtp.sendgrid.net" 587 "apikey" apikey mail
   putStrLn $ show $ T.concat ["Sending mail from thread ", fromString $ show threadId]
 
-addAttachmentCid :: T.Text 
-                 -> FilePath 
-                 -> T.Text 
-                 -> Mail
-                 -> IO Mail
-addAttachmentCid ct fn cid mail = do
-  part <- makePart
-  return $ addPart [part] mail
-  where
-    header = ("Content-ID", T.concat ["<", cid,  ">"])
-    filename = T.pack (takeFileName fn)
-    makePart = do
-      content <- L.readFile fn
-      return $ Part ct Base64 (Just filename) [header] content
-
 addLogo :: Mail -> IO Mail
 addLogo mail = addAttachmentCid "image/png" "apple.png" "logocid@haskellwebapps.com" mail
 
