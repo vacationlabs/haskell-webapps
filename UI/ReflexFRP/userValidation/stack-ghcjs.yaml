@@ -9,20 +9,21 @@ setup-info:
           url: http://ghcjs.tolysz.org/ghc-8.0-2016-10-01-lts-7.2-9007002.tar.gz
           sha1: a41ae415328e2b257d40724d13d1386390c26322
 
-# extra-package-dbs: []
-
 packages:
 - location: '.'
 - location:
-    git: https://github.com/reflex-frp/reflex.git
-    commit: a63aba90bdea5ae5b3e1506d468613bdfedcdfa3
+    git: https://github.com/reflex-frp/reflex
+    commit: 91299fce0bb2caddfba35af6608df57dd31e3690
+    # Latest develop comment at the time of writing
   extra-dep: true
 - location:
-    git: https://github.com/Arguggi/reflex-dom.git
-    commit: 767c9b7625c61208b552f64b95719edac18a6e29
+    git: https://github.com/reflex-frp/reflex-dom
+    commit: 66b6d35773fcb337ab38ebce02c4b23baeae721e
+    # Latest develop comment at the time of writing
   extra-dep: true
 
 extra-deps:
 - ghcjs-dom-0.2.4.0
+- prim-uniq-0.1.0.1
 - ref-tf-0.4.0.1
 - zenc-0.1.1
