@@ -8,7 +8,7 @@ import Reflex
 import Reflex.Dom
 
 import Data.String.Conv    (toS)
-import Text.Email.Validate (toByteString, validate, EmailAddress(..))
+import Text.Email.Validate (toByteString, validate, EmailAddress)
 
 --------------------------------------------------------------------------------
 
@@ -21,12 +21,14 @@ functions are validateInput and notifyLogin, defined below.
 The htmlHead function provides some styling from a cdn for convenience.
 -}
 
+htmlHead :: MonadWidget t m => m ()
 htmlHead = do
   styleSheet "https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
   styleSheet "https://cdnjs.cloudflare.com/ajax/libs/milligram/1.1.0/milligram.min.css"
   where
     styleSheet addr = elAttr "link" ("rel"  =: "stylesheet" <> "href" =: addr) (return ())
 
+main :: IO ()
 main = mainWidgetWithHead htmlHead $ do
   el "h1" (text "A validation demo")
   rec firstName <- validateInput "First Name:" nameValidation  signUpButton
@@ -76,17 +78,19 @@ validateInput prompt pureValidation event = do
   -- 1) Declaring the graphical interface: the prompt and the input field
   text prompt
   inputField <- textInput def
+
   -- 2) Using the pure validation function to validate the data construct a
   -- signal for the "hidden" html property of the feedback label and a signal
   -- for an eventual error message, all tied to the sign in button events
   let queryResult = pureValidation <$> _textInput_value inputField
   hiddenAttr <- resampleOn event hidden
                   (either (const mempty) (const hidden) <$> queryResult)
-  error <- resampleOn event ""
-             (either id (const "") <$> queryResult)
+  err        <- resampleOn event ""
+                  (either id (const "") <$> queryResult)
+
   -- 3) Optionally showing a label containing the eventual error, and returning
   -- the validated content of the query for further processing
-  elDynAttr "p" hiddenAttr (dynText error)
+  elDynAttr "p" hiddenAttr (dynText err)
   return (either (const Nothing) Just <$> queryResult)
 
 --------------------------------------------------------------------------------
@@ -114,12 +118,11 @@ email-validate package
 -}
 
 ageValidation :: Text -> Either Text Int
-ageValidation (readMay -> Just age :: Maybe Int)
-  | 18 <= age && age <= 120 = Right age
-  | age <= 18               = Left "You must be at least 18 years old."
-  | 120 <= age              = Left "No way. Try to pick a reasonable fake age."
-ageValidation (readMay -> Nothing :: Maybe Int)
-                            = Left "Please enter your age."
+ageValidation (readMay -> Just a :: Maybe Int)
+  | 18 <= a && a <= 120 = Right a
+  | a <= 18             = Left "You must be at least 18 years old."
+  | 120 <= a            = Left "No way. Try to pick a reasonable fake age."
+ageValidation _         = Left "Please enter your age."
 
 nameValidation :: Text -> Either Text Text
 nameValidation "" = Left "Please enter a non-empty name."
@@ -127,8 +130,8 @@ nameValidation n  = Right n
 
 emailValidation :: Text -> Either Text EmailAddress
 emailValidation ""                             = Left "Please enter your email address"
-emailValidation (validate . toS -> Left _)     = Left "Your email address seems to be incorrect"
 emailValidation (validate . toS -> Right addr) = Right addr
+emailValidation _                              = Left "Your email address seems to be incorrect"
 
 --------------------------------------------------------------------------------
 -- Utilities
@@ -141,4 +144,4 @@ hidden = "hidden" =: "true"
 -- dynamic that only changes values when the event fires (starting with the
 -- initial value)
 resampleOn :: (MonadWidget t m) => Event t b -> a -> Dynamic t a -> m (Dynamic t a)
-resampleOn event initial dyn = holdDyn initial (tag (current dyn) event)
+resampleOn event initial originalDyn = holdDyn initial (tag (current originalDyn) event)

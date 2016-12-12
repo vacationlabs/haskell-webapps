@@ -1,4 +1,4 @@
-name:                userValidation
+name:                starterApp
 version:             0.1.0.0
 license:             BSD3
 license-file:        LICENSE
@@ -6,7 +6,7 @@ maintainer:          meditans@gmail.com
 build-type:          Simple
 cabal-version:       >=1.10
 
-executable userValidation
+executable starterApp
   main-is:             Main.hs
   build-depends:       base >=4.9 && <4.10
                      , reflex >= 0.5 && < 0.6
