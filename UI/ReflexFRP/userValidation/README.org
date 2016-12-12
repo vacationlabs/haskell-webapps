@@ -1,0 +1,7 @@
+* A simple example of client side validation with reflex
+To build the demo:
+- Clone this repo
+- =stack build gtk2hs-buildtools=
+- Iy the meantime, be sure to have the required system libraries (like webkitgtk). If you miss some of the libraries, they will pop up as error in the next step.
+- =stack build=
+- =stack exec userValidation=
