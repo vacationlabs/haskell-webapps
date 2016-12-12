@@ -1,0 +1,25 @@
+resolver: lts-7.2
+
+packages:
+- location: '.'
+- location:
+    git: https://github.com/reflex-frp/reflex
+    commit: 91299fce0bb2caddfba35af6608df57dd31e3690
+    # Latest develop comment at the time of writing
+  extra-dep: true
+- location:
+    git: https://github.com/reflex-frp/reflex-dom
+    commit: 66b6d35773fcb337ab38ebce02c4b23baeae721e
+    # Latest develop comment at the time of writing
+  extra-dep: true
+
+extra-deps:
+- ghcjs-dom-0.2.4.0
+- prim-uniq-0.1.0.1
+- ref-tf-0.4.0.1
+- webkitgtk3-javascriptcore-0.13.2.0
+- zenc-0.1.1
+
+flags: {}
+
+extra-package-dbs: []
