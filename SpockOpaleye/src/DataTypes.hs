@@ -21,7 +21,12 @@ import           GHC.Generics
 import           Data.Aeson (Value(..))
 import qualified Data.HashMap.Strict as HM
 
-type AppM a = WriterT String (ReaderT (Connection, Maybe (Auditable Tenant), Maybe (Auditable User)) IO) a
+import Control.Exception
+import Control.Monad.Trans.Except
+
+type AppM a = WriterT String (ReaderT (Connection, Maybe (Auditable Tenant), Maybe (Auditable User)) (ExceptT SomeException IO)) a
+
+data AppResult a = AppOk a | AppErr Text
 
 getConnection :: AppM Connection
 getConnection = do

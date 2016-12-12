@@ -21,6 +21,7 @@ import qualified Data.Text                  as T
 import           Data.Time
 import           Prelude                    hiding (id)
 import           UserServices
+import           Control.Monad.Trans.Except
 
 data MySession =
   EmptySession
@@ -39,12 +40,16 @@ main = do
       DummyAppState
   runSpock 8080 (spock spockCfg app)
 
-runAppM :: AppM a -> Connection -> IO a
+runAppM :: AppM a -> Connection -> IO (AppResult a)
 runAppM x conn = do
+  putStrLn "request"
   user <- getTestUser
-  (item, lg) <- runReaderT (runWriterT x) (conn, Just $ auditable getTestTenant, Just $ auditable user)
-  putStrLn lg
-  return item
+  r <- runExceptT $ runReaderT (runWriterT x) (conn, Just $ auditable getTestTenant, Just $ auditable user)
+  case r of 
+    Right (item, lg) -> do
+      putStrLn lg
+      return $ AppOk item
+    Left ex -> return $ AppErr "There was an error"
 
 getTestTenant :: Tenant
 getTestTenant = Tenant (TenantId 1) tz tz "tjhon" "John" "Jacob" "john@gmail.com" "2342424" TenantStatusNew Nothing "Bo domain"
@@ -72,7 +77,7 @@ getTestUser = do
 app :: SpockM Connection MySession MyAppState ()
 app = do
   get ("tenants") $ do
-    tenants <- runQuery $ runAppM $ readTenants
+    AppOk tenants <- runQuery $ runAppM $ readTenants
     json tenants
   post ("tenants/new") $
     do
@@ -82,5 +87,5 @@ app = do
             Just incomingTenant -> doCreateTenant incomingTenant
             Nothing -> return $ Left $ T.pack "Unrecognized input"
       case either_newtenant of
-        Right new_tenant -> json new_tenant
-        Left message     -> json message
+        AppOk (Right new_tenant) -> json new_tenant
+        AppOk (Left message)     -> json message
