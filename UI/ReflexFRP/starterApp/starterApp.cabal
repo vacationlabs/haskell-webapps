@@ -14,6 +14,7 @@ executable starterApp
                      , classy-prelude
                      , email-validate
                      , string-conv
+                     , jsaddle-warp
   default-language:    Haskell2010
 
   if impl(ghcjs)

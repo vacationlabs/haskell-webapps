@@ -6,6 +6,7 @@ module Main where
 import ClassyPrelude
 import Reflex
 import Reflex.Dom
+import Language.Javascript.JSaddle.Warp (run)
 
 import Data.String.Conv    (toS)
 import Text.Email.Validate (toByteString, validate, EmailAddress)
@@ -29,7 +30,7 @@ htmlHead = do
     styleSheet addr = elAttr "link" ("rel"  =: "stylesheet" <> "href" =: addr) (return ())
 
 main :: IO ()
-main = mainWidgetWithHead htmlHead $ do
+main = run 8081 $ mainWidgetWithHead htmlHead $ do
   el "h1" (text "A validation demo")
   rec firstName <- validateInput "First Name:" nameValidation  signUpButton
       lastName  <- validateInput "Last Name:"  nameValidation  signUpButton
