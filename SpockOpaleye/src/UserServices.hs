@@ -18,6 +18,8 @@ doCreateTenant  incomingTenant = do
   case result of
     Valid -> do
          newTenant <- createTenant incomingTenant
+         f <- return (head [])
+         liftIO $ putStrLn f
          liftIO $ sendTenantActivationMail newTenant
          return $ Right newTenant
     Invalid err -> return $ Left $ T.concat ["Validation fail with ", T.pack err]

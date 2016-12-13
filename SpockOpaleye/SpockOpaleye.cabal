@@ -30,6 +30,8 @@ library
                        TH
   build-depends:       base >= 4.7 && < 5
                       ,smtp-mail
+                      ,lifted-base
+                      ,airbrake
                       ,here
                       ,filepath
                       ,mime-mail >= 0.4.12
@@ -52,6 +54,7 @@ library
                       ,aeson
                       ,unordered-containers
                       ,template-haskell
+                      ,lifted-base
   default-language:    Haskell2010
 
 executable SpockOpaleye-exe
@@ -60,6 +63,7 @@ executable SpockOpaleye-exe
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -fwarn-tabs -fwarn-unused-imports -fwarn-missing-signatures -fwarn-incomplete-patterns
   build-depends:       base
                      , postgresql-simple
+                     , airbrake
                      , here
                      , mime-mail
                      , filepath
@@ -77,6 +81,7 @@ executable SpockOpaleye-exe
                      , vector
                      , aeson
                      , unordered-containers
+                     , lifted-base
   default-language:    Haskell2010
 
 test-suite SpockOpaleye-test

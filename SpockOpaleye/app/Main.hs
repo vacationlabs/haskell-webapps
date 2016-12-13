@@ -22,6 +22,8 @@ import           Data.Time
 import           Prelude                    hiding (id)
 import           UserServices
 import           Control.Monad.Trans.Except
+import           Control.Exception.Lifted
+import           Airbrake
 
 data MySession =
   EmptySession
@@ -44,12 +46,16 @@ runAppM :: AppM a -> Connection -> IO (AppResult a)
 runAppM x conn = do
   putStrLn "request"
   user <- getTestUser
-  r <- runExceptT $ runReaderT (runWriterT x) (conn, Just $ auditable getTestTenant, Just $ auditable user)
+  r <- runExceptT $ handle throwE $ runReaderT (runWriterT x) (conn, Just $ auditable getTestTenant, Just $ auditable user)
   case r of 
     Right (item, lg) -> do
-      putStrLn lg
       return $ AppOk item
-    Left ex -> return $ AppErr "There was an error"
+    Left ex -> do
+      let message = T.pack $ show ex
+      notify conf (Error "Uncaught exception" message) (("sdfsfd", 5):|[])
+      return $ AppErr message
+  where
+      conf = airbrakeConf "61a1adfc070a9be9f21e43f586bbf5f7" "Env"
 
 getTestTenant :: Tenant
 getTestTenant = Tenant (TenantId 1) tz tz "tjhon" "John" "Jacob" "john@gmail.com" "2342424" TenantStatusNew Nothing "Bo domain"
@@ -89,3 +95,4 @@ app = do
       case either_newtenant of
         AppOk (Right new_tenant) -> json new_tenant
         AppOk (Left message)     -> json message
+        AppErr _ -> json $ T.pack "There was an error. Please try again later"

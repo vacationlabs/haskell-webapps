@@ -20,11 +20,12 @@ import           Database.PostgreSQL.Simple
 import           GHC.Generics
 import           Data.Aeson (Value(..))
 import qualified Data.HashMap.Strict as HM
+import           Data.ByteString
 
 import Control.Exception
 import Control.Monad.Trans.Except
 
-type AppM a = WriterT String (ReaderT (Connection, Maybe (Auditable Tenant), Maybe (Auditable User)) (ExceptT SomeException IO)) a
+type AppM a = WriterT ByteString (ReaderT (Connection, Maybe (Auditable Tenant), Maybe (Auditable User)) (ExceptT SomeException IO)) a
 
 data AppResult a = AppOk a | AppErr Text
 

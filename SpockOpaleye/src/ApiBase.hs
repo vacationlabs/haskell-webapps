@@ -21,13 +21,14 @@ import           GHC.Int
 import           Prelude                         hiding (id)
 import           TH
 import           Data.Aeson (Value(..))
+import           Data.ByteString (ByteString)
 import           JsonInstances ()
 
 makeAuditableLenses ''Role
 makeAuditableLenses ''Tenant
 makeAuditableLenses ''User
 
-auditLog :: String -> AppM ()
+auditLog :: ByteString -> AppM ()
 auditLog = tell 
 
 removeRawDbRows :: Table columnsW columnsR -> (columnsR -> Column PGBool) -> AppM GHC.Int.Int64

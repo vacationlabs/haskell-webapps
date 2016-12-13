@@ -37,6 +37,7 @@ resolver: lts-7.5
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - '.'
+- hs-airbrake
 - location:
       git: https://github.com/agrafix/Spock.git
       commit: 77333a2de5dea0dc8eba9432ab16864e93e5d70e
