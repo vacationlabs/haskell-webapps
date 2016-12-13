@@ -24,6 +24,7 @@ import           UserServices
 import           Control.Monad.Trans.Except
 import           Control.Exception.Lifted
 import           Airbrake
+import           Airbrake.WebRequest
 import           Data.ByteString (ByteString)
 
 data MySession =
@@ -84,8 +85,8 @@ runWithLogging act sact = do
   case r of
     AppOk rOk -> sact rOk
     AppErr msg -> do
-      b <- body
-      liftIO $ notify conf (Error "Uncaught exception" msg) (("sdfsfd", 5):|[])
+      r <- request
+      liftIO $ notifyReq conf (waiRequestToRequest r) (Error "Uncaught exception" msg) (("Filename", 5):|[])
       json $ T.pack "There was an error. Please try again later"
   where
       conf = airbrakeConf "61a1adfc070a9be9f21e43f586bbf5f7" "Env"
@@ -93,8 +94,7 @@ runWithLogging act sact = do
 app :: SpockM Connection MySession MyAppState ()
 app = do
   get ("tenants") $ do
-    AppOk tenants <- runQuery $ runAppM readTenants
-    json tenants
+    runWithLogging (runQuery $ runAppM readTenants) (\tenants ->json tenants)
   post ("tenants/new") $ runWithLogging (do
       maybeTenantIncoming <- jsonBody
       runQuery $ runAppM $ do
