@@ -28,6 +28,20 @@ Clone the entire repo, move to that folder and launch these installation steps:
 
 * TODO: check that this works on macOS
 
+Update: Instruction for macOS, on yosemite 10.10.5
+
+.. code-block:: bash
+
+  git clone https://github.com/vacationlabs/haskell-webapps.git
+  cd haskell-webapps/
+  cd UI/ReflexFRP/starterApp/
+  stack build gtk2hs-buildtools
+  stack setup --stack-yaml=stack-ghcjs.yaml
+  stack install happy
+  stack build --stack-yaml=stack-ghcjs.yaml
+  /Applications/Firefox.app/Contents/MacOS/firefox $(stack path --local-install-root --stack-yaml=stack-ghcjs.yaml)/bin/starterApp.jsexe/index.html
+
+
 While all this builds (it will be a fairly lengthy process the first time), if
 you are a new reflex user, be sure to check the `beginners tutorial
 <https://github.com/reflex-frp/reflex-platform>`_ (if you want an installation
