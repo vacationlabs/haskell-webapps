@@ -22,10 +22,15 @@ import           Data.Time
 import           Prelude                    hiding (id)
 import           UserServices
 import           Control.Monad.Trans.Except
-import           Control.Exception.Lifted
+-- import           Control.Exception.Lifted
 import           Airbrake
 import           Airbrake.WebRequest
 import           Data.ByteString (ByteString)
+import qualified Network.Wai as Network.Wai
+-- import Data.HVect
+import Control.Exception.Base (SomeException)
+-- import Control.Monad.Trans.Control(MonadBaseControl)
+import Control.Monad.Catch
 
 data MySession =
   EmptySession
@@ -44,16 +49,10 @@ main = do
       DummyAppState
   runSpock 8080 (spock spockCfg app)
 
-runAppM :: AppM a -> Connection -> IO (AppResult a)
-runAppM x conn = do
-  user <- getTestUser
-  r <- runExceptT $ handle throwE $ runReaderT (runWriterT x) (conn, Just $ auditable getTestTenant, Just $ auditable user)
-  case r of 
-    Right (item, lg) -> do
-      return $ AppOk item
-    Left ex -> do
-      let message = T.pack $ show ex
-      return $ AppErr message
+-- runAppM :: AppM a -> Connection -> IO a
+-- runAppM x conn = do
+--   user <- getTestUser
+--   runReaderT (runWriterT x) (conn, Just $ auditable getTestTenant, Just $ auditable user)
 
 getTestTenant :: Tenant
 getTestTenant = Tenant (TenantId 1) tz tz "tjhon" "John" "Jacob" "john@gmail.com" "2342424" TenantStatusNew Nothing "Bo domain"
@@ -77,30 +76,33 @@ getTestUser = do
         , utctDayTime = secondsToDiffTime 0
       }
 
-runWithLogging :: ActionT (WebStateM Connection MySession MyAppState) (AppResult a)
-               -> (a -> ActionT (WebStateM Connection MySession MyAppState) ())
-               -> ActionT (WebStateM Connection MySession MyAppState) ()
-runWithLogging act sact = do
-  r <- act
-  case r of
-    AppOk rOk -> sact rOk
-    AppErr msg -> do
-      r <- request
-      liftIO $ notifyReq conf (waiRequestToRequest r) (Error "Uncaught exception" msg) (("Filename", 5):|[])
-      json $ T.pack "There was an error. Please try again later"
+
+errorHandler :: (MonadIO m) => Network.Wai.Request -> SomeException -> ActionT m a
+errorHandler req err = do
+  -- notifyReq conf (waiRequestToRequest req) (Error "Uncaught exception" (T.pack $ show err)) (("Filename", 5):|[])
+  -- throwIO err
+  liftIO $ putStrLn "Make call to Airbrake here. `notifyReq` is bringing in a MonadThrow constraint which might be hard to typecheck without major refactoring of the app's codebase."
+  return undefined
   where
-      conf = airbrakeConf "61a1adfc070a9be9f21e43f586bbf5f7" "Env"
+    conf = airbrakeConf "61a1adfc070a9be9f21e43f586bbf5f7" "Env"
+
+runWithLogging :: (MonadThrow m, MonadIO m) => ActionT m a -> ActionT m a
+runWithLogging action = do
+  req <- request
+  -- NOTE: We need one of the following for this to work:
+  --
+  -- instance MonadCatch (ActionT m a)
+  -- 
+  -- a new function to replace `catchAll` that can catch errors in MonadIO
+  catchAll action (errorHandler req)
+
+
+-- NOTE: Similarly, we need `instance MonadThrow (ActionT m a)` I believe
+jsonfail = do
+  error "Hardcoded to error out"
+  json (1::Int)
 
 app :: SpockM Connection MySession MyAppState ()
 app = do
-  get ("tenants") $ do
-    runWithLogging (runQuery $ runAppM readTenants) (\tenants ->json tenants)
-  post ("tenants/new") $ runWithLogging (do
-      maybeTenantIncoming <- jsonBody
-      runQuery $ runAppM $ do
-        case maybeTenantIncoming of
-            Just incomingTenant -> doCreateTenant incomingTenant
-            Nothing -> return $ Left $ T.pack "Unrecognized input"
-      ) (\et -> case et of
-        Right new_tenant -> json new_tenant
-        Left message     -> json message)
+  liftIO $ putStrLn "started..."
+  get "jsonfail" (runWithLogging jsonfail)

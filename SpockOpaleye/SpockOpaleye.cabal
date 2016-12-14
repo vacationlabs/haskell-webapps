@@ -54,7 +54,12 @@ library
                       ,aeson
                       ,unordered-containers
                       ,template-haskell
-                      ,lifted-base
+                     , lifted-base
+                     , wai
+                     , hvect
+                     , bytestring
+                     , monad-control
+                     , exceptions
   default-language:    Haskell2010
 
 executable SpockOpaleye-exe
@@ -82,6 +87,9 @@ executable SpockOpaleye-exe
                      , aeson
                      , unordered-containers
                      , lifted-base
+                     , wai
+                     , hvect
+                     , bytestring
   default-language:    Haskell2010
 
 test-suite SpockOpaleye-test

@@ -25,7 +25,7 @@ import           Data.ByteString
 import Control.Exception
 import Control.Monad.Trans.Except
 
-type AppM a = WriterT ByteString (ReaderT (Connection, Maybe (Auditable Tenant), Maybe (Auditable User)) (ExceptT SomeException IO)) a
+type AppM a = WriterT ByteString (ReaderT (Connection, Maybe (Auditable Tenant), Maybe (Auditable User)) IO) a
 
 data AppResult a = AppOk a | AppErr Text
 
