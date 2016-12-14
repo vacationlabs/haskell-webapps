@@ -12,3 +12,4 @@ Contents:
    :maxdepth: 2
 
    getting-started
+   a-server-client-architecture
