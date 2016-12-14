@@ -64,6 +64,7 @@ executable SpockOpaleye-exe
   build-depends:       base
                      , postgresql-simple
                      , airbrake
+                     , bytestring
                      , here
                      , mime-mail
                      , filepath
