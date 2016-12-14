@@ -21,6 +21,9 @@ import qualified Data.Text                  as T
 import           Data.Time
 import           Prelude                    hiding (id)
 import           UserServices
+import           Network.HTTP.Types.Status
+import           Airbrake
+import           Airbrake.WebRequest
 
 data MySession =
   EmptySession
@@ -37,7 +40,7 @@ main = do
       EmptySession
       (PCConn $ ConnBuilder connectDb close (PoolCfg 10 10 10))
       DummyAppState
-  runSpock 8080 (spock spockCfg app)
+  runSpock 8080 (spock spockCfg {spc_errorHandler=errorHandler} app)
 
 runAppM :: AppM a -> Connection -> IO a
 runAppM x conn = do
@@ -68,6 +71,13 @@ getTestUser = do
         , utctDayTime = secondsToDiffTime 0
       }
 
+errorHandler :: Status -> ActionCtxT () IO ()
+errorHandler status = do
+  r <- request
+  liftIO $ notifyReq conf (waiRequestToRequest r) (Error "Uncaught exception" (T.pack $ show status)) (("Filename", 5):|[])
+  json $ T.pack "There was an error. Please try again later"
+  where
+      conf = airbrakeConf "61a1adfc070a9be9f21e43f586bbf5f7" "Env"
 
 app :: SpockM Connection MySession MyAppState ()
 app = do
