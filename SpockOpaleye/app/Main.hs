@@ -47,35 +47,13 @@ main = do
 runAppM :: AppM a -> Connection -> IO (AppResult a)
 runAppM x conn = do
   user <- getTestUser
-  r <- runExceptT $ handle throwE $ runReaderT (runWriterT x) (conn, Just $ auditable getTestTenant, Just $ auditable user)
+  r <- runExceptT $ handle throwE $ runReaderT (runWriterT x) (conn, Just $ getTestTenant, Just $ user)
   case r of 
     Right (item, lg) -> do
       return $ AppOk item
     Left ex -> do
       let message = T.pack $ show ex
       return $ AppErr message
-
-getTestTenant :: Tenant
-getTestTenant = Tenant (TenantId 1) tz tz "tjhon" "John" "Jacob" "john@gmail.com" "2342424" TenantStatusNew Nothing "Bo domain"
-  where
-      tz = UTCTime {
-        utctDay = ModifiedJulianDay {
-          toModifiedJulianDay = 0
-          }
-        , utctDayTime = secondsToDiffTime 0
-      }
-
-getTestUser :: IO User
-getTestUser = do
-  Just password_ <- bcryptPassword "adsasda"
-  return $ User (UserId 1) tz tz (TenantId 1) "John" password_  (Just "2342424") (Just "asdada") UserStatusActive
-  where
-      tz = UTCTime {
-        utctDay = ModifiedJulianDay {
-          toModifiedJulianDay = 0
-          }
-        , utctDayTime = secondsToDiffTime 0
-      }
 
 runWithLogging :: ActionT (WebStateM Connection MySession MyAppState) (AppResult a)
                -> (a -> ActionT (WebStateM Connection MySession MyAppState) ())

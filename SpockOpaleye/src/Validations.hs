@@ -31,6 +31,6 @@ validateIncomingTenant tenant = do
     check_for_unique_bo_domain :: T.Text -> AppM (Either String ())
     check_for_unique_bo_domain domain = v <$> readTenantByBackofficedomain domain
       where
-        v :: Maybe (Auditable Tenant) -> Either String ()
+        v :: Maybe Tenant -> Either String ()
         v (Just _) = Left "Duplicate backoffice domain"
         v _  = Right ()

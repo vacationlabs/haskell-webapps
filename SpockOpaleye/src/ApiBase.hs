@@ -24,9 +24,9 @@ import           Data.Aeson (Value(..))
 import           Data.ByteString (ByteString)
 import           JsonInstances ()
 
-makeAuditableLenses ''Role
-makeAuditableLenses ''Tenant
-makeAuditableLenses ''User
+makeAuditableLenses ''InternalRole
+makeAuditableLenses ''InternalTenant
+makeAuditableLenses ''InternalUser
 
 auditLog :: ByteString -> AppM ()
 auditLog = tell 

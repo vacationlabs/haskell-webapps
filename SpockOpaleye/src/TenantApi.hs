@@ -29,24 +29,24 @@ import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
 
-createTenant :: TenantIncoming -> AppM (Auditable Tenant)
+createTenant :: TenantIncoming -> AppM Tenant
 createTenant tenant = do
   auditable <$> createRow tenantTable tenant
 
-activateTenant :: (Auditable Tenant) -> AppM (Auditable Tenant)
+activateTenant :: Tenant -> AppM Tenant
 activateTenant tenant = setTenantStatus tenant TenantStatusActive
 
-deactivateTenant :: (Auditable Tenant) -> AppM (Auditable Tenant)
+deactivateTenant :: Tenant -> AppM Tenant
 deactivateTenant tenant = setTenantStatus tenant TenantStatusInActive
 
-setTenantStatus :: (Auditable Tenant) -> TenantStatus -> AppM (Auditable Tenant)
+setTenantStatus :: Tenant -> TenantStatus -> AppM Tenant
 setTenantStatus tenant st = updateTenant (tenant & status .~ st)
 
-updateTenant :: (Auditable Tenant) -> AppM (Auditable Tenant)
+updateTenant :: Tenant -> AppM Tenant
 updateTenant tenant = do
   updateAuditableRow tenantTable tenant
 
-removeTenant :: Auditable Tenant -> AppM GHC.Int.Int64
+removeTenant :: Tenant -> AppM GHC.Int.Int64
 removeTenant tenant = do
   tenant_deac <- deactivateTenant tenant
   _ <- updateTenant (tenant_deac & ownerid .~ Nothing)
@@ -60,14 +60,14 @@ removeTenant tenant = do
     matchFunc :: TenantTableR -> Column PGBool
     matchFunc tenant'  = (tenant' ^. id) .== (constant tid)
 
-readTenants :: AppM [Auditable Tenant]
+readTenants :: AppM [Tenant]
 readTenants = wrapAuditable $ readRow tenantQuery
 
-readTenantById :: TenantId -> AppM (Maybe (Auditable Tenant))
+readTenantById :: TenantId -> AppM (Maybe Tenant)
 readTenantById tenantId = do
   wrapAuditable $ listToMaybe <$> (readRow (tenantQueryById tenantId))
 
-readTenantByBackofficedomain :: Text -> AppM (Maybe (Auditable Tenant))
+readTenantByBackofficedomain :: Text -> AppM (Maybe Tenant)
 readTenantByBackofficedomain domain = do
   wrapAuditable $ listToMaybe <$> (readRow (tenantQueryByBackoffocedomain domain))
 

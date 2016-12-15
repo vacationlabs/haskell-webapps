@@ -28,7 +28,7 @@ sendgridMail mail = do
 addLogo :: Mail -> IO Mail
 addLogo mail = addAttachmentCid "image/png" "apple.png" "logocid@haskellwebapps.com" mail
 
-sendTenantActivationMail :: Auditable Tenant -> IO ()
+sendTenantActivationMail :: Tenant -> IO ()
 sendTenantActivationMail newTenant = do
   makeMail from to activationLink >>= addLogo >>= sendgridMail
   where

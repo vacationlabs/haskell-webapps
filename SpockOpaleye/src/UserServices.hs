@@ -12,7 +12,7 @@ import           Control.Monad.IO.Class
 import           Validations
 import           TenantApi
 
-doCreateTenant :: TenantIncoming -> AppM (Either T.Text (Auditable Tenant)) 
+doCreateTenant :: TenantIncoming -> AppM (Either T.Text Tenant) 
 doCreateTenant  incomingTenant = do
   result <- validateIncomingTenant incomingTenant
   case result of

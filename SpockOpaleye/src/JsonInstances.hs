@@ -51,7 +51,7 @@ instance ToJSON TenantStatus where
       tgModify "TenantStatusNew"      = "new"
       tgModify _                      = error "Unknown status name for tenant"
 
-instance ToJSON Tenant where
+instance ToJSON InternalTenant where
   toJSON = genericToJSON defaultOptions
   toEncoding = genericToEncoding defaultOptions { fieldLabelModifier = (fmap Data.Char.toLower).removePrefix }
     where

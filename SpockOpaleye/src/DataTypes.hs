@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeSynonymInstances   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 
 module DataTypes where
 
@@ -24,8 +25,9 @@ import           Data.ByteString
 
 import Control.Exception
 import Control.Monad.Trans.Except
+import           Data.Time
 
-type AppM a = WriterT ByteString (ReaderT (Connection, Maybe (Auditable Tenant), Maybe (Auditable User)) (ExceptT SomeException IO)) a
+type AppM a = WriterT ByteString (ReaderT (Connection, Maybe Tenant, Maybe User) (ExceptT SomeException IO)) a
 
 data AppResult a = AppOk a | AppErr Text
 
@@ -34,12 +36,12 @@ getConnection = do
   (conn, _, _) <- R.ask
   return conn
 
-getCurrentTenant :: AppM (Maybe (Auditable Tenant))
+getCurrentTenant :: AppM (Maybe Tenant)
 getCurrentTenant = do
   (_, tenant, _) <- R.ask
   return tenant
 
-getCurrentUser :: AppM (Maybe (Auditable User))
+getCurrentUser :: AppM (Maybe User)
 getCurrentUser = do
   (_, _, user) <- R.ask
   return user
@@ -68,7 +70,18 @@ data TenantPoly key created_at updated_at name fname lname email phone status ow
 } deriving (Show, Generic)
 
 
-type Tenant = TenantPoly TenantId UTCTime UTCTime Text Text Text Text Text TenantStatus (Maybe UserId) Text
+type InternalTenant = TenantPoly TenantId UTCTime UTCTime Text Text Text Text Text TenantStatus (Maybe UserId) Text
+type Tenant = Auditable InternalTenant
+
+getTestTenant :: Tenant
+getTestTenant = auditable $ Tenant (TenantId 1) tz tz "tjhon" "John" "Jacob" "john@gmail.com" "2342424" TenantStatusNew Nothing "Bo domain"
+  where
+      tz = UTCTime {
+        utctDay = ModifiedJulianDay {
+          toModifiedJulianDay = 0
+          }
+        , utctDayTime = secondsToDiffTime 0
+      }
 
 type TenantIncoming = TenantPoly () () () Text Text Text Text Text () (Maybe UserId) Text
 
@@ -90,7 +103,20 @@ data UserPoly key created_at updated_at tenant_id username password firstname la
   , _userpolyStatus    :: status
 } deriving (Show)
 
-type User = UserPoly UserId UTCTime UTCTime TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
+type InternalUser = UserPoly UserId UTCTime UTCTime TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
+type User = Auditable InternalUser
+
+getTestUser :: IO User
+getTestUser = do
+  Just password_ <- bcryptPassword "adsasda"
+  return $ auditable $ User (UserId 1) tz tz (TenantId 1) "John" password_  (Just "2342424") (Just "asdada") UserStatusActive
+  where
+      tz = UTCTime {
+        utctDay = ModifiedJulianDay {
+          toModifiedJulianDay = 0
+          }
+        , utctDayTime = secondsToDiffTime 0
+      }
 
 type UserIncoming = UserPoly () () () TenantId Text Text (Maybe Text) (Maybe Text) ()
 
@@ -109,17 +135,14 @@ data RolePoly key tenant_id name permission created_at updated_at  = Role {
   , _rolepolyUpdatedat  :: updated_at
 } deriving (Show)
 
-type Role = RolePoly RoleId TenantId Text (NonEmpty Permission) UTCTime UTCTime
+type InternalRole = RolePoly RoleId TenantId Text (NonEmpty Permission) UTCTime UTCTime
+type Role = Auditable InternalRole
 type RoleIncoming = RolePoly () TenantId Text (NonEmpty Permission) () ()
 
 data Auditable a = Auditable { _data:: a, _log:: Value }  deriving (Show)
 
 auditable :: a -> Auditable a
 auditable a = Auditable {_data = a, _log = Object HM.empty}
-
-type TenantA = Auditable Tenant
-type RoleA = Auditable Role
-type UserA = Auditable User
 
 wrapAuditable :: (Functor a, Functor b) => a (b c) -> a (b (Auditable c))
 wrapAuditable a = (fmap auditable) <$> a

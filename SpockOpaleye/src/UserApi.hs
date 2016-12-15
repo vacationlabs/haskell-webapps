@@ -30,34 +30,34 @@ import           OpaleyeDef
 import           CryptoDef
 import           Prelude                    hiding (id)
 
-createUser :: UserIncoming -> AppM (Auditable User)
+createUser :: UserIncoming -> AppM User
 createUser user = do
   Just hash <- liftIO $ bcryptPassword $ user ^. password
   let fullUser = user { _userpolyPassword = hash }
   auditable <$> (createRow userTable fullUser)
 
-updateUser :: Auditable User -> AppM (Auditable User)
+updateUser :: User -> AppM User
 updateUser user = updateAuditableRow userTable user
 
-activateUser :: Auditable User -> AppM (Auditable User)
+activateUser :: User -> AppM User
 activateUser user = setUserStatus user UserStatusActive
 
-deactivateUser :: Auditable User -> AppM (Auditable User)
+deactivateUser :: User -> AppM User
 deactivateUser user = setUserStatus user UserStatusInActive
 
-setUserStatus :: Auditable User -> UserStatus -> AppM (Auditable User)
+setUserStatus :: User -> UserStatus -> AppM User
 setUserStatus user newStatus = updateUser $ user & status .~ newStatus
 
-removeUser :: Auditable User -> AppM GHC.Int.Int64
+removeUser :: User -> AppM GHC.Int.Int64
 removeUser Auditable { _data = rUser} = removeRow userTable rUser
 
-readUsers :: AppM [Auditable User]
+readUsers :: AppM [User]
 readUsers = wrapAuditable $ readRow userQuery
 
-readUsersForTenant :: TenantId -> AppM [Auditable User]
+readUsersForTenant :: TenantId -> AppM [User]
 readUsersForTenant tenantId = wrapAuditable $ readRow $ userQueryByTenantid tenantId
 
-readUserById :: UserId -> AppM (Maybe (Auditable User))
+readUserById :: UserId -> AppM (Maybe User)
 readUserById id' = do
   wrapAuditable $ listToMaybe <$> (readRow $ userQueryById id')
 
