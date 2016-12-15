@@ -11,6 +11,7 @@ import           Data.Monoid
 import           Control.Monad.IO.Class
 import           Validations
 import           TenantApi
+import TenantDefs
 
 doCreateTenant :: TenantIncoming -> AppM (Either T.Text Tenant) 
 doCreateTenant  incomingTenant = do

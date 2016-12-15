@@ -28,6 +28,10 @@ import           OpaleyeDef
 import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
+import TH
+import Lenses
+import TenantDefs
+import TenantId
 
 createTenant :: TenantIncoming -> AppM Tenant
 createTenant tenant = do

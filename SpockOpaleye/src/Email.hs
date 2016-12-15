@@ -19,6 +19,8 @@ import qualified Data.Text.Lazy     as LT
 import qualified Data.ByteString.Lazy as L
 import           DataTypes
 import           System.FilePath (takeFileName)
+import TenantDefs
+import Lenses
 
 sendgridMail :: Mail -> IO ()
 sendgridMail mail = do

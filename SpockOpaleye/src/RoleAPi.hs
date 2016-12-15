@@ -16,10 +16,23 @@ import           DataTypes
 import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
+import           RoleDefs
 
 import           ApiBase
 import           Control.Lens
 import           Prelude                    hiding (id)
+import TenantId
+import TH
+import Lenses
+import           Data.Aeson
+import           Data.Aeson.Types
+import qualified Data.HashMap.Strict as HM
+
+auditable :: a -> Auditable a
+auditable a = Auditable {_data = a, _log = Object HM.empty}
+
+wrapAuditable :: (Functor a, Functor b) => a (b c) -> a (b (Auditable c))
+wrapAuditable a = (fmap auditable) <$> a
 
 createRole :: RoleIncoming -> AppM Role
 createRole role = auditable <$> createRow roleTable role

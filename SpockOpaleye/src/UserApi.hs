@@ -29,6 +29,13 @@ import           OpaleyeDef
 
 import           CryptoDef
 import           Prelude                    hiding (id)
+import           RoleDefs
+import           UserDefs
+import           UserId
+import           TenantId
+
+import TH
+import Lenses
 
 createUser :: UserIncoming -> AppM User
 createUser user = do

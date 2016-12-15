@@ -12,6 +12,8 @@ import           Control.Lens
 import qualified Data.Text                  as T
 import           DataTypes
 import           TenantApi
+import           TenantDefs
+import           Lenses
 
 validateIncomingTenant :: TenantIncoming -> AppM ValidationResult
 validateIncomingTenant tenant = do

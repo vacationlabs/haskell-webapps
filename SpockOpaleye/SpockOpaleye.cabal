@@ -15,7 +15,16 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
+                      ,src/Role
+                      ,src/Tenant
+                      ,src/User
   exposed-modules:     DataTypes,
+                       UserDefs,
+                       TenantDefs,
+                       RoleDefs,
+                       TenantId,
+                       UserId,
+                       Lenses,
                        ApiBase, 
                        TenantApi,
                        UserApi,

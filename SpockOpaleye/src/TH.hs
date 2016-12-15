@@ -7,11 +7,12 @@ import Control.Lens
 import Language.Haskell.TH
 import Data.Char
 import Data.List (elemIndex)
-import DataTypes
 import qualified Data.HashMap.Strict as HM
 import Data.Text (pack)
 
 import Data.Aeson (Value(..), ToJSON(..))
+
+data Auditable a = Auditable { _data:: a, _log:: Value }  deriving (Show)
 
 getTypeSegs :: Type -> [Type]
 getTypeSegs a@(ConT _) = [a]
@@ -105,7 +106,7 @@ mkInstanceFunction :: String -> Q Exp
 mkInstanceFunction nam = do
   Just _field_name <- lookupValueName nam
   -- TODO remove dependency on "DataTypes" module name or don't hard code it in.
-  fn <- lookupValueName $ "DataTypes." ++ (transformName nam)
+  fn <- lookupValueName $ "Lenses." ++ (transformName nam)
   case fn of
     Just field_name -> do
       [| lens ($(return  $ VarE _field_name)._data) (\r v -> r {
