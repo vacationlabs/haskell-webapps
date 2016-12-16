@@ -32,9 +32,7 @@ data MySession =
 
 data MyAppState = DummyAppState
 
-
 data AppResult a = AppOk a | AppErr T.Text
-
 
 connectDb :: IO Connection
 connectDb = connect defaultConnectInfo { connectDatabase = "haskell-webapps" }

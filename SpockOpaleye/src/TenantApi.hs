@@ -46,8 +46,8 @@ removeTenant tenant = do
   _ <- updateTenant (tenant_deac & ownerid .~ Nothing)
   usersForTenant <- readUsersForTenant tid
   rolesForTenant <- readRolesForTenant tid
-  --mapM_ removeRole rolesForTenant
-  --mapM_ removeUser usersForTenant
+  mapM_ removeRole rolesForTenant
+  mapM_ removeUser usersForTenant
   removeRawDbRows tenantTable matchFunc
   where
     tid = tenant ^. id

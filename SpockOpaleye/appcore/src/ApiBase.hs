@@ -130,6 +130,25 @@ insertIntoLog table auditable_id summary changes = do
       return ()
     _ -> error "Unsupported Table constructor"
 
+removeAuditableRow :: (
+      Show haskells
+    , D.Default Constant itemId (Column PGInt4)
+    , HasId haskells itemId
+    , HasId columnsR (Column PGInt4)
+    ) => Table columnsW columnsR -> Auditable haskells -> AppM GHC.Int.Int64
+removeAuditableRow table item_r = do
+  --auditLog $ "Remove : " ++ (show item)
+  conn <- getConnection
+  let Auditable { _data = item, _log = _log} = item_r
+  liftIO $ do
+    runDelete conn table $ matchFunc $ item ^. id
+  where
+    matchFunc :: (
+        HasId columnsR (Column PGInt4),
+        D.Default Constant itemId (Column PGInt4)
+        ) => (itemId -> columnsR -> Column PGBool)
+    matchFunc itId item' = (item' ^. id) .== (constant itId)
+
 removeRow :: (
       Show haskells
     , D.Default Constant itemId (Column PGInt4)

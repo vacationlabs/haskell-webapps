@@ -12,6 +12,7 @@ module UserApi
   , addRoleToUser
   , removeRoleFromUser
   , updateUser
+  , removeUser
   , activateUser
   , deactivateUser
   ) where
@@ -38,8 +39,8 @@ deactivateUser user = setUserStatus user UserStatusInActive
 setUserStatus :: User -> UserStatus -> AppM User
 setUserStatus user newStatus = updateUser $ user & status .~ newStatus
 
---removeUser :: User -> AppM GHC.Int.Int64
---removeUser Auditable { _data = rUser} = removeRow userTable rUser
+removeUser :: User -> AppM GHC.Int.Int64
+removeUser user = removeAuditableRow userTable user
 
 readUsers :: AppM [User]
 readUsers = wrapAuditable $ readRow userQuery
