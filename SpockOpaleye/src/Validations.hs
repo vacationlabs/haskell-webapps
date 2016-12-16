@@ -15,6 +15,9 @@ import           TenantApi
 import           TenantDefs
 import           Lenses
 
+data ValidationResult = Valid | Invalid String
+  deriving (Eq, Show)
+
 validateIncomingTenant :: TenantIncoming -> AppM ValidationResult
 validateIncomingTenant tenant = do
   unique_bod <- check_for_unique_bo_domain (tenant ^. backofficedomain)

@@ -22,7 +22,7 @@ import           Data.Aeson
 import           Data.Vector
 import           Data.Aeson.Types
 import           Data.Text.Encoding
-import TH
+import Auditable
 
 newtype RoleId = RoleId Int
   deriving (Show)

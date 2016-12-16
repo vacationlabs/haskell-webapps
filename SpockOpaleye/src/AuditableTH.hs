@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
-module TH where
+module AuditableTH where
 
 import Control.Lens
 import Language.Haskell.TH
@@ -9,10 +9,9 @@ import Data.Char
 import Data.List (elemIndex)
 import qualified Data.HashMap.Strict as HM
 import Data.Text (pack)
+import Auditable
 
 import Data.Aeson (Value(..), ToJSON(..))
-
-data Auditable a = Auditable { _data:: a, _log:: Value }  deriving (Show)
 
 getTypeSegs :: Type -> [Type]
 getTypeSegs a@(ConT _) = [a]

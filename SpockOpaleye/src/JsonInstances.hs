@@ -10,7 +10,7 @@ import           Data.Char
 import           Data.Text
 import           DataTypes
 
-import TH
+import Auditable
 import qualified Data.HashMap.Strict as HM
 
 auditable :: a -> Auditable a

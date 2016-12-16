@@ -22,7 +22,7 @@ import           ApiBase
 import           Control.Lens
 import           Prelude                    hiding (id)
 import TenantId
-import TH
+import Auditable
 import Lenses
 import           Data.Aeson
 import           Data.Aeson.Types

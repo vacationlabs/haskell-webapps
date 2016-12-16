@@ -22,7 +22,7 @@ import           TenantId
 import           Data.Aeson
 import           Data.Aeson.Types
 import qualified Data.HashMap.Strict as HM
-import TH
+import Auditable
 import           Data.Char
 import Prelude hiding (id)
 import UserId

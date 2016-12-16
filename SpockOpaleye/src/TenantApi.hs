@@ -28,7 +28,7 @@ import           OpaleyeDef
 import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
-import TH
+import Auditable
 import Lenses
 import TenantDefs
 import TenantId

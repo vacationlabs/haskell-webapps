@@ -20,7 +20,7 @@ import           OpaleyeDef
 import qualified Data.Text as T
 import           GHC.Int
 import           Prelude                         hiding (id)
-import           TH
+import           Auditable
 import           Data.Aeson (Value(..))
 import           Data.ByteString (ByteString)
 import           JsonInstances ()

@@ -11,7 +11,7 @@ import Language.Haskell.TH
 import UserDefs
 import TenantDefs
 import RoleDefs
-import TH
+import AuditableTH
 import Prelude hiding (id)
 
 $(makeLensesWith abbreviatedFields ''TenantPoly)

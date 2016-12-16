@@ -34,7 +34,7 @@ import           UserDefs
 import           UserId
 import           TenantId
 
-import TH
+import Auditable
 import Lenses
 
 createUser :: UserIncoming -> AppM User
