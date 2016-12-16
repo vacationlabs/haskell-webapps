@@ -16,9 +16,9 @@ module AppCore (
  ,wrapAuditable
 ) where
 
-import UserDefs
-import RoleDefs
-import TenantDefs
+import UserDefs hiding (InternalUser)
+import RoleDefs hiding (InternalRole)
+import TenantDefs hiding (InternalTenant)
 import TenantId
 import UserId
 import Lenses

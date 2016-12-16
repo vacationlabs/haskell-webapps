@@ -27,8 +27,7 @@ import           Airbrake
 import           Airbrake.WebRequest
 import           Data.ByteString (ByteString)
 
-data MySession =
-  EmptySession
+data MySession = EmptySession
 
 data MyAppState = DummyAppState
 
