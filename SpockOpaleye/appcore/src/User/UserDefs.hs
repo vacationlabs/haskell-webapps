@@ -26,12 +26,7 @@ import Auditable
 import           Data.Char
 import Prelude hiding (id)
 import UserId
-
-auditable :: a -> Auditable a
-auditable a = Auditable {_data = a, _log = Object HM.empty}
-
-wrapAuditable :: (Functor a, Functor b) => a (b c) -> a (b (Auditable c))
-wrapAuditable a = (fmap auditable) <$> a
+import Utils
 
 data UserPoly key created_at updated_at tenant_id username password firstname lastname status  = User {
     _userpolyId        :: key

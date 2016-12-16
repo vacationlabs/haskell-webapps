@@ -15,7 +15,7 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: lts-7.5
+resolver: lts-7.13
 
 # User packages to be built.
 # Various formats can be used as shown in the example below.
@@ -37,19 +37,9 @@ resolver: lts-7.5
 # will not be run. This is useful for tweaking upstream packages.
 packages:
 - '.'
-- hs-airbrake
-- appcore
-- location:
-      git: https://github.com/agrafix/Spock.git
-      commit: 77333a2de5dea0dc8eba9432ab16864e93e5d70e
-  subdirs:
-    - Spock
-    - Spock-core
-    - reroute
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
-extra-deps:
-- mime-mail-0.4.12
+extra-deps: []
 
 # Override default flag values for local packages and extra-deps
 flags: {}
@@ -70,9 +60,7 @@ extra-package-dbs: []
 #
 # Extra directories used by stack for building
 # extra-include-dirs: [/path/to/dir]
-extra-lib-dirs: []
+# extra-lib-dirs: [/path/to/dir]
 #
 # Allow a newer minor version of GHC than the snapshot specifies
 # compiler-check: newer-minor
-ghc-options:
-  SpockOpaleye: -ddump-splices

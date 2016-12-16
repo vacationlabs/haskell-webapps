@@ -15,27 +15,17 @@ module TenantApi
   , deactivateTenant
   ) where
 
-import           ApiBase
+import           AppCore
 import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.Reader
 import           Data.Maybe
 import           Data.Text
-import           DataTypes
 import           GHC.Int
 import           Opaleye
-import           OpaleyeDef
 import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
-import Auditable
-import Lenses
-import TenantDefs
-import TenantId
-
-createTenant :: TenantIncoming -> AppM Tenant
-createTenant tenant = do
-  auditable <$> createRow tenantTable tenant
 
 activateTenant :: Tenant -> AppM Tenant
 activateTenant tenant = setTenantStatus tenant TenantStatusActive
@@ -56,8 +46,8 @@ removeTenant tenant = do
   _ <- updateTenant (tenant_deac & ownerid .~ Nothing)
   usersForTenant <- readUsersForTenant tid
   rolesForTenant <- readRolesForTenant tid
-  mapM_ removeRole rolesForTenant
-  mapM_ removeUser usersForTenant
+  --mapM_ removeRole rolesForTenant
+  --mapM_ removeUser usersForTenant
   removeRawDbRows tenantTable matchFunc
   where
     tid = tenant ^. id

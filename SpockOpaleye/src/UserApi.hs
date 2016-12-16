@@ -12,36 +12,19 @@ module UserApi
   , addRoleToUser
   , removeRoleFromUser
   , updateUser
-  , removeUser
   , activateUser
   , deactivateUser
   ) where
 
-import           ApiBase
+import           AppCore
 import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.IO.Class
 import           Data.Maybe
-import           DataTypes
 import           GHC.Int
 import           Opaleye
-import           OpaleyeDef
 
-import           CryptoDef
 import           Prelude                    hiding (id)
-import           RoleDefs
-import           UserDefs
-import           UserId
-import           TenantId
-
-import Auditable
-import Lenses
-
-createUser :: UserIncoming -> AppM User
-createUser user = do
-  Just hash <- liftIO $ bcryptPassword $ user ^. password
-  let fullUser = user { _userpolyPassword = hash }
-  auditable <$> (createRow userTable fullUser)
 
 updateUser :: User -> AppM User
 updateUser user = updateAuditableRow userTable user
@@ -55,8 +38,8 @@ deactivateUser user = setUserStatus user UserStatusInActive
 setUserStatus :: User -> UserStatus -> AppM User
 setUserStatus user newStatus = updateUser $ user & status .~ newStatus
 
-removeUser :: User -> AppM GHC.Int.Int64
-removeUser Auditable { _data = rUser} = removeRow userTable rUser
+--removeUser :: User -> AppM GHC.Int.Int64
+--removeUser Auditable { _data = rUser} = removeRow userTable rUser
 
 readUsers :: AppM [User]
 readUsers = wrapAuditable $ readRow userQuery

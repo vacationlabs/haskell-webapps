@@ -4,8 +4,8 @@
 {-# LANGUAGE TemplateHaskell       #-}
 
 module Main where
+import           AppCore
 import           Database.PostgreSQL.Simple
-import           DataTypes
 import           JsonInstances              ()
 import           TenantApi
 import           Validations
@@ -17,7 +17,6 @@ import           Web.Spock.Config
 import           Control.Monad.Reader
 import           Control.Monad.Writer
 import qualified Control.Monad.Reader as R
-import           CryptoDef
 import qualified Data.Text                  as T
 import           Data.Time
 import           Prelude                    hiding (id)
@@ -27,8 +26,6 @@ import           Control.Exception.Lifted
 import           Airbrake
 import           Airbrake.WebRequest
 import           Data.ByteString (ByteString)
-import TenantDefs
-import UserDefs
 
 data MySession =
   EmptySession
@@ -38,16 +35,6 @@ data MyAppState = DummyAppState
 
 data AppResult a = AppOk a | AppErr T.Text
 
-getCurrentUser :: AppM (Maybe User)
-getCurrentUser = do
-  (_, _, user) <- R.ask
-  return user
-
-
-getCurrentTenant :: AppM (Maybe Tenant)
-getCurrentTenant = do
-  (_, tenant, _) <- R.ask
-  return tenant
 
 connectDb :: IO Connection
 connectDb = connect defaultConnectInfo { connectDatabase = "haskell-webapps" }

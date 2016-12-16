@@ -7,6 +7,12 @@
 
 module ApiBase where
 
+import           AppM
+import           UserDefs
+import           TenantDefs
+import           OpaleyeDef
+import           Lenses
+import           Auditable
 import           Control.Lens
 import           Control.Monad.IO.Class
 import           Control.Monad.Reader
@@ -14,38 +20,13 @@ import qualified Control.Monad.Reader as R
 import           Control.Monad.Writer
 import qualified Data.Profunctor.Product.Default as D
 import           Data.Time                       (UTCTime, getCurrentTime)
-import           DataTypes
 import           Opaleye
-import           OpaleyeDef
 import qualified Data.Text as T
 import           GHC.Int
 import           Prelude                         hiding (id)
-import           Auditable
 import           Data.Aeson (Value(..))
 import           Data.ByteString (ByteString)
-import           JsonInstances ()
-import DataTypes
-import Lenses
 import           Database.PostgreSQL.Simple
-import UserDefs
-import TenantDefs
-
-getConnection :: AppM Connection
-getConnection = do
-  (conn, _, _) <- R.ask
-  return conn
-
-getCurrentUser :: AppM (Maybe User)
-getCurrentUser = do
-  (_, _, user) <- R.ask
-  return user
-
-
-getCurrentTenant :: AppM (Maybe Tenant)
-getCurrentTenant = do
-  (_, tenant, _) <- R.ask
-  return tenant
-
 
 removeRawDbRows :: Table columnsW columnsR -> (columnsR -> Column PGBool) -> AppM GHC.Int.Int64
 removeRawDbRows table matchFunc = do

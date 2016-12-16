@@ -25,12 +25,7 @@ import           Data.Char
 import Auditable
 import Prelude hiding(id)
 import qualified Data.HashMap.Strict as HM
-
-auditable :: a -> Auditable a
-auditable a = Auditable {_data = a, _log = Object HM.empty}
-
-wrapAuditable :: (Functor a, Functor b) => a (b c) -> a (b (Auditable c))
-wrapAuditable a = (fmap auditable) <$> a
+import Utils
 
 data TenantPoly key created_at updated_at name fname lname email phone status owner_id b_domain = Tenant {
     _tenantpolyId               :: key

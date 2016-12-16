@@ -8,12 +8,10 @@
 
 module Validations where
 
+import           AppCore
 import           Control.Lens
 import qualified Data.Text                  as T
-import           DataTypes
 import           TenantApi
-import           TenantDefs
-import           Lenses
 
 data ValidationResult = Valid | Invalid String
   deriving (Eq, Show)
