@@ -8,6 +8,7 @@
 module ApiBase where
 
 import           AppM
+import           Classes
 import           UserDefs
 import           TenantDefs
 import           OpaleyeDef
@@ -29,7 +30,7 @@ import           Data.ByteString (ByteString)
 import           Database.PostgreSQL.Simple
 import           Utils
 
-removeRawDbRows :: Table columnsW columnsR -> (columnsR -> Column PGBool) -> AppM GHC.Int.Int64
+removeRawDbRows :: (DbConnection m, MonadIO m) => Table columnsW columnsR -> (columnsR -> Column PGBool) -> m GHC.Int.Int64
 removeRawDbRows table matchFunc = do
   conn <- getConnection
   liftIO $ runDelete conn table matchFunc 

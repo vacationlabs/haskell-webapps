@@ -33,6 +33,7 @@ library
                        ,Utils
                        ,AppM
                        ,ApiBase
+                       ,Classes
   build-depends:       base >= 4.7 && < 5
                        , aeson
                        , transformers

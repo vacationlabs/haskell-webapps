@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances      #-}
 module AppM where
 
 import UserDefs
@@ -9,20 +10,21 @@ import           Data.ByteString
 import Control.Exception
 import Database.PostgreSQL.Simple
 import Control.Monad.Trans.Except
+import Classes
 
-type AppM a = WriterT ByteString (ReaderT (Connection, Maybe Tenant, Maybe User) (ExceptT SomeException IO)) a
+type AppM  = WriterT ByteString (ReaderT (Connection, Maybe Tenant, Maybe User) (ExceptT SomeException IO))
 
-getCurrentUser :: AppM (Maybe User)
-getCurrentUser = do
-  (_, _, user) <- R.ask
-  return user
+instance CurrentUser AppM where
+  getCurrentUser = do
+    (_, _, user) <- R.ask
+    return user
 
-getCurrentTenant :: AppM (Maybe Tenant)
-getCurrentTenant = do
-  (_, tenant, _) <- R.ask
-  return tenant
+instance CurrentTenant AppM where
+  getCurrentTenant = do
+    (_, tenant, _) <- R.ask
+    return tenant
 
-getConnection :: AppM Connection
-getConnection = do
-  (conn, tenant, _) <- R.ask
-  return conn
+instance DbConnection AppM where
+  getConnection = do
+    (conn, tenant, _) <- R.ask
+    return conn
