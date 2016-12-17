@@ -18,7 +18,6 @@ library
   exposed-modules:     TenantApi,
                        UserApi,
                        RoleApi,
-                       JsonInstances,
                        Validations,
                        Conf,
                        UserServices,

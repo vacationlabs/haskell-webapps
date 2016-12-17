@@ -9,11 +9,7 @@ module AppCore (
  ,Auditable
  ,module ApiBase
  ,module OpaleyeDef
- ,module UserApi
- ,module TenantApi
  ,AppM
- ,auditable
- ,wrapAuditable
 ) where
 
 import UserDefs hiding (InternalUser)
@@ -27,6 +23,4 @@ import Auditable
 import OpaleyeDef
 import Utils
 import ApiBase
-import UserApi
-import TenantApi
 import AppM

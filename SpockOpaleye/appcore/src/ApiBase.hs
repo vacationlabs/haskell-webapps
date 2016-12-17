@@ -27,6 +27,7 @@ import           Prelude                         hiding (id)
 import           Data.Aeson (Value(..))
 import           Data.ByteString (ByteString)
 import           Database.PostgreSQL.Simple
+import           Utils
 
 removeRawDbRows :: Table columnsW columnsR -> (columnsR -> Column PGBool) -> AppM GHC.Int.Int64
 removeRawDbRows table matchFunc = do
@@ -56,12 +57,12 @@ createRow ::(
     HasCreatedat columnsW (Maybe (Column PGTimestamptz)),
     HasUpdatedat columnsW (Column PGTimestamptz),
     D.Default Constant incoming columnsW, D.Default QueryRunner returned row)
-    => Table columnsW returned -> incoming -> AppM row
+    => Table columnsW returned -> incoming -> AppM (Auditable row)
 createRow table item = do
   --auditLog $ "Create : " ++ (show item)
   currentTime <- liftIO $ fmap pgUTCTime getCurrentTime
   let itemPg = (constant item) & createdat .~ (Just currentTime) & updatedat .~ (currentTime)
-  fmap (head) $ createDbRows table [itemPg] 
+  fmap (auditable.head) $ createDbRows table [itemPg] 
 
 updateRow :: (
     Show columnsW
@@ -168,7 +169,7 @@ removeRow table item = do
     matchFunc itId item' = (item' ^. id) .== (constant itId)
 
 readRow :: (D.Default QueryRunner columnsR haskells) => 
-  Opaleye.Query columnsR -> AppM [haskells]
+  Opaleye.Query columnsR -> AppM [Auditable haskells]
 readRow query' = do
   conn <- getConnection
-  liftIO $ runQuery conn query'
+  liftIO $ wrapAuditable $ runQuery conn query'

@@ -21,6 +21,8 @@ import           Data.Aeson
 import           Data.Aeson.Types
 import qualified Data.HashMap.Strict as HM
 
+createRole :: RoleIncoming -> AppM Role
+createRole role = createRow roleTable role
 
 updateRole :: Role -> AppM Role
 updateRole role = updateAuditableRow roleTable role
@@ -35,7 +37,7 @@ removeRole role = do
 
 readRolesForTenant :: TenantId -> AppM [Role]
 readRolesForTenant tId = do
-  wrapAuditable $ readRow $ roleQueryForTenant tId
+  readRow $ roleQueryForTenant tId
 
 roleQuery :: Query RoleTableR
 roleQuery = queryTable roleTable

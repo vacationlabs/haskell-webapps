@@ -27,6 +27,10 @@ import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
 
+createTenant :: TenantIncoming -> AppM Tenant
+createTenant tenant = do
+  createRow tenantTable tenant
+
 activateTenant :: Tenant -> AppM Tenant
 activateTenant tenant = setTenantStatus tenant TenantStatusActive
 
@@ -55,15 +59,15 @@ removeTenant tenant = do
     matchFunc tenant'  = (tenant' ^. id) .== (constant tid)
 
 readTenants :: AppM [Tenant]
-readTenants = wrapAuditable $ readRow tenantQuery
+readTenants = readRow tenantQuery
 
 readTenantById :: TenantId -> AppM (Maybe Tenant)
 readTenantById tenantId = do
-  wrapAuditable $ listToMaybe <$> (readRow (tenantQueryById tenantId))
+  listToMaybe <$> (readRow (tenantQueryById tenantId))
 
 readTenantByBackofficedomain :: Text -> AppM (Maybe Tenant)
 readTenantByBackofficedomain domain = do
-  wrapAuditable $ listToMaybe <$> (readRow (tenantQueryByBackoffocedomain domain))
+  listToMaybe <$> (readRow (tenantQueryByBackoffocedomain domain))
 
 tenantQuery :: Opaleye.Query TenantTableR
 tenantQuery = queryTable tenantTable

@@ -27,6 +27,12 @@ import           Opaleye
 
 import           Prelude                    hiding (id)
 
+createUser :: UserIncoming -> AppM User
+createUser user = do
+  Just hash <- liftIO $ bcryptPassword $ user ^. password
+  let fullUser = user { _userpolyPassword = hash }
+  createRow userTable fullUser
+
 updateUser :: User -> AppM User
 updateUser user = updateAuditableRow userTable user
 
@@ -43,14 +49,14 @@ removeUser :: User -> AppM GHC.Int.Int64
 removeUser user = removeAuditableRow userTable user
 
 readUsers :: AppM [User]
-readUsers = wrapAuditable $ readRow userQuery
+readUsers = readRow userQuery
 
 readUsersForTenant :: TenantId -> AppM [User]
-readUsersForTenant tenantId = wrapAuditable $ readRow $ userQueryByTenantid tenantId
+readUsersForTenant tenantId = readRow $ userQueryByTenantid tenantId
 
 readUserById :: UserId -> AppM (Maybe User)
 readUserById id' = do
-  wrapAuditable $ listToMaybe <$> (readRow $ userQueryById id')
+  listToMaybe <$> (readRow $ userQueryById id')
 
 addRoleToUser :: UserId -> RoleId -> AppM [(UserId, RoleId)]
 addRoleToUser userId roleId =

@@ -6,7 +6,6 @@
 module Main where
 import           AppCore
 import           Database.PostgreSQL.Simple
-import           JsonInstances              ()
 import           TenantApi
 import           Validations
 
