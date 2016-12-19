@@ -19,6 +19,7 @@ executable mockClient
                      , email-validate
                      , mockAPI
                      , servant
+                     , jsaddle-warp
   default-language:  Haskell2010
   if impl(ghcjs)
     ghc-options:    -dedupe

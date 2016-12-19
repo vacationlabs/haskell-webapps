@@ -12,11 +12,12 @@ import Reflex
 import Reflex.Dom
 import Servant.API
 import Servant.Reflex
+import qualified Language.Javascript.JSaddle.Warp as JSWarp (run)
 
 import MockAPI
 
 main :: IO ()
-main = mainWidget body
+main = JSWarp.run 8081 $ mainWidget body
 
 body :: forall t m. MonadWidget t m => m ()
 body = do
