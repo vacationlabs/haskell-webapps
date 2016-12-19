@@ -1,8 +1,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 module AppM where
 
-import UserDefs
-import TenantDefs
+import AppCore
 import qualified Control.Monad.Reader as R
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Writer
@@ -10,7 +9,6 @@ import           Data.ByteString
 import Control.Exception
 import Database.PostgreSQL.Simple
 import Control.Monad.Trans.Except
-import Classes
 
 type AppM  = WriterT ByteString (ReaderT (Connection, Maybe Tenant, Maybe User) (ExceptT SomeException IO))
 

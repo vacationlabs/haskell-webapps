@@ -25,7 +25,7 @@ import           Data.Char
 import Auditable
 import Prelude hiding(id)
 import qualified Data.HashMap.Strict as HM
-import Utils
+import InternalUtils
 
 data TenantPoly key created_at updated_at name fname lname email phone status owner_id b_domain = Tenant {
     _tenantpolyId               :: key
@@ -74,6 +74,8 @@ type TenantTableR = TenantPoly
   (Column PGText)
   (Column (Nullable PGInt4))
   (Column PGText)
+
+type TenantQuery = Query TenantTableR
 
 $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
 

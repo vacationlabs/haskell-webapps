@@ -9,7 +9,7 @@ import           Data.Aeson
 import           Data.Aeson.Types
 import           Data.Char
 import           Data.Text
-import           Utils
+import           InternalUtils
 
 import qualified Data.HashMap.Strict as HM
 

@@ -9,12 +9,13 @@ module AppCore (
  ,Auditable
  ,module ApiBase
  ,module OpaleyeDef
- ,AppM
+ ,module Classes
+ ,module Utils
 ) where
 
-import UserDefs hiding (InternalUser)
-import RoleDefs hiding (InternalRole)
-import TenantDefs hiding (InternalTenant)
+import UserDefs (User, getTestUser, UserStatus(..), UserIncoming, userTable, UserQuery)
+import RoleDefs (Role, RoleQuery, RoleId, RoleIncoming, roleTable, RoleTableR, RoleTableW)
+import TenantDefs (Tenant, TenantQuery, getTestTenant, TenantStatus(..), tenantTable, TenantIncoming, TenantTableW, TenantTableR)
 import TenantId
 import UserId
 import Lenses
@@ -23,4 +24,4 @@ import Auditable
 import OpaleyeDef
 import Utils
 import ApiBase
-import AppM
+import Classes

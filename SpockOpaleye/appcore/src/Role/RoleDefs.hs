@@ -68,6 +68,8 @@ roleTable = Table "roles" (pRole Role {
   _rolepolyUpdatedat = required "updated_at"
   })
 
+type RoleQuery = Query RoleTableR
+
 instance D.Default Constant RoleId (Column PGInt4) where
   def = Constant def'
     where

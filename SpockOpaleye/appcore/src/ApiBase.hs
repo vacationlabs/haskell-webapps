@@ -7,7 +7,6 @@
 
 module ApiBase where
 
-import           AppM
 import           Classes
 import           UserDefs
 import           TenantDefs
@@ -28,21 +27,30 @@ import           Prelude                         hiding (id)
 import           Data.Aeson (Value(..))
 import           Data.ByteString (ByteString)
 import           Database.PostgreSQL.Simple
-import           Utils
+import           InternalUtils
 
-removeRawDbRows :: (DbConnection m, MonadIO m) => Table columnsW columnsR -> (columnsR -> Column PGBool) -> m GHC.Int.Int64
+removeRawDbRows :: (DbConnection m, MonadIO m) 
+    => Table columnsW columnsR 
+    -> (columnsR -> Column PGBool)
+    -> m GHC.Int.Int64
 removeRawDbRows table matchFunc = do
   conn <- getConnection
   liftIO $ runDelete conn table matchFunc 
 
-createDbRows :: (Show columnsW, D.Default QueryRunner columnsR haskells) 
-    =>  Table columnsW columnsR -> [columnsW] -> AppM [haskells]
+createDbRows :: (DbConnection m, MonadIO m, Show columnsW, D.Default QueryRunner columnsR haskells) 
+    =>  Table columnsW columnsR
+    -> [columnsW] 
+    -> m [haskells]
 createDbRows table pgrows = do
   --auditLog $ "Create : " ++ (show pgrows)
   conn <- getConnection
   liftIO $ runInsertManyReturning conn table pgrows (\x -> x)
 
-updateDbRow :: (Show columnsW, HasId columnsR (Column PGInt4)) => Table columnsW columnsR -> Column PGInt4 -> columnsW -> AppM columnsW
+updateDbRow :: (DbConnection m, MonadIO m, Show columnsW, HasId columnsR (Column PGInt4)) 
+  => Table columnsW columnsR 
+  -> Column PGInt4
+  -> columnsW
+  -> m columnsW
 updateDbRow table row_id item = do
   --auditLog $ "Update :" ++ (show item)
   conn <- getConnection
@@ -53,12 +61,14 @@ updateDbRow table row_id item = do
     matchFunc itId item' = (item' ^. id) .== itId
   
 createRow ::(
+    DbConnection m,
+    MonadIO m, 
     Show incoming,
     Show columnsW,
     HasCreatedat columnsW (Maybe (Column PGTimestamptz)),
     HasUpdatedat columnsW (Column PGTimestamptz),
     D.Default Constant incoming columnsW, D.Default QueryRunner returned row)
-    => Table columnsW returned -> incoming -> AppM (Auditable row)
+    => Table columnsW returned -> incoming -> m (Auditable row)
 createRow table item = do
   --auditLog $ "Create : " ++ (show item)
   currentTime <- liftIO $ fmap pgUTCTime getCurrentTime
@@ -66,6 +76,8 @@ createRow table item = do
   fmap (auditable.head) $ createDbRows table [itemPg] 
 
 updateRow :: (
+    DbConnection m,
+    MonadIO m, 
     Show columnsW
     , Show haskells
     , HasUpdatedat haskells UTCTime
@@ -74,7 +86,7 @@ updateRow :: (
     , HasId haskells itemId
     , HasId columnsR (Column PGInt4)
     )
-    => Table columnsW columnsR -> haskells -> AppM haskells
+    => Table columnsW columnsR -> haskells -> m haskells
 updateRow table item = do
   --auditLog $ "Update : " ++ (show item)
   let itId = item ^. id
@@ -87,14 +99,18 @@ updateRow table item = do
     putUpdatedTimestamp timestamp  = updatedat .~ timestamp
 
 updateAuditableRow :: (
-    Show columnsW
+    DbConnection m
+    , CurrentUser m
+    , CurrentTenant m
+    , MonadIO m
+    , Show columnsW
     , HasUpdatedat (Auditable haskells) UTCTime
     , D.Default Constant haskells columnsW
     , D.Default Constant itemId (Column PGInt4)
     , HasId (Auditable haskells) itemId
     , HasId columnsR (Column PGInt4)
     )
-    => Table columnsW columnsR -> Auditable haskells -> AppM (Auditable haskells)
+    => Table columnsW columnsR -> Auditable haskells -> m (Auditable haskells)
 updateAuditableRow table audti = do
   --auditLog $ "Update : " ++ (show item)
   let itId = audti ^. id
@@ -109,8 +125,12 @@ updateAuditableRow table audti = do
     putUpdatedTimestamp timestamp  = updatedat .~ timestamp
 
 insertIntoLog :: (
-    D.Default Constant item_id (Column PGInt4)
-    ) => Table a b -> item_id -> T.Text -> Value -> AppM ()
+    MonadIO m
+    , CurrentTenant m
+    , CurrentUser m
+    , DbConnection m
+    ,D.Default Constant item_id (Column PGInt4)
+    ) => Table a b -> item_id -> T.Text -> Value -> m ()
 insertIntoLog table auditable_id summary changes = do
   case table of
     Table table_name _ -> do
@@ -133,11 +153,13 @@ insertIntoLog table auditable_id summary changes = do
     _ -> error "Unsupported Table constructor"
 
 removeAuditableRow :: (
-      Show haskells
+    MonadIO m
+    , DbConnection m
+    , Show haskells
     , D.Default Constant itemId (Column PGInt4)
     , HasId haskells itemId
     , HasId columnsR (Column PGInt4)
-    ) => Table columnsW columnsR -> Auditable haskells -> AppM GHC.Int.Int64
+    ) => Table columnsW columnsR -> Auditable haskells -> m GHC.Int.Int64
 removeAuditableRow table item_r = do
   --auditLog $ "Remove : " ++ (show item)
   conn <- getConnection
@@ -152,11 +174,13 @@ removeAuditableRow table item_r = do
     matchFunc itId item' = (item' ^. id) .== (constant itId)
 
 removeRow :: (
-      Show haskells
+    MonadIO m
+    , DbConnection m
+    , Show haskells
     , D.Default Constant itemId (Column PGInt4)
     , HasId haskells itemId
     , HasId columnsR (Column PGInt4)
-    ) => Table columnsW columnsR -> haskells -> AppM GHC.Int.Int64
+    ) => Table columnsW columnsR -> haskells -> m GHC.Int.Int64
 removeRow table item = do
   --auditLog $ "Remove : " ++ (show item)
   conn <- getConnection
@@ -169,8 +193,11 @@ removeRow table item = do
         ) => (itemId -> columnsR -> Column PGBool)
     matchFunc itId item' = (item' ^. id) .== (constant itId)
 
-readRow :: (D.Default QueryRunner columnsR haskells) => 
-  Opaleye.Query columnsR -> AppM [Auditable haskells]
+readRow :: (
+  MonadIO m
+  , DbConnection m
+  , D.Default QueryRunner columnsR haskells) => 
+  Opaleye.Query columnsR -> m [Auditable haskells]
 readRow query' = do
   conn <- getConnection
   liftIO $ wrapAuditable $ runQuery conn query'

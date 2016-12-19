@@ -18,6 +18,7 @@ module UserApi
   ) where
 
 import           AppCore
+import AppM
 import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.IO.Class
@@ -30,8 +31,7 @@ import           Prelude                    hiding (id)
 createUser :: UserIncoming -> AppM User
 createUser user = do
   Just hash <- liftIO $ bcryptPassword $ user ^. password
-  let fullUser = user { _userpolyPassword = hash }
-  createRow userTable fullUser
+  createRow userTable (fillPassword user hash)
 
 updateUser :: User -> AppM User
 updateUser user = updateAuditableRow userTable user
@@ -66,16 +66,17 @@ removeRoleFromUser :: UserId -> RoleId -> AppM GHC.Int.Int64
 removeRoleFromUser tUserId tRoleId = removeRawDbRows userRolePivotTable
     (\(userId, roleId) -> (userId .== constant tUserId) .&& (roleId .== constant tRoleId))
 
-userQuery :: Query UserTableR
+-- @TODO move this type into appcore
+userQuery :: UserQuery 
 userQuery = queryTable userTable
 
-userQueryById :: UserId -> Query UserTableR
+userQueryById :: UserId -> UserQuery
 userQueryById tId = proc () -> do
   user <- userQuery -< ()
   restrict -< (user ^. id) .== (constant tId)
   returnA -< user
 
-userQueryByTenantid :: TenantId -> Query UserTableR
+userQueryByTenantid :: TenantId -> UserQuery
 userQueryByTenantid tTenantid = proc () -> do
   user <- userQuery -< ()
   restrict -< (user ^. tenantid) .== (constant tTenantid)

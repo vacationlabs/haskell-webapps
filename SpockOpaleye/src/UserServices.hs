@@ -11,7 +11,7 @@ import           Control.Monad.IO.Class
 import           Validations
 import           TenantApi
 
-doCreateTenant :: TenantIncoming -> AppM (Either T.Text Tenant) 
+doCreateTenant :: (DbConnection m, MonadIO m) => TenantIncoming -> m (Either T.Text Tenant) 
 doCreateTenant  incomingTenant = do
   result <- validateIncomingTenant incomingTenant
   case result of

@@ -19,6 +19,7 @@ import           AppCore
 import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.Reader
+import           Control.Monad.IO.Class
 import           Data.Maybe
 import           Data.Text
 import           GHC.Int
@@ -27,58 +28,58 @@ import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
 
-createTenant :: TenantIncoming -> AppM Tenant
+createTenant :: (MonadIO m, DbConnection m) => TenantIncoming -> m Tenant
 createTenant tenant = do
   createRow tenantTable tenant
 
-activateTenant :: Tenant -> AppM Tenant
+activateTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
 activateTenant tenant = setTenantStatus tenant TenantStatusActive
 
-deactivateTenant :: Tenant -> AppM Tenant
+deactivateTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
 deactivateTenant tenant = setTenantStatus tenant TenantStatusInActive
 
-setTenantStatus :: Tenant -> TenantStatus -> AppM Tenant
+setTenantStatus :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> TenantStatus -> m Tenant
 setTenantStatus tenant st = updateTenant (tenant & status .~ st)
 
-updateTenant :: Tenant -> AppM Tenant
+updateTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
 updateTenant tenant = do
   updateAuditableRow tenantTable tenant
 
-removeTenant :: Tenant -> AppM GHC.Int.Int64
+removeTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m GHC.Int.Int64
 removeTenant tenant = do
   tenant_deac <- deactivateTenant tenant
   _ <- updateTenant (tenant_deac & ownerid .~ Nothing)
-  usersForTenant <- readUsersForTenant tid
-  rolesForTenant <- readRolesForTenant tid
-  mapM_ removeRole rolesForTenant
-  mapM_ removeUser usersForTenant
+  --usersForTenant <- readUsersForTenant tid
+  --rolesForTenant <- readRolesForTenant tid
+  --mapM_ removeRole rolesForTenant
+  --mapM_ removeUser usersForTenant
   removeRawDbRows tenantTable matchFunc
   where
     tid = tenant ^. id
     matchFunc :: TenantTableR -> Column PGBool
     matchFunc tenant'  = (tenant' ^. id) .== (constant tid)
 
-readTenants :: AppM [Tenant]
+readTenants :: (MonadIO m, DbConnection m) =>  m [Tenant]
 readTenants = readRow tenantQuery
 
-readTenantById :: TenantId -> AppM (Maybe Tenant)
+readTenantById :: (MonadIO m, DbConnection m) => TenantId -> m (Maybe Tenant)
 readTenantById tenantId = do
   listToMaybe <$> (readRow (tenantQueryById tenantId))
 
-readTenantByBackofficedomain :: Text -> AppM (Maybe Tenant)
+readTenantByBackofficedomain :: (MonadIO m, DbConnection m) => Text -> m (Maybe Tenant)
 readTenantByBackofficedomain domain = do
   listToMaybe <$> (readRow (tenantQueryByBackoffocedomain domain))
 
-tenantQuery :: Opaleye.Query TenantTableR
+tenantQuery :: TenantQuery
 tenantQuery = queryTable tenantTable
 
-tenantQueryById :: TenantId -> Opaleye.Query TenantTableR
+tenantQueryById :: TenantId -> TenantQuery
 tenantQueryById tId = proc () -> do
   tenant <- tenantQuery -< ()
   restrict -< (tenant ^. id) .== (constant tId)
   returnA -< tenant
 
-tenantQueryByBackoffocedomain :: Text -> Opaleye.Query TenantTableR
+tenantQueryByBackoffocedomain :: Text -> TenantQuery
 tenantQueryByBackoffocedomain domain = proc () -> do
   tenant <- tenantQuery -< ()
   restrict -< (tenant ^. backofficedomain) .== (pgStrictText domain)

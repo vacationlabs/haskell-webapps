@@ -26,7 +26,7 @@ import Auditable
 import           Data.Char
 import Prelude hiding (id)
 import UserId
-import Utils
+import InternalUtils
 
 data UserPoly key created_at updated_at tenant_id username password firstname lastname status  = User {
     _userpolyId        :: key
@@ -84,6 +84,7 @@ data UserStatus = UserStatusActive | UserStatusInActive | UserStatusBlocked
 
 type InternalUser = UserPoly UserId UTCTime UTCTime TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
 type User = Auditable InternalUser
+type UserQuery = Query UserTableR
 
 getTestUser :: IO User
 getTestUser = do

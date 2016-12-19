@@ -25,6 +25,7 @@ import           Control.Exception.Lifted
 import           Airbrake
 import           Airbrake.WebRequest
 import           Data.ByteString (ByteString)
+import           AppM
 
 data MySession = EmptySession
 

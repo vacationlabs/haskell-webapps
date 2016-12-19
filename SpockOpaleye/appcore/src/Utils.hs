@@ -1,12 +1,10 @@
 module Utils where
 
-import Auditable
-import Data.Aeson.Types
-import qualified Data.HashMap.Strict as HM
+import UserDefs
+import CryptoDef
+import InternalUtils
+import Data.Text
+import TenantId
 
-auditable :: a -> Auditable a
-auditable a = Auditable {_data = a, _log = Object HM.empty}
-
-wrapAuditable :: (Functor a, Functor b) => a (b c) -> a (b (Auditable c))
-wrapAuditable a = (fmap auditable) <$> a
-
+fillPassword :: UserIncoming -> BcryptPassword -> UserPoly () () () TenantId Text BcryptPassword (Maybe Text) (Maybe Text) ()
+fillPassword incUser hash = incUser { _userpolyPassword = hash }

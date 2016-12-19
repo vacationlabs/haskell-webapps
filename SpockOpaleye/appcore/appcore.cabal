@@ -31,7 +31,7 @@ library
                        ,UserId
                        ,TenantId
                        ,Utils
-                       ,AppM
+                       ,InternalUtils
                        ,ApiBase
                        ,Classes
   build-depends:       base >= 4.7 && < 5
