@@ -15,20 +15,18 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     DataTypes,
-                       ApiBase, 
-                       TenantApi,
+  exposed-modules:     TenantApi,
                        UserApi,
                        RoleApi,
-                       OpaleyeDef,
-                       CryptoDef,
-                       JsonInstances,
                        Validations,
                        Conf,
                        UserServices,
+                       AppM,
                        Email,
-                       TH
+                       Exceptions,
+                       Utils
   build-depends:       base >= 4.7 && < 5
+                      ,appcore
                       ,smtp-mail
                       ,lifted-base
                       ,airbrake
@@ -65,6 +63,7 @@ executable SpockOpaleye-exe
                      , postgresql-simple
                      , airbrake
                      , bytestring
+                     , appcore
                      , here
                      , mime-mail
                      , filepath

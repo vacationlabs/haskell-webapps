@@ -15,72 +15,72 @@ module TenantApi
   , deactivateTenant
   ) where
 
-import           ApiBase
+import           AppCore
 import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.Reader
+import           Control.Monad.IO.Class
 import           Data.Maybe
 import           Data.Text
-import           DataTypes
 import           GHC.Int
 import           Opaleye
-import           OpaleyeDef
 import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
+import           Utils
 
-createTenant :: TenantIncoming -> AppM (Auditable Tenant)
+createTenant :: (MonadIO m, DbConnection m) => TenantIncoming -> m Tenant
 createTenant tenant = do
-  auditable <$> createRow tenantTable tenant
+  createRow tenantTable tenant
 
-activateTenant :: (Auditable Tenant) -> AppM (Auditable Tenant)
+activateTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
 activateTenant tenant = setTenantStatus tenant TenantStatusActive
 
-deactivateTenant :: (Auditable Tenant) -> AppM (Auditable Tenant)
+deactivateTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
 deactivateTenant tenant = setTenantStatus tenant TenantStatusInActive
 
-setTenantStatus :: (Auditable Tenant) -> TenantStatus -> AppM (Auditable Tenant)
+setTenantStatus :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> TenantStatus -> m Tenant
 setTenantStatus tenant st = updateTenant (tenant & status .~ st)
 
-updateTenant :: (Auditable Tenant) -> AppM (Auditable Tenant)
+updateTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
 updateTenant tenant = do
   updateAuditableRow tenantTable tenant
 
-removeTenant :: Auditable Tenant -> AppM GHC.Int.Int64
+removeTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m GHC.Int.Int64
 removeTenant tenant = do
   tenant_deac <- deactivateTenant tenant
   _ <- updateTenant (tenant_deac & ownerid .~ Nothing)
-  usersForTenant <- readUsersForTenant tid
-  rolesForTenant <- readRolesForTenant tid
-  mapM_ removeRole rolesForTenant
-  mapM_ removeUser usersForTenant
+  --usersForTenant <- readUsersForTenant tid
+  --rolesForTenant <- readRolesForTenant tid
+  --mapM_ removeRole rolesForTenant
+  --mapM_ removeUser usersForTenant
   removeRawDbRows tenantTable matchFunc
   where
     tid = tenant ^. id
     matchFunc :: TenantTableR -> Column PGBool
     matchFunc tenant'  = (tenant' ^. id) .== (constant tid)
 
-readTenants :: AppM [Auditable Tenant]
-readTenants = wrapAuditable $ readRow tenantQuery
+readTenants :: (MonadIO m, DbConnection m) =>  m [Tenant]
+readTenants = readRow tenantQuery
 
-readTenantById :: TenantId -> AppM (Maybe (Auditable Tenant))
+readTenantById :: (MonadIO m, DbConnection m) => TenantId -> m Tenant
 readTenantById tenantId = do
-  wrapAuditable $ listToMaybe <$> (readRow (tenantQueryById tenantId))
+  (readRow $ tenantQueryById tenantId) >>= returnOneIfNE "Tenant id not found"
 
-readTenantByBackofficedomain :: Text -> AppM (Maybe (Auditable Tenant))
+readTenantByBackofficedomain :: (MonadIO m, DbConnection m) => Text -> m (Maybe Tenant)
 readTenantByBackofficedomain domain = do
-  wrapAuditable $ listToMaybe <$> (readRow (tenantQueryByBackoffocedomain domain))
+  listToMaybe <$> (readRow (tenantQueryByBackoffocedomain domain))
 
-tenantQuery :: Opaleye.Query TenantTableR
+tenantQuery :: TenantQuery
 tenantQuery = queryTable tenantTable
 
-tenantQueryById :: TenantId -> Opaleye.Query TenantTableR
+tenantQueryById :: TenantId -> TenantQuery
 tenantQueryById tId = proc () -> do
   tenant <- tenantQuery -< ()
   restrict -< (tenant ^. id) .== (constant tId)
   returnA -< tenant
 
-tenantQueryByBackoffocedomain :: Text -> Opaleye.Query TenantTableR
+tenantQueryByBackoffocedomain :: Text -> TenantQuery
 tenantQueryByBackoffocedomain domain = proc () -> do
   tenant <- tenantQuery -< ()
   restrict -< (tenant ^. backofficedomain) .== (pgStrictText domain)
