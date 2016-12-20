@@ -17,8 +17,7 @@ import           OpaleyeDef
 import           GHC.Generics
 import           Data.Time
 import Data.Text
-import UserId
-import TenantId
+import Ids
 import           Data.Aeson
 import           Data.Aeson.Types
 import           Data.Char

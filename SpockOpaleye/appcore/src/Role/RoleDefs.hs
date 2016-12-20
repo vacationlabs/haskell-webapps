@@ -13,7 +13,7 @@ import           Opaleye
 import           Control.Lens
 import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
 import           OpaleyeDef
-import TenantId
+import Ids
 import Data.Text
 import Data.Maybe
 import Data.List.NonEmpty

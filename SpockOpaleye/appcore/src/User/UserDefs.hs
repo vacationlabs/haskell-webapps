@@ -18,14 +18,13 @@ import           OpaleyeDef
 import           GHC.Generics
 import           Data.Text
 import           CryptoDef
-import           TenantId
 import           Data.Aeson
 import           Data.Aeson.Types
 import qualified Data.HashMap.Strict as HM
 import Auditable
 import           Data.Char
 import Prelude hiding (id)
-import UserId
+import Ids
 import InternalUtils
 
 data UserPoly key created_at updated_at tenant_id username password firstname lastname status  = User {

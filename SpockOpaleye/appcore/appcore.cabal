@@ -28,8 +28,7 @@ library
                        ,TenantDefs
                        ,RoleDefs
                        ,Lenses
-                       ,UserId
-                       ,TenantId
+                       ,Ids
                        ,Utils
                        ,InternalUtils
                        ,ApiBase
