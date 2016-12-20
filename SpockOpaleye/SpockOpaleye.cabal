@@ -22,7 +22,9 @@ library
                        Conf,
                        UserServices,
                        AppM,
-                       Email
+                       Email,
+                       Exceptions,
+                       Utils
   build-depends:       base >= 4.7 && < 5
                       ,appcore
                       ,smtp-mail

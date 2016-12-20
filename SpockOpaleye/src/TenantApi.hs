@@ -27,6 +27,7 @@ import           Opaleye
 import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
+import           Utils
 
 createTenant :: (MonadIO m, DbConnection m) => TenantIncoming -> m Tenant
 createTenant tenant = do
@@ -62,9 +63,9 @@ removeTenant tenant = do
 readTenants :: (MonadIO m, DbConnection m) =>  m [Tenant]
 readTenants = readRow tenantQuery
 
-readTenantById :: (MonadIO m, DbConnection m) => TenantId -> m (Maybe Tenant)
+readTenantById :: (MonadIO m, DbConnection m) => TenantId -> m Tenant
 readTenantById tenantId = do
-  listToMaybe <$> (readRow (tenantQueryById tenantId))
+  (readRow $ tenantQueryById tenantId) >>= returnOneIfNE "Tenant id not found"
 
 readTenantByBackofficedomain :: (MonadIO m, DbConnection m) => Text -> m (Maybe Tenant)
 readTenantByBackofficedomain domain = do

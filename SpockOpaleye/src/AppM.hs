@@ -9,6 +9,7 @@ import           Data.ByteString
 import Control.Exception
 import Database.PostgreSQL.Simple
 import Control.Monad.Trans.Except
+import Exceptions
 
 type AppM  = WriterT ByteString (ReaderT (Connection, Maybe Tenant, Maybe User) (ExceptT SomeException IO))
 
