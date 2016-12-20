@@ -17,49 +17,46 @@ module UserApi
   , deactivateUser
   ) where
 
-import           ApiBase
+import           AppCore
+import AppM
 import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.IO.Class
 import           Data.Maybe
-import           DataTypes
 import           GHC.Int
 import           Opaleye
-import           OpaleyeDef
-
-import           CryptoDef
 import           Prelude                    hiding (id)
+import Utils
 
-createUser :: UserIncoming -> AppM (Auditable User)
+createUser :: UserIncoming -> AppM User
 createUser user = do
   Just hash <- liftIO $ bcryptPassword $ user ^. password
-  let fullUser = user { _userpolyPassword = hash }
-  auditable <$> (createRow userTable fullUser)
+  createRow userTable (fillPassword user hash)
 
-updateUser :: Auditable User -> AppM (Auditable User)
+updateUser :: User -> AppM User
 updateUser user = updateAuditableRow userTable user
 
-activateUser :: Auditable User -> AppM (Auditable User)
+activateUser :: User -> AppM User
 activateUser user = setUserStatus user UserStatusActive
 
-deactivateUser :: Auditable User -> AppM (Auditable User)
+deactivateUser :: User -> AppM User
 deactivateUser user = setUserStatus user UserStatusInActive
 
-setUserStatus :: Auditable User -> UserStatus -> AppM (Auditable User)
+setUserStatus :: User -> UserStatus -> AppM User
 setUserStatus user newStatus = updateUser $ user & status .~ newStatus
 
-removeUser :: Auditable User -> AppM GHC.Int.Int64
-removeUser Auditable { _data = rUser} = removeRow userTable rUser
+removeUser :: User -> AppM GHC.Int.Int64
+removeUser user = removeAuditableRow userTable user
 
-readUsers :: AppM [Auditable User]
-readUsers = wrapAuditable $ readRow userQuery
+readUsers :: AppM [User]
+readUsers = readRow userQuery
 
-readUsersForTenant :: TenantId -> AppM [Auditable User]
-readUsersForTenant tenantId = wrapAuditable $ readRow $ userQueryByTenantid tenantId
+readUsersForTenant :: TenantId -> AppM [User]
+readUsersForTenant tenantId = readRow $ userQueryByTenantid tenantId
 
-readUserById :: UserId -> AppM (Maybe (Auditable User))
+readUserById :: UserId -> AppM User
 readUserById id' = do
-  wrapAuditable $ listToMaybe <$> (readRow $ userQueryById id')
+  (readRow $ userQueryById id') >>= returnOneIfNE "User id not found"
 
 addRoleToUser :: UserId -> RoleId -> AppM [(UserId, RoleId)]
 addRoleToUser userId roleId =
@@ -69,16 +66,17 @@ removeRoleFromUser :: UserId -> RoleId -> AppM GHC.Int.Int64
 removeRoleFromUser tUserId tRoleId = removeRawDbRows userRolePivotTable
     (\(userId, roleId) -> (userId .== constant tUserId) .&& (roleId .== constant tRoleId))
 
-userQuery :: Query UserTableR
+-- @TODO move this type into appcore
+userQuery :: UserQuery 
 userQuery = queryTable userTable
 
-userQueryById :: UserId -> Query UserTableR
+userQueryById :: UserId -> UserQuery
 userQueryById tId = proc () -> do
   user <- userQuery -< ()
   restrict -< (user ^. id) .== (constant tId)
   returnA -< user
 
-userQueryByTenantid :: TenantId -> Query UserTableR
+userQueryByTenantid :: TenantId -> UserQuery
 userQueryByTenantid tTenantid = proc () -> do
   user <- userQuery -< ()
   restrict -< (user ^. tenantid) .== (constant tTenantid)

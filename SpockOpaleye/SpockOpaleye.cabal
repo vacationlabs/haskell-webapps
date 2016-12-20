@@ -15,21 +15,21 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     DataTypes,
-                       ApiBase, 
-                       TenantApi,
+  exposed-modules:     TenantApi,
                        UserApi,
                        RoleApi,
-                       OpaleyeDef,
-                       CryptoDef,
-                       JsonInstances,
                        Validations,
                        Conf,
                        UserServices,
+                       AppM,
                        Email,
-                       TH
+                       Exceptions,
+                       Utils
   build-depends:       base >= 4.7 && < 5
+                      ,appcore
                       ,smtp-mail
+                      ,lifted-base
+                      ,airbrake
                       ,here
                       ,filepath
                       ,mime-mail >= 0.4.12
@@ -52,6 +52,7 @@ library
                       ,aeson
                       ,unordered-containers
                       ,template-haskell
+                      ,lifted-base
   default-language:    Haskell2010
 
 executable SpockOpaleye-exe
@@ -60,6 +61,9 @@ executable SpockOpaleye-exe
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N -fwarn-tabs -fwarn-unused-imports -fwarn-missing-signatures -fwarn-incomplete-patterns
   build-depends:       base
                      , postgresql-simple
+                     , airbrake
+                     , bytestring
+                     , appcore
                      , here
                      , mime-mail
                      , filepath
@@ -77,6 +81,7 @@ executable SpockOpaleye-exe
                      , vector
                      , aeson
                      , unordered-containers
+                     , lifted-base
   default-language:    Haskell2010
 
 test-suite SpockOpaleye-test

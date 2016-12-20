@@ -3,10 +3,10 @@
 
 module Email where
 
+import           AppCore
 import           Network.Mail.Mime
 import           Network.Mail.SMTP  hiding (simpleMail)
 
-import           ApiBase
 import           Conf               (apikey)
 import           Control.Concurrent
 import           Control.Lens
@@ -17,7 +17,6 @@ import           Data.String.Here
 import qualified Data.Text          as T
 import qualified Data.Text.Lazy     as LT
 import qualified Data.ByteString.Lazy as L
-import           DataTypes
 import           System.FilePath (takeFileName)
 
 sendgridMail :: Mail -> IO ()
@@ -28,7 +27,7 @@ sendgridMail mail = do
 addLogo :: Mail -> IO Mail
 addLogo mail = addAttachmentCid "image/png" "apple.png" "logocid@haskellwebapps.com" mail
 
-sendTenantActivationMail :: Auditable Tenant -> IO ()
+sendTenantActivationMail :: Tenant -> IO ()
 sendTenantActivationMail newTenant = do
   makeMail from to activationLink >>= addLogo >>= sendgridMail
   where
