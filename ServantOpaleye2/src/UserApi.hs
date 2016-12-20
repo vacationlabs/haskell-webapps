@@ -18,15 +18,15 @@ module UserApi
   ) where
 
 import           AppCore
-import AppM
+import           AppM
 import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.IO.Class
 import           Data.Maybe
 import           GHC.Int
 import           Opaleye
-import           Prelude                    hiding (id)
-import Utils
+import           Prelude                hiding (id)
+import           Utils
 
 createUser :: UserIncoming -> AppM User
 createUser user = do
@@ -66,7 +66,7 @@ removeRoleFromUser :: UserId -> RoleId -> AppM GHC.Int.Int64
 removeRoleFromUser tUserId tRoleId = removeRawDbRows userRolePivotTable
     (\(userId, roleId) -> (userId .== constant tUserId) .&& (roleId .== constant tRoleId))
 
-userQuery :: UserQuery 
+userQuery :: UserQuery
 userQuery = queryTable userTable
 
 userQueryById :: UserId -> UserQuery

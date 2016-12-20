@@ -3,17 +3,17 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 
 
 module Validations where
 
 import           AppCore
 import           Control.Lens
-import qualified Data.Text                  as T
+import           Control.Monad.IO.Class
+import qualified Data.Text              as T
 import           TenantApi
-import Control.Monad.IO.Class
 
 data ValidationResult = Valid | Invalid String
   deriving (Eq, Show)
@@ -21,11 +21,11 @@ data ValidationResult = Valid | Invalid String
 validateIncomingTenant :: forall m. (MonadIO m, DbConnection m) => TenantIncoming -> m ValidationResult
 validateIncomingTenant tenant = do
   unique_bod <- check_for_unique_bo_domain (tenant ^. backofficedomain)
-  let result = do 
+  let result = do
                 unique_bod
-                if validate_contact then Right () 
+                if validate_contact then Right ()
                   else (Left "Firstname, Lastname, Email, Phone cannot be blank")
-                if validate_name then Right () 
+                if validate_name then Right ()
                   else (Left "Name cannot be blank")
   return $ case result of
     Right () -> Valid
@@ -38,4 +38,4 @@ validateIncomingTenant tenant = do
       where
         v :: Maybe Tenant -> Either String ()
         v (Just _) = Left "Duplicate backoffice domain"
-        v _  = Right ()
+        v _        = Right ()

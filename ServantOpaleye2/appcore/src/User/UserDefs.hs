@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
@@ -8,24 +8,24 @@
 
 module UserDefs where
 
-import           Database.PostgreSQL.Simple.FromField
-import qualified Data.Profunctor.Product.Default      as D
-import           Opaleye
+import           Auditable
 import           Control.Lens
-import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
-import           Data.Time                  
-import           OpaleyeDef
-import           GHC.Generics
-import           Data.Text
 import           CryptoDef
 import           Data.Aeson
 import           Data.Aeson.Types
-import qualified Data.HashMap.Strict as HM
-import Auditable
 import           Data.Char
-import Prelude hiding (id)
-import Ids
-import InternalUtils
+import qualified Data.HashMap.Strict                  as HM
+import qualified Data.Profunctor.Product.Default      as D
+import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
+import           Data.Text
+import           Data.Time
+import           Database.PostgreSQL.Simple.FromField
+import           GHC.Generics
+import           Ids
+import           InternalUtils
+import           Opaleye
+import           OpaleyeDef
+import           Prelude                              hiding (id)
 
 data UserPoly key created_at updated_at tenant_id username password firstname lastname status  = User {
     _userpolyId        :: key

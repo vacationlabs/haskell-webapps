@@ -1,6 +1,6 @@
 module Conf where
 
-import Network.Mail.SMTP
+import           Network.Mail.SMTP
 
 apikey :: Password
-apikey = "--sendgrid-api-key--" 
+apikey = "--sendgrid-api-key--"

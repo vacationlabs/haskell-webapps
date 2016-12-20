@@ -1,14 +1,14 @@
-{-# LANGUAGE DeriveGeneric          #-}
-{-# LANGUAGE MultiParamTypeClasses          #-}
-{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 module Ids where
 
-import qualified Data.Profunctor.Product.Default      as D
-import Opaleye
-import           Database.PostgreSQL.Simple.FromField
 import           Data.Aeson
 import           Data.Aeson.Types
+import qualified Data.Profunctor.Product.Default      as D
+import           Database.PostgreSQL.Simple.FromField
 import           GHC.Generics
+import           Opaleye
 
 -- TenantId
 

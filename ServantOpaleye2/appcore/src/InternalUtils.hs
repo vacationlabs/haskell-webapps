@@ -1,7 +1,7 @@
 module InternalUtils where
 
-import Auditable
-import Data.Aeson.Types
+import           Auditable
+import           Data.Aeson.Types
 import qualified Data.HashMap.Strict as HM
 
 auditable :: a -> Auditable a

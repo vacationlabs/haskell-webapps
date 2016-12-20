@@ -1,34 +1,34 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 module AuditableTH where
 
-import Control.Lens
-import Language.Haskell.TH
-import Data.Char
-import Data.List (elemIndex)
+import           Auditable
+import           Control.Lens
+import           Data.Char
 import qualified Data.HashMap.Strict as HM
-import Data.Text (pack)
-import Auditable
+import           Data.List           (elemIndex)
+import           Data.Text           (pack)
+import           Language.Haskell.TH
 
-import Data.Aeson (Value(..), ToJSON(..))
+import           Data.Aeson          (ToJSON (..), Value (..))
 
 getTypeSegs :: Type -> [Type]
 getTypeSegs a@(ConT _) = [a]
 getTypeSegs (AppT a b) = (b : getTypeSegs a)
-getTypeSegs r = error $ show r
+getTypeSegs r          = error $ show r
 
 typeToName :: Type -> Name
-typeToName (ConT n)  = n
-typeToName _  = error "Unsupported type constructor"
+typeToName (ConT n) = n
+typeToName _        = error "Unsupported type constructor"
 
 getType :: Name -> TypeQ
 getType tn = do
   info <- reify tn
   case info of
     TyConI (TySynD _ _ tpe) -> return tpe
-    _ -> return (ConT tn)
-    
+    _                       -> return (ConT tn)
+
 -- This will generate lenses that can operate on
 -- models wrapped in Auditable wrapper. The setters
 -- thus generated will also take care of capturing the
@@ -54,7 +54,7 @@ makeAuditableLenses tq= do
         tx <- lookupValueName fname_rt
         let fname_ap = case  tx of
                         Just x -> x
-                        _ -> error (show fname_rt)
+                        _      -> error (show fname_rt)
         expr <- mkInstanceFunction field
         do
           let tc = "Has" ++ (uc_first fname_rt)
@@ -66,22 +66,22 @@ makeAuditableLenses tq= do
             _ -> error $ "Typeclass " ++ tc ++ " not found"
         where
           uc_first (x:xs) = (toUpper x):xs
-          uc_first [] = []
+          uc_first []     = []
           resolve_type :: Type -> [Name] -> [Type] -> Type
           resolve_type (VarT n) tp ts = case (elemIndex n tp) of
             Just idx -> (ts !! (idx + 1))
-            _ -> error "Unknown type variable"
+            _        -> error "Unknown type variable"
           resolve_type t _ _ = t
 
 getTypeParams :: Name -> Q [Name]
 getTypeParams t_name = do
   info <- reify t_name
   case info of
-    TyConI (DataD _ _ params _ [RecC _ _] _) -> return $ toName <$> params 
+    TyConI (DataD _ _ params _ [RecC _ _] _) -> return $ toName <$> params
     _ -> error $ "Not a record!" ++ (show info)
     where
       toName (KindedTV n _) = n
-      toName _ = error "Unexpected type variable type"
+      toName _              = error "Unexpected type variable type"
 
 getRecordFields :: Name -> Q [(Name, Type)]
 getRecordFields t_name = do
@@ -95,7 +95,7 @@ getRecordFields t_name = do
 makeLog :: (ToJSON a) => Value -> String -> a -> a -> Value
 makeLog current_log field_name old new = case current_log of
   Object v -> Object $ HM.insert field_name_txt (getLog old new) v
-  _ -> error "Unexpected value in the log field"
+  _        -> error "Unexpected value in the log field"
   where
     field_name_txt = pack field_name
     getLog ::  (ToJSON v) => v -> v -> Value
@@ -110,7 +110,7 @@ mkInstanceFunction nam = do
     Just field_name -> do
       [| lens ($(return  $ VarE _field_name)._data) (\r v -> r {
           _data = _data r & ($(return $ VarE field_name) .~ v),
-          _log = makeLog (_log r) nam (_data r ^. $(return $ VarE field_name)) v 
+          _log = makeLog (_log r) nam (_data r ^. $(return $ VarE field_name)) v
         }) |]
     _ -> error $ "field accessor not found for " ++ nam
   where

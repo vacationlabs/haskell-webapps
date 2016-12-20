@@ -5,7 +5,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module RoleApi
-  ( 
+  (
    updateRole
   , removeRole
   , readRolesForTenant
@@ -13,13 +13,13 @@ module RoleApi
 
 import           AppCore
 import           Control.Arrow
-import           GHC.Int
-import           Opaleye
 import           Control.Lens
-import           Prelude                    hiding (id)
 import           Data.Aeson
 import           Data.Aeson.Types
 import qualified Data.HashMap.Strict as HM
+import           GHC.Int
+import           Opaleye
+import           Prelude             hiding (id)
 
 createRole :: (DbConnection m) => RoleIncoming -> m Role
 createRole role = createRow roleTable role

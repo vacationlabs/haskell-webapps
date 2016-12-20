@@ -1,5 +1,5 @@
-{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE DeriveGeneric          #-}
+{-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
@@ -8,23 +8,23 @@
 
 module TenantDefs where
 
-import           Database.PostgreSQL.Simple.FromField hiding (name)
-import qualified Data.Profunctor.Product.Default      as D
-import           Opaleye
+import           Auditable
 import           Control.Lens
-import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
-import           OpaleyeDef
-import           GHC.Generics
-import           Data.Time
-import Data.Text
-import Ids
 import           Data.Aeson
 import           Data.Aeson.Types
 import           Data.Char
-import Auditable
-import Prelude hiding(id)
-import qualified Data.HashMap.Strict as HM
-import InternalUtils
+import qualified Data.HashMap.Strict                  as HM
+import qualified Data.Profunctor.Product.Default      as D
+import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
+import           Data.Text
+import           Data.Time
+import           Database.PostgreSQL.Simple.FromField hiding (name)
+import           GHC.Generics
+import           Ids
+import           InternalUtils
+import           Opaleye
+import           OpaleyeDef
+import           Prelude                              hiding (id)
 
 data TenantPoly key created_at updated_at name fname lname email phone status owner_id b_domain = Tenant {
     _tenantpolyId               :: key

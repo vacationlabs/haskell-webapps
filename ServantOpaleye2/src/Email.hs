@@ -5,19 +5,19 @@ module Email where
 
 import           AppCore
 import           Network.Mail.Mime
-import           Network.Mail.SMTP  hiding (simpleMail)
+import           Network.Mail.SMTP    hiding (simpleMail)
 
-import           Conf               (apikey)
+import           Conf                 (apikey)
 import           Control.Concurrent
 import           Control.Lens
-import           Data.ByteString    hiding (putStrLn)
+import           Data.ByteString      hiding (putStrLn)
+import qualified Data.ByteString.Lazy as L
 import           Data.Monoid
 import           Data.String
 import           Data.String.Here
-import qualified Data.Text          as T
-import qualified Data.Text.Lazy     as LT
-import qualified Data.ByteString.Lazy as L
-import           System.FilePath (takeFileName)
+import qualified Data.Text            as T
+import qualified Data.Text.Lazy       as LT
+import           System.FilePath      (takeFileName)
 
 sendgridMail :: Mail -> IO ()
 sendgridMail mail = do

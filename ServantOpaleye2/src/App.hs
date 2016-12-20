@@ -1,30 +1,30 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module App where
 
 import           AppCore
-import           TenantApi
 import           AppM
+import           Control.Exception          (SomeException)
+import           Control.Exception.Lifted   (handle)
+import           Control.Monad.IO.Class
 import           Control.Monad.Reader
-import           Control.Monad.Writer
-import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Either
+import           Control.Monad.Trans.Except
+import           Control.Monad.Writer
 import           Data.Aeson
+import           Data.Text.Lazy             (pack)
+import           Data.Text.Lazy.Encoding
+import           Database.PostgreSQL.Simple
 import           GHC.Generics
 import           Network.Wai
 import           Network.Wai.Handler.Warp
 import           Servant
 import           System.IO
-import           Control.Monad.IO.Class
-import           Database.PostgreSQL.Simple 
-import           Control.Exception (SomeException)
-import           Control.Exception.Lifted (handle)
-import           Data.Text.Lazy.Encoding
-import           Data.Text.Lazy (pack)
+import           TenantApi
 
 connectDb :: IO Connection
 connectDb = connect defaultConnectInfo { connectDatabase = "haskell-webapps" }

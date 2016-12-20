@@ -7,62 +7,62 @@
 
 module ApiBase where
 
-import           Classes
-import           UserDefs
-import           TenantDefs
-import           OpaleyeDef
-import           Lenses
 import           Auditable
+import           Classes
 import           Control.Lens
 import           Control.Monad.IO.Class
 import           Control.Monad.Reader
-import qualified Control.Monad.Reader as R
+import qualified Control.Monad.Reader            as R
 import           Control.Monad.Writer
+import           Data.Aeson                      (Value (..))
+import           Data.ByteString                 (ByteString)
 import qualified Data.Profunctor.Product.Default as D
+import qualified Data.Text                       as T
 import           Data.Time                       (UTCTime, getCurrentTime)
-import           Opaleye
-import qualified Data.Text as T
-import           GHC.Int
-import           Prelude                         hiding (id)
-import           Data.Aeson (Value(..))
-import           Data.ByteString (ByteString)
 import           Database.PostgreSQL.Simple
+import           GHC.Int
 import           InternalUtils
+import           Lenses
+import           Opaleye
+import           OpaleyeDef
+import           Prelude                         hiding (id)
+import           TenantDefs
+import           UserDefs
 
-removeRawDbRows :: (DbConnection m, MonadIO m) 
-    => Table columnsW columnsR 
+removeRawDbRows :: (DbConnection m, MonadIO m)
+    => Table columnsW columnsR
     -> (columnsR -> Column PGBool)
     -> m GHC.Int.Int64
 removeRawDbRows table matchFunc = do
   conn <- getConnection
-  liftIO $ runDelete conn table matchFunc 
+  liftIO $ runDelete conn table matchFunc
 
-createDbRows :: (DbConnection m, MonadIO m, Show columnsW, D.Default QueryRunner columnsR haskells) 
+createDbRows :: (DbConnection m, MonadIO m, Show columnsW, D.Default QueryRunner columnsR haskells)
     =>  Table columnsW columnsR
-    -> [columnsW] 
+    -> [columnsW]
     -> m [haskells]
 createDbRows table pgrows = do
   --auditLog $ "Create : " ++ (show pgrows)
   conn <- getConnection
   liftIO $ runInsertManyReturning conn table pgrows (\x -> x)
 
-updateDbRow :: (DbConnection m, MonadIO m, Show columnsW, HasId columnsR (Column PGInt4)) 
-  => Table columnsW columnsR 
+updateDbRow :: (DbConnection m, MonadIO m, Show columnsW, HasId columnsR (Column PGInt4))
+  => Table columnsW columnsR
   -> Column PGInt4
   -> columnsW
   -> m columnsW
 updateDbRow table row_id item = do
   --auditLog $ "Update :" ++ (show item)
   conn <- getConnection
-  _ <- liftIO $ runUpdate conn table (\_ -> item) (matchFunc row_id) 
+  _ <- liftIO $ runUpdate conn table (\_ -> item) (matchFunc row_id)
   return item
   where
     matchFunc :: (HasId cmR (Column PGInt4)) => (Column PGInt4 -> cmR -> Column PGBool)
     matchFunc itId item' = (item' ^. id) .== itId
-  
+
 createRow ::(
     DbConnection m,
-    MonadIO m, 
+    MonadIO m,
     Show incoming,
     Show columnsW,
     HasCreatedat columnsW (Maybe (Column PGTimestamptz)),
@@ -73,11 +73,11 @@ createRow table item = do
   --auditLog $ "Create : " ++ (show item)
   currentTime <- liftIO $ fmap pgUTCTime getCurrentTime
   let itemPg = (constant item) & createdat .~ (Just currentTime) & updatedat .~ (currentTime)
-  fmap (auditable.head) $ createDbRows table [itemPg] 
+  fmap (auditable.head) $ createDbRows table [itemPg]
 
 updateRow :: (
     DbConnection m,
-    MonadIO m, 
+    MonadIO m,
     Show columnsW
     , Show haskells
     , HasUpdatedat haskells UTCTime
@@ -92,7 +92,7 @@ updateRow table item = do
   let itId = item ^. id
   currentTime <- liftIO getCurrentTime
   let updatedItem = (putUpdatedTimestamp currentTime) item
-  _ <- updateDbRow table (constant itId) (constant updatedItem) 
+  _ <- updateDbRow table (constant itId) (constant updatedItem)
   return updatedItem
   where
     putUpdatedTimestamp :: (HasUpdatedat item (UTCTime)) => UTCTime -> item -> item
@@ -117,7 +117,7 @@ updateAuditableRow table audti = do
   currentTime <- liftIO getCurrentTime
   let updatedItem = (putUpdatedTimestamp currentTime) audti
   let Auditable { _data = item, _log = _log} = updatedItem
-  _ <- updateDbRow table (constant itId) (constant item) 
+  _ <- updateDbRow table (constant itId) (constant item)
   insertIntoLog table itId "" _log
   return audti
   where
@@ -196,7 +196,7 @@ removeRow table item = do
 readRow :: (
   MonadIO m
   , DbConnection m
-  , D.Default QueryRunner columnsR haskells) => 
+  , D.Default QueryRunner columnsR haskells) =>
   Opaleye.Query columnsR -> m [Auditable haskells]
 readRow query' = do
   conn <- getConnection

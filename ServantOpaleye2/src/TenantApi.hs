@@ -23,7 +23,7 @@ import           Data.Maybe
 import           Data.Text
 import           GHC.Int
 import           Opaleye
-import           Prelude                    hiding (id)
+import           Prelude              hiding (id)
 import           RoleApi
 import           UserApi
 import           Utils

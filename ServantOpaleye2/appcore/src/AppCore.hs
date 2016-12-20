@@ -12,14 +12,18 @@ module AppCore (
  ,module Utils
 ) where
 
-import UserDefs (User, getTestUser, UserStatus(..), UserIncoming, userTable, UserQuery)
-import RoleDefs (Role, RoleQuery, RoleId, RoleIncoming, roleTable, RoleTableR, RoleTableW)
-import TenantDefs (Tenant, TenantQuery, getTestTenant, TenantStatus(..), tenantTable, TenantIncoming, TenantTableW, TenantTableR)
-import Ids
-import Lenses
-import CryptoDef
-import Auditable
-import OpaleyeDef
-import Utils
-import ApiBase
-import Classes
+import           ApiBase
+import           Auditable
+import           Classes
+import           CryptoDef
+import           Ids
+import           Lenses
+import           OpaleyeDef
+import           RoleDefs   (Role, RoleId, RoleIncoming, RoleQuery, RoleTableR,
+                             RoleTableW, roleTable)
+import           TenantDefs (Tenant, TenantIncoming, TenantQuery,
+                             TenantStatus (..), TenantTableR, TenantTableW,
+                             getTestTenant, tenantTable)
+import           UserDefs   (User, UserIncoming, UserQuery, UserStatus (..),
+                             getTestUser, userTable)
+import           Utils

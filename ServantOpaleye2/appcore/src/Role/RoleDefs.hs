@@ -7,22 +7,22 @@
 
 module RoleDefs where
 
-import           Database.PostgreSQL.Simple.FromField
-import qualified Data.Profunctor.Product.Default      as D
-import           Opaleye
+import           Auditable
 import           Control.Lens
-import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
-import           OpaleyeDef
-import Ids
-import Data.Text
-import Data.Maybe
-import Data.List.NonEmpty
-import           Data.Time                  (UTCTime)
 import           Data.Aeson
-import           Data.Vector
 import           Data.Aeson.Types
+import           Data.List.NonEmpty
+import           Data.Maybe
+import qualified Data.Profunctor.Product.Default      as D
+import           Data.Profunctor.Product.TH           (makeAdaptorAndInstance)
+import           Data.Text
 import           Data.Text.Encoding
-import Auditable
+import           Data.Time                            (UTCTime)
+import           Data.Vector
+import           Database.PostgreSQL.Simple.FromField
+import           Ids
+import           Opaleye
+import           OpaleyeDef
 
 newtype RoleId = RoleId Int
   deriving (Show)

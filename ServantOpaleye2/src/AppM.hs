@@ -1,13 +1,13 @@
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FlexibleInstances #-}
 module AppM where
 
-import AppCore
-import qualified Control.Monad.Reader as R
+import           AppCore
+import           Control.Exception
+import qualified Control.Monad.Reader       as R
+import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Writer
-import Control.Exception
-import Database.PostgreSQL.Simple
-import Control.Monad.Trans.Except
+import           Database.PostgreSQL.Simple
 
 type AppM  = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) (ExceptT SomeException IO))
 

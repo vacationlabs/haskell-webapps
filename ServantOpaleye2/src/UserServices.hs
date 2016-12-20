@@ -1,17 +1,17 @@
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module UserServices where
 
 import           AppCore
 import           Control.Lens
-import           Email
-import qualified Data.Text                  as T
-import           Data.Monoid
 import           Control.Monad.IO.Class
-import           Validations
+import           Data.Monoid
+import qualified Data.Text              as T
+import           Email
 import           TenantApi
+import           Validations
 
-doCreateTenant :: (DbConnection m, MonadIO m) => TenantIncoming -> m (Either T.Text Tenant) 
+doCreateTenant :: (DbConnection m, MonadIO m) => TenantIncoming -> m (Either T.Text Tenant)
 doCreateTenant  incomingTenant = do
   result <- validateIncomingTenant incomingTenant
   case result of

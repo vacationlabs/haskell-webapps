@@ -8,13 +8,13 @@ module CryptoDef
   ) where
 
 import           Crypto.BCrypt
+import           Data.Aeson                           (ToJSON (..), Value (..))
 import           Data.ByteString
 import qualified Data.Profunctor.Product.Default      as D
 import           Data.Text
 import           Data.Text.Encoding
 import           Database.PostgreSQL.Simple.FromField
 import           Opaleye
-import           Data.Aeson (ToJSON(..), Value(..))
 
 newtype BcryptPassword =
   BcryptPassword ByteString

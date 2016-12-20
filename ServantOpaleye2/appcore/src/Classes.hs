@@ -1,16 +1,16 @@
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FlexibleInstances #-}
 module Classes where
 
-import UserDefs
-import TenantDefs
-import qualified Control.Monad.Reader as R
+import           Control.Exception
+import           Control.Monad.IO.Class
+import qualified Control.Monad.Reader       as R
+import           Control.Monad.Trans.Except
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.Writer
-import           Control.Monad.IO.Class
 import           Data.ByteString
-import Control.Exception
-import Database.PostgreSQL.Simple
-import Control.Monad.Trans.Except
+import           Database.PostgreSQL.Simple
+import           TenantDefs
+import           UserDefs
 
 class (Monad m) => CurrentUser m where
   getCurrentUser :: m (Maybe User)
