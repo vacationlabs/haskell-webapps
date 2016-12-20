@@ -11,5 +11,6 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   outline
    getting-started
    a-server-client-architecture
