@@ -24,6 +24,8 @@ library
                       ,UserServices
                       ,Validations
                       ,App
+                      ,Utils
+                      ,Exceptions
   build-depends:       base >= 4.7 && < 5
                        ,servant
                        ,servant-server

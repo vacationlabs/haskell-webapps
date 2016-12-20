@@ -25,8 +25,8 @@ import           Control.Monad.IO.Class
 import           Data.Maybe
 import           GHC.Int
 import           Opaleye
-
 import           Prelude                    hiding (id)
+import Utils
 
 createUser :: UserIncoming -> AppM User
 createUser user = do
@@ -54,9 +54,9 @@ readUsers = readRow userQuery
 readUsersForTenant :: TenantId -> AppM [User]
 readUsersForTenant tenantId = readRow $ userQueryByTenantid tenantId
 
-readUserById :: UserId -> AppM (Maybe User)
+readUserById :: UserId -> AppM User
 readUserById id' = do
-  listToMaybe <$> (readRow $ userQueryById id')
+  (readRow $ userQueryById id') >>= returnOneIfNE "User id not found"
 
 addRoleToUser :: UserId -> RoleId -> AppM [(UserId, RoleId)]
 addRoleToUser userId roleId =

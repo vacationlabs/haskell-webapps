@@ -1,8 +1,7 @@
 module AppCore (
  module UserDefs
- ,module UserId
+ ,module Ids
  ,module TenantDefs
- ,module TenantId
  ,module RoleDefs
  ,module Lenses
  ,module CryptoDef
@@ -16,8 +15,7 @@ module AppCore (
 import UserDefs (User, getTestUser, UserStatus(..), UserIncoming, userTable, UserQuery)
 import RoleDefs (Role, RoleQuery, RoleId, RoleIncoming, roleTable, RoleTableR, RoleTableW)
 import TenantDefs (Tenant, TenantQuery, getTestTenant, TenantStatus(..), tenantTable, TenantIncoming, TenantTableW, TenantTableR)
-import TenantId
-import UserId
+import Ids
 import Lenses
 import CryptoDef
 import Auditable

@@ -19,16 +19,15 @@ import           Control.Lens
 import           Prelude                    hiding (id)
 import           Data.Aeson
 import           Data.Aeson.Types
-import           Control.Monad.IO.Class
 import qualified Data.HashMap.Strict as HM
 
-createRole :: (MonadIO m, DbConnection m) => RoleIncoming -> m Role
+createRole :: (DbConnection m) => RoleIncoming -> m Role
 createRole role = createRow roleTable role
 
-updateRole :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Role -> m Role
+updateRole :: (DbConnection m, CurrentUser m, CurrentTenant m) => Role -> m Role
 updateRole role = updateAuditableRow roleTable role
 
-removeRole :: (MonadIO m, DbConnection m) => Role -> m GHC.Int.Int64
+removeRole :: (DbConnection m) => Role -> m GHC.Int.Int64
 removeRole role = do
   _ <- removeRawDbRows userRolePivotTable (\(_, roleId) -> roleId .== constant (role ^. id))
   removeRawDbRows roleTable matchFunc
@@ -36,7 +35,7 @@ removeRole role = do
     tId = role ^. id
     matchFunc role' = (role' ^. id).== constant tId
 
-readRolesForTenant :: (DbConnection m, MonadIO m) => TenantId -> m [Role]
+readRolesForTenant :: (DbConnection m) => TenantId -> m [Role]
 readRolesForTenant tId = do
   readRow $ roleQueryForTenant tId
 

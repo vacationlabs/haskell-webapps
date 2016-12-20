@@ -19,7 +19,6 @@ import           AppCore
 import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.Reader
-import           Control.Monad.IO.Class
 import           Data.Maybe
 import           Data.Text
 import           GHC.Int
@@ -29,24 +28,24 @@ import           RoleApi
 import           UserApi
 import           Utils
 
-createTenant :: (MonadIO m, DbConnection m) => TenantIncoming -> m Tenant
+createTenant :: (DbConnection m) => TenantIncoming -> m Tenant
 createTenant tenant = do
   createRow tenantTable tenant
 
-activateTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
+activateTenant :: (DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
 activateTenant tenant = setTenantStatus tenant TenantStatusActive
 
-deactivateTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
+deactivateTenant :: (DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
 deactivateTenant tenant = setTenantStatus tenant TenantStatusInActive
 
-setTenantStatus :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> TenantStatus -> m Tenant
+setTenantStatus :: (DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> TenantStatus -> m Tenant
 setTenantStatus tenant st = updateTenant (tenant & status .~ st)
 
-updateTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
+updateTenant :: (DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m Tenant
 updateTenant tenant = do
   updateAuditableRow tenantTable tenant
 
-removeTenant :: (MonadIO m, DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m GHC.Int.Int64
+removeTenant :: (DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m GHC.Int.Int64
 removeTenant tenant = do
   tenant_deac <- deactivateTenant tenant
   _ <- updateTenant (tenant_deac & ownerid .~ Nothing)
@@ -60,14 +59,14 @@ removeTenant tenant = do
     matchFunc :: TenantTableR -> Column PGBool
     matchFunc tenant'  = (tenant' ^. id) .== (constant tid)
 
-readTenants :: (MonadIO m, DbConnection m) =>  m [Tenant]
+readTenants :: (DbConnection m) =>  m [Tenant]
 readTenants = readRow tenantQuery
 
-readTenantById :: (MonadIO m, DbConnection m) => TenantId -> m Tenant
+readTenantById :: (DbConnection m) => TenantId -> m Tenant
 readTenantById tenantId = do
   (readRow $ tenantQueryById tenantId) >>= returnOneIfNE "Tenant id not found"
 
-readTenantByBackofficedomain :: (MonadIO m, DbConnection m) => Text -> m (Maybe Tenant)
+readTenantByBackofficedomain :: (DbConnection m) => Text -> m (Maybe Tenant)
 readTenantByBackofficedomain domain = do
   listToMaybe <$> (readRow (tenantQueryByBackoffocedomain domain))
 
