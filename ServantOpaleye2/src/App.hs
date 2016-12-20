@@ -7,6 +7,7 @@
 module App where
 
 import           AppCore
+import           TenantApi
 import           AppM
 import           Control.Monad.Reader
 import           Control.Monad.Writer
@@ -19,19 +20,22 @@ import           Network.Wai.Handler.Warp
 import           Servant
 import           System.IO
 import           Control.Monad.IO.Class
-import           Database.PostgreSQL.Simple (Connection)
+import           Database.PostgreSQL.Simple 
 import           Control.Exception (SomeException)
 import           Control.Exception.Lifted (handle)
 import           Data.Text.Lazy.Encoding
 import           Data.Text.Lazy (pack)
 
+connectDb :: IO Connection
+connectDb = connect defaultConnectInfo { connectDatabase = "haskell-webapps" }
+
 -- * api
 
 type TenantApi =
-  "item" :> Get '[JSON] String
+  "tenants" :> Get '[JSON] [Tenant]
 
-itemApi :: Proxy TenantApi
-itemApi = Proxy
+tenantApi :: Proxy TenantApi
+tenantApi = Proxy
 
 -- * app
 
@@ -42,32 +46,40 @@ run = do
         setPort port $
         setBeforeMainLoop (hPutStrLn stderr ("listening on port " ++ show port)) $
         defaultSettings
-  runSettings settings =<< mkApp
+  conn <- connectDb
+  runSettings settings =<< (mkApp conn)
 
-mkApp :: IO Application
-mkApp = return $ serve itemApi server
+mkApp :: Connection -> IO Application
+mkApp conn = return $ serve tenantApi (server conn)
 
-server :: Server TenantApi
-server =
-  getTenants
+server :: Connection -> Server TenantApi
+server conn = enter (appmToServantM conn) appMServerT
 
-getTenants :: Handler String
-getTenants = return "Asdasd"
-
-test :: AppM String
-test = return "asasdd"
+appMServerT::ServerT TenantApi AppM
+appMServerT = readTenants
 
 runAppM :: AppM a -> Connection -> IO (Either SomeException (a, String))
 runAppM x conn = do
   user <- getTestUser
   runExceptT $ handle throwE $ runReaderT (runWriterT x) (conn, Just $ getTestTenant, Just $ user)
 
-appmToEither :: Connection -> AppM  :~> EitherT ServantErr IO
-appmToEither conn = Nat (appmToEither' conn)
+appmToServantM :: Connection -> (AppM  :~> ExceptT ServantErr IO)
+appmToServantM conn = Nat (appmToServantM' conn)
 
-appmToEither' :: forall a. Connection -> AppM a  -> EitherT ServantErr IO a
-appmToEither' conn appm = do
+appmToServantM' :: forall a. Connection -> AppM a  -> ExceptT ServantErr IO a
+appmToServantM' conn appm = do
   r <- liftIO $ runAppM appm conn
   case r of
     Right (a, log) -> return a
     Left exp -> throwError err500 { errBody = encodeUtf8.pack $ show exp}
+
+--type ReaderAPI = "a" :> Get '[JSON] Int
+--
+--readerAPI :: Proxy ReaderAPI
+--readerAPI = Proxy
+--
+--readerServerT :: ServerT ReaderAPI (Reader String)
+--readerServerT = a
+--
+--  where a :: Reader String Int
+--        a = return 1797

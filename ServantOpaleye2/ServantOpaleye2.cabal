@@ -16,7 +16,6 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     AppM
-                      ,App
                       ,Conf
                       ,Email
                       ,RoleApi
