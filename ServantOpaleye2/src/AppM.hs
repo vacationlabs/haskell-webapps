@@ -11,7 +11,7 @@ import           Database.PostgreSQL.Simple
 import           Control.Monad.Catch
 import           Control.Monad.Trans.Class
 
-type AppM  = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) (ExceptT SomeException IO))
+type AppM = WriterT String (ReaderT (Connection, Maybe Tenant, Maybe User) (ExceptT SomeException IO))
 
 instance CurrentUser AppM where
   getCurrentUser = do
