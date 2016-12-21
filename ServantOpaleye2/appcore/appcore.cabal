@@ -50,6 +50,7 @@ library
                        , unordered-containers
                        , bcrypt
                        , mtl
+                       , exceptions
   default-language:    Haskell2010
 
 test-suite appcore-test

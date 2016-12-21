@@ -1,9 +1,9 @@
 module Utils where
 
 import           AppM
-import           Control.Exception
+import           Control.Monad.Catch
 import           Exceptions
 
-returnOneIfNE :: (Monad m) => String -> [a] -> m a
+returnOneIfNE :: (MonadThrow m) => String -> [a] -> m a
 returnOneIfNE _ (x:_) = return x
-returnOneIfNE msg _   = throw $ NotFoundException msg
+returnOneIfNE msg _   = throwM $ NotFoundException msg

@@ -18,7 +18,6 @@ module UserApi
   ) where
 
 import           AppCore
-import           AppM
 import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.IO.Class
@@ -28,41 +27,41 @@ import           Opaleye
 import           Prelude                hiding (id)
 import           Utils
 
-createUser :: UserIncoming -> AppM User
+createUser :: (DbConnection m) => UserIncoming -> m User
 createUser user = do
   Just hash <- liftIO $ bcryptPassword $ user ^. password
   createRow userTable (fillPassword user hash)
 
-updateUser :: User -> AppM User
+updateUser :: (DbConnection m, CurrentTenant m, CurrentUser m) => User -> m User
 updateUser user = updateAuditableRow userTable user
 
-activateUser :: User -> AppM User
+activateUser :: (DbConnection m, CurrentUser m, CurrentTenant m) => User -> m User
 activateUser user = setUserStatus user UserStatusActive
 
-deactivateUser :: User -> AppM User
+deactivateUser :: (DbConnection m, CurrentUser m, CurrentTenant m) => User -> m User
 deactivateUser user = setUserStatus user UserStatusInActive
 
-setUserStatus :: User -> UserStatus -> AppM User
+setUserStatus :: (DbConnection m, CurrentTenant m, CurrentUser m) => User -> UserStatus -> m User
 setUserStatus user newStatus = updateUser $ user & status .~ newStatus
 
-removeUser :: User -> AppM GHC.Int.Int64
+removeUser :: (DbConnection m) => User -> m GHC.Int.Int64
 removeUser user = removeAuditableRow userTable user
 
-readUsers :: AppM [User]
+readUsers :: (DbConnection m) => m [User]
 readUsers = readRow userQuery
 
-readUsersForTenant :: TenantId -> AppM [User]
+readUsersForTenant :: (DbConnection m) => TenantId -> m [User]
 readUsersForTenant tenantId = readRow $ userQueryByTenantid tenantId
 
-readUserById :: UserId -> AppM User
+readUserById :: (DbConnection m) => UserId -> m User
 readUserById id' = do
   (readRow $ userQueryById id') >>= returnOneIfNE "User id not found"
 
-addRoleToUser :: UserId -> RoleId -> AppM [(UserId, RoleId)]
+addRoleToUser :: (DbConnection m) => UserId -> RoleId -> m [(UserId, RoleId)]
 addRoleToUser userId roleId =
   createDbRows userRolePivotTable [(constant (userId, roleId))]
 
-removeRoleFromUser :: UserId -> RoleId -> AppM GHC.Int.Int64
+removeRoleFromUser :: (DbConnection m) => UserId -> RoleId -> m GHC.Int.Int64
 removeRoleFromUser tUserId tRoleId = removeRawDbRows userRolePivotTable
     (\(userId, roleId) -> (userId .== constant tUserId) .&& (roleId .== constant tRoleId))
 

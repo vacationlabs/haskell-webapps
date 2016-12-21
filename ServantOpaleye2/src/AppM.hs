@@ -28,5 +28,5 @@ instance DbConnection AppM where
     (conn, tenant, _) <- R.ask
     return conn
 
-instance MonadThrow AppM where
-  throwM e = lift $ lift $ ExceptT (return $ Left $ SomeException e)
+--instance MonadThrow AppM where
+--  throwM e = lift $ lift $ ExceptT (return $ Left $ SomeException e)
