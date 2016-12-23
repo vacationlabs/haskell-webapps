@@ -5,6 +5,7 @@
 module CryptoDef
   ( BcryptPassword
   , bcryptPassword
+  , verifyPassword
   ) where
 
 import           Crypto.BCrypt
@@ -23,8 +24,14 @@ newtype BcryptPassword =
 bcryptPassword :: Text -> IO (Maybe BcryptPassword)
 bcryptPassword password = do
   hash <-
-    hashPasswordUsingPolicy slowerBcryptHashingPolicy (encodeUtf8 password)
+    hashPasswordUsingPolicy slowerBcryptHashingPolicy $ encode password
   return $ BcryptPassword <$> hash
+
+verifyPassword :: Text -> BcryptPassword -> Bool
+verifyPassword password (BcryptPassword hash) = validatePassword hash (encode password)
+
+encode :: Text -> ByteString
+encode password = encodeUtf8 password
 
 instance D.Default Constant (BcryptPassword) (Column PGBytea) where
   def = Constant def'

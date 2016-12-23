@@ -15,6 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
+                       src/Endpoints
   exposed-modules:     AppM
                       ,Conf
                       ,Email
@@ -26,6 +27,8 @@ library
                       ,App
                       ,Utils
                       ,Exceptions
+                      ,Endpoints.Tenant
+                      ,Endpoints.Authentication
   build-depends:       base >= 4.7 && < 5
                        ,servant
                        ,servant-server

@@ -29,7 +29,7 @@ library
                        ,RoleDefs
                        ,Lenses
                        ,Ids
-                       ,Utils
+                       ,Helpers
                        ,InternalUtils
                        ,ApiBase
                        ,Classes

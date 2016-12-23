@@ -9,7 +9,7 @@ module AppCore (
  ,module ApiBase
  ,module OpaleyeDef
  ,module Classes
- ,module Utils
+ ,module Helpers
 ) where
 
 import           ApiBase
@@ -26,4 +26,4 @@ import           TenantDefs (Tenant, TenantIncoming, TenantQuery,
                              getTestTenant, tenantTable)
 import           UserDefs   (User, UserIncoming, UserQuery, UserStatus (..),
                              getTestUser, userTable)
-import           Utils
+import           Helpers

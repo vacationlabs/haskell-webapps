@@ -9,9 +9,11 @@ import           Data.Monoid
 import qualified Data.Text              as T
 import           Email
 import           TenantApi
+import           UserApi
 import           Validations
+import           Servant
 
-doCreateTenant :: (DbConnection m, MonadIO m) => TenantIncoming -> m (Either T.Text Tenant)
+doCreateTenant :: (DbConnection m) => TenantIncoming -> m (Either T.Text Tenant)
 doCreateTenant  incomingTenant = do
   result <- validateIncomingTenant incomingTenant
   case result of
@@ -22,3 +24,15 @@ doCreateTenant  incomingTenant = do
          liftIO $ sendTenantActivationMail newTenant
          return $ Right newTenant
     Invalid err -> return $ Left $ T.concat ["Validation fail with ", T.pack err]
+
+--doAuthenticate :: (DbConnection m) => T.Text -> T.Text -> m Bool
+--doAuthenticate username pass = do
+--  users <- readUserByName username
+--  -- FIXME: do this in constant time 
+--  if (checkPassword users) 
+--    then addHeader "SetCookie" ("asdasdadad"::String)
+--    else addHeader "SetCookie" (""::String)
+--  where
+--    checkPassword :: [User] -> Bool
+--    checkPassword (u:_) = verifyPassword pass (u ^. password)
+--    checkPassword [] = False

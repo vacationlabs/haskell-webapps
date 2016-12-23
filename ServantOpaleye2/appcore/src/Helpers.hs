@@ -1,4 +1,4 @@
-module Utils where
+module Helpers where
 
 import           CryptoDef
 import           Data.Text

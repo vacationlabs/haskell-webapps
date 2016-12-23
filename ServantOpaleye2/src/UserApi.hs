@@ -8,6 +8,7 @@ module UserApi
   ( createUser
   , readUsers
   , readUserById
+  , readUserByName
   , readUsersForTenant
   , addRoleToUser
   , removeRoleFromUser
@@ -22,6 +23,7 @@ import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.IO.Class
 import           Data.Maybe
+import           Data.Text
 import           GHC.Int
 import           Opaleye
 import           Prelude                hiding (id)
@@ -57,6 +59,9 @@ readUserById :: (DbConnection m) => UserId -> m User
 readUserById id' = do
   (readRow $ userQueryById id') >>= returnOneIfNE "User id not found"
 
+readUserByName :: (DbConnection m) => Text -> m [User]
+readUserByName uname = readRow $ userQueryByUsername uname 
+
 addRoleToUser :: (DbConnection m) => UserId -> RoleId -> m [(UserId, RoleId)]
 addRoleToUser userId roleId =
   createDbRows userRolePivotTable [(constant (userId, roleId))]
@@ -78,4 +83,10 @@ userQueryByTenantid :: TenantId -> UserQuery
 userQueryByTenantid tTenantid = proc () -> do
   user <- userQuery -< ()
   restrict -< (user ^. tenantid) .== (constant tTenantid)
+  returnA -< user
+
+userQueryByUsername :: Text -> UserQuery
+userQueryByUsername uname = proc () -> do
+  user <- userQuery -< ()
+  restrict -< ((user ^. username) .== (constant uname)) 
   returnA -< user
