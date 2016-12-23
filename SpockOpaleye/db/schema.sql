@@ -34,7 +34,7 @@ create table users(
        ,updated_at timestamp with time zone not null default current_timestamp
        ,tenant_id integer not null references tenants(id)
        ,username text not null
-       ,password text not null
+       ,password bytea not null
        ,first_name text
        ,last_name text
        ,status user_status not null default 'inactive'

@@ -32,6 +32,8 @@ library
   build-depends:       base >= 4.7 && < 5
                        ,servant
                        ,servant-server
+                       ,servant-auth-cookie
+                       ,cookie
                        ,either
                        ,transformers
                        ,aeson

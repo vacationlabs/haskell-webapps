@@ -49,10 +49,10 @@ removeTenant :: (DbConnection m, CurrentUser m, CurrentTenant m) => Tenant -> m 
 removeTenant tenant = do
   tenant_deac <- deactivateTenant tenant
   _ <- updateTenant (tenant_deac & ownerid .~ Nothing)
-  --usersForTenant <- readUsersForTenant tid
-  --rolesForTenant <- readRolesForTenant tid
-  --mapM_ removeRole rolesForTenant
-  --mapM_ removeUser usersForTenant
+  usersForTenant <- readUsersForTenant tid
+  rolesForTenant <- readRolesForTenant tid
+  mapM_ removeRole rolesForTenant
+  mapM_ removeUser usersForTenant
   removeRawDbRows tenantTable matchFunc
   where
     tid = tenant ^. id

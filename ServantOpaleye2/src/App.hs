@@ -46,7 +46,7 @@ tenantApi = Proxy
 authCheck :: BasicAuthCheck String
 authCheck =
   let check (BasicAuthData username password) =
-        return (Authorized "servant")
+        return (Unauthorized)
   in BasicAuthCheck check
 
 basicAuthServerContext :: Context (BasicAuthCheck String ': '[])

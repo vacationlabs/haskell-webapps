@@ -24,6 +24,7 @@ import           RoleDefs   (Role, RoleId, RoleIncoming, RoleQuery, RoleTableR,
 import           TenantDefs (Tenant, TenantIncoming, TenantQuery,
                              TenantStatus (..), TenantTableR, TenantTableW,
                              getTestTenant, tenantTable)
-import           UserDefs   (User, UserIncoming, UserQuery, UserStatus (..),
+-- FIXME: Don't export userpoly
+import           UserDefs   (UserPoly(..), User, UserIncoming, UserQuery, UserStatus (..),
                              getTestUser, userTable)
 import           Helpers
