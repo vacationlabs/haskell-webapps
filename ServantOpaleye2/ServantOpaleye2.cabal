@@ -33,6 +33,9 @@ library
                        ,servant
                        ,servant-server
                        ,servant-auth-cookie
+                       ,data-default
+                       ,cryptonite
+                       ,cereal
                        ,cookie
                        ,either
                        ,transformers

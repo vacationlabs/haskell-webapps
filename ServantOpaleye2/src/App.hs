@@ -17,6 +17,7 @@ import           Control.Monad.Trans.Either
 import           Control.Monad.Trans.Except
 import           Control.Monad.Writer
 import           Data.Aeson
+import           Data.Default
 import           Data.Text.Lazy             (pack)
 import           Data.Text.Lazy.Encoding
 import           Database.PostgreSQL.Simple hiding ((:.))
@@ -26,6 +27,10 @@ import           Network.Wai.Handler.Warp
 import           Servant
 import           System.IO
 import           TenantApi
+
+import           Servant.Server.Experimental.Auth (AuthHandler)
+import           Servant.Server.Experimental.Auth.Cookie
+import           Crypto.Random (drgNew)
 
 import qualified Endpoints.Authentication as AuthenticationEp
 import qualified Endpoints.Tenant as TenantEp
@@ -43,14 +48,14 @@ tenantApi = Proxy
 
 -- * app
 
-authCheck :: BasicAuthCheck String
-authCheck =
-  let check (BasicAuthData username password) =
-        return (Unauthorized)
-  in BasicAuthCheck check
-
-basicAuthServerContext :: Context (BasicAuthCheck String ': '[])
-basicAuthServerContext = authCheck :. EmptyContext
+--authCheck :: BasicAuthCheck String
+--authCheck =
+--  let check (BasicAuthData username password) =
+--        return (Unauthorized)
+--  in BasicAuthCheck check
+--
+--basicAuthServerContext :: Context (BasicAuthCheck String ': '[])
+--basicAuthServerContext = authCheck :. EmptyContext
 
 run :: IO ()
 run = do
@@ -63,16 +68,20 @@ run = do
   runSettings settings =<< (mkApp conn)
 
 mkApp :: Connection -> IO Application
-mkApp conn = return $ serveWithContext 
+mkApp conn = do
+  rs <- mkRandomSource drgNew 1000
+  sk <- mkServerKey 16 Nothing
+  let settings = def
+  return $ serveWithContext 
                             tenantApi
-                            basicAuthServerContext 
-                            (server conn)
+                            ((defaultAuthHandler settings sk :: AuthHandler Request CookieData) :. EmptyContext)
+                            (server conn settings {acsCookieFlags = []} rs sk)
 
-server :: Connection -> Server TenantApi
-server conn = enter (appmToServantM conn) appMServerT
+server :: Connection -> AuthCookieSettings -> RandomSource -> ServerKey -> Server TenantApi
+server conn ac rs sk = enter (appmToServantM conn) (appMServerT ac rs sk)
 
-appMServerT::ServerT TenantApi AppM
-appMServerT = AuthenticationEp.server :<|> TenantEp.server
+appMServerT :: AuthCookieSettings -> RandomSource -> ServerKey -> ServerT TenantApi AppM
+appMServerT ac rs sk = (AuthenticationEp.server ac rs sk) :<|> TenantEp.server
 
 runAppM :: AppM a -> Connection -> IO (Either SomeException (a, String))
 runAppM x conn = do

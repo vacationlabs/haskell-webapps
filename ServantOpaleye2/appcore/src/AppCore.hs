@@ -10,6 +10,7 @@ module AppCore (
  ,module OpaleyeDef
  ,module Classes
  ,module Helpers
+ ,module DataTypes.Authentication
 ) where
 
 import           ApiBase
@@ -28,3 +29,4 @@ import           TenantDefs (Tenant, TenantIncoming, TenantQuery,
 import           UserDefs   (UserPoly(..), User, UserIncoming, UserQuery, UserStatus (..),
                              getTestUser, userTable)
 import           Helpers
+import           DataTypes.Authentication

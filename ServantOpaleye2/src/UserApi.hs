@@ -16,6 +16,7 @@ module UserApi
   , removeUser
   , activateUser
   , deactivateUser
+  , authenticateUser
   ) where
 
 import           AppCore
@@ -90,3 +91,16 @@ userQueryByUsername uname = proc () -> do
   user <- userQuery -< ()
   restrict -< ((user ^. username) .== (constant uname)) 
   returnA -< user
+
+authenticateUser :: (DbConnection m) => Text -> Text -> m (Either String User)
+authenticateUser username pass = do
+  users <- readUserByName username
+  return (checkPassword users) 
+  where
+    -- FIXME: do this in constant time 
+    checkPassword :: [User] -> Either String User
+    checkPassword (u:_) = if verifyPassword pass (u ^. password) 
+      then (Right u)
+      else fail
+    checkPassword [] = fail
+    fail = Left "Authentication fail"

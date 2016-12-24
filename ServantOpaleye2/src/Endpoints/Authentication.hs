@@ -3,41 +3,46 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE OverloadedStrings   #-}
 
-module Endpoints.Authentication (
-  Type
-  ,server
-) where
+module Endpoints.Authentication  where
 
 import           Servant
 import           AppM
-import           Data.Aeson
 import           Data.Text
-import           UserServices
+import           Data.ByteString
+import           UserApi
 import           Control.Monad.IO.Class
+import           AppCore
+import           Prelude hiding (id)
+import           Control.Lens
+import Servant.Server.Experimental.Auth.Cookie
 
-data LoginInfo = LoginInfo Text Text
-
-instance FromJSON LoginInfo where
-  parseJSON (Object v) = LoginInfo <$> 
-    v .: "username" <*>
-    v .: "password"
+type instance AuthCookieData = CookieData
 
 type Type =
-        "login" :> ReqBody '[JSON] LoginInfo :> Post '[JSON] (Headers '[Header "Set-Cookie" String] String)
+        "login" :> ReqBody '[JSON] LoginInfo :> Post '[JSON] (Headers '[Header "set-cookie" ByteString] String)
+   :<|> "protected" :> AuthProtect "cookie-auth" :> Get '[JSON] String
 
-login :: LoginInfo -> AppM (Headers '[Header "Set-Cookie" String] String)
-login (LoginInfo uname pword) = do
-  cookie <- getCookie
-  (addHeader cookie) <$> login'
+login :: AuthCookieSettings -> RandomSource -> ServerKey -> LoginInfo -> AppM (Headers '[Header "set-cookie" ByteString] String)
+login ac rs sk (LoginInfo uname pword) = do
+  authResult <- (authenticateUser uname pword)
+  case authResult of
+    Right user -> (addSession
+        ac
+        rs
+        sk
+        (CookieData (user ^. id) [])
+        login'
+      ) 
+    _ -> return $ addHeader "Unauthenticated" login'
   where 
-    getCookie :: AppM String
-    getCookie = do
-      isValid <- (doAuthenticate uname pword)
-      return $ if isValid then "Authenticated=True" else "Authenticated=False"
-    login' :: (Monad m) => m String
-    login' = return "test"
+    login' :: String
+    login' = "test"
 
-server::ServerT Type AppM
-server = login
+protectedPage :: CookieData -> AppM String
+protectedPage (CookieData (UserId i) _) = return "asdaa"
+
+server:: AuthCookieSettings -> RandomSource -> ServerKey -> ServerT Type AppM
+server ac rs sk = login ac rs sk :<|> protectedPage

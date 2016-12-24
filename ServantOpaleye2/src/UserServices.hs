@@ -19,18 +19,6 @@ doCreateTenant  incomingTenant = do
   case result of
     Valid -> do
          newTenant <- createTenant incomingTenant
-         f <- return (head [])
-         liftIO $ putStrLn f
          liftIO $ sendTenantActivationMail newTenant
          return $ Right newTenant
     Invalid err -> return $ Left $ T.concat ["Validation fail with ", T.pack err]
-
-doAuthenticate :: (DbConnection m) => T.Text -> T.Text -> m Bool
-doAuthenticate username pass = do
-  users <- readUserByName username
-  return (checkPassword users) 
-  where
-    -- FIXME: do this in constant time 
-    checkPassword :: [User] -> Bool
-    checkPassword (u:_) = verifyPassword pass (u ^. password)
-    checkPassword [] = False

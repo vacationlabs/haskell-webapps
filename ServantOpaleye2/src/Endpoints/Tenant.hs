@@ -16,10 +16,10 @@ import           AppCore
 import           TenantApi
 import           UserApi
 
-type Type = "tenants" :> BasicAuth "foo-realm" String :> Get '[JSON] [Tenant]
+type Type = "tenants" :> Get '[JSON] [Tenant]
 
-allTenants :: String -> AppM [Tenant]
-allTenants s = readTenants
+allTenants :: AppM [Tenant]
+allTenants = readTenants
 
 server::ServerT Type AppM
 server = allTenants
