@@ -1,8 +1,11 @@
+{-# LANGUAGE OverloadedStrings   #-}
+
 module DataTypes.Authentication where
 
 import           Data.Serialize hiding (Get)
 import           Ids
 import           Data.Aeson
+import           Data.Text
 
 data CookieData = CookieData UserId [String] deriving (Show)
 
@@ -16,4 +19,3 @@ instance FromJSON LoginInfo where
   parseJSON (Object v) = LoginInfo <$> 
     v .: "username" <*>
     v .: "password"
-
