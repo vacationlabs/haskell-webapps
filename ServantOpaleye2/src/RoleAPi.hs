@@ -39,8 +39,6 @@ readRolesForTenant :: (DbConnection m) => TenantId -> m [Role]
 readRolesForTenant tId = do
   readRow $ roleQueryForTenant tId
 
-roleQuery :: RoleQuery
-roleQuery = queryTable roleTable
 
 roleQueryForTenant :: TenantId -> RoleQuery
 roleQueryForTenant tTenantid =

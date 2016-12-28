@@ -197,7 +197,7 @@ readRow :: (
   MonadIO m
   , DbConnection m
   , D.Default QueryRunner columnsR haskells) =>
-  Opaleye.Query columnsR -> m [Auditable haskells]
+  Opaleye.Query columnsR -> m [haskells]
 readRow query' = do
   conn <- getConnection
-  liftIO $ wrapAuditable $ runQuery conn query'
+  liftIO $ runQuery conn query'

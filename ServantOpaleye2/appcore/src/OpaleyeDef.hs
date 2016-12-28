@@ -20,6 +20,8 @@ import           Opaleye
 
 import           Control.Lens
 import           Data.Vector
+import           Auditable
+import           InternalUtils
 
 readOnly :: String -> TableProperties () (Column a)
 readOnly = lmap (const Nothing) . optional
@@ -86,3 +88,6 @@ instance D.Default Constant UTCTime (Maybe (Column PGTimestamptz)) where
 
 instance QueryRunnerColumnDefault PGTimestamptz (Maybe UTCTime) where
   queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+instance (D.Default QueryRunner columnsR haskells) => D.Default QueryRunner columnsR (Auditable haskells) where
+  def = auditable <$> D.def 

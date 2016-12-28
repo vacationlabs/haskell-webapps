@@ -11,6 +11,8 @@ module AppCore (
  ,module Classes
  ,module Helpers
  ,module DataTypes.Authentication
+ ,module InternalUtils
+ ,module Queries
 ) where
 
 import           ApiBase
@@ -20,13 +22,17 @@ import           CryptoDef
 import           Ids
 import           Lenses
 import           OpaleyeDef
-import           RoleDefs   (Role, RoleId, RoleIncoming, RoleQuery, RoleTableR,
+import           RoleDefs   (Role, RoleId, RoleIncoming, RoleTableR,
                              RoleTableW, roleTable)
-import           TenantDefs (Tenant, TenantIncoming, TenantQuery,
+import           TenantDefs (Tenant, TenantIncoming,
                              TenantStatus (..), TenantTableR, TenantTableW,
                              getTestTenant, tenantTable)
 -- FIXME: Don't export userpoly
-import           UserDefs   (UserPoly(..), User, UserIncoming, UserQuery, UserStatus (..),
+import           UserDefs   (UserPoly(..), User, UserIncoming, UserStatus (..),
                              getTestUser, userTable)
 import           Helpers
 import           DataTypes.Authentication
+-- FIXME: Don't export Internalutls
+import           InternalUtils
+
+import           Queries

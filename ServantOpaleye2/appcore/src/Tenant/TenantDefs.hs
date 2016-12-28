@@ -74,7 +74,6 @@ type TenantTableR = TenantPoly
   (Column (Nullable PGInt4))
   (Column PGText)
 
-type TenantQuery = Query TenantTableR
 
 $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
 

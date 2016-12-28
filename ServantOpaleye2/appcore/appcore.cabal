@@ -34,6 +34,7 @@ library
                        ,InternalUtils
                        ,ApiBase
                        ,Classes
+                       ,Queries
                        ,DataTypes.Authentication
   build-depends:       base >= 4.7 && < 5
                        , aeson

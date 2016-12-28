@@ -28,11 +28,11 @@ login :: AuthCookieSettings -> RandomSource -> ServerKey -> LoginInfo -> AppM (H
 login ac rs sk (LoginInfo uname pword) = do
   authResult <- (authenticateUser uname pword)
   case authResult of
-    Right user -> (addSession
+    Right (user, roles) -> (addSession
         ac
         rs
         sk
-        (CookieData (user ^. id) [])
+        (CookieData (user ^. id) (user ^. username) roles)
         login'
       ) 
     _ -> return $ addHeader (EncryptedSession "Unauthenticated") login'
@@ -41,7 +41,7 @@ login ac rs sk (LoginInfo uname pword) = do
     login' = "test"
 
 protectedPage :: CookieData -> AppM String
-protectedPage (CookieData (UserId i) _) = return "asdaa"
+protectedPage (CookieData (UserId i) _ _) = return "asdaa"
 
 server:: AuthCookieSettings -> RandomSource -> ServerKey -> ServerT Type AppM
 server ac rs sk = login ac rs sk :<|> protectedPage

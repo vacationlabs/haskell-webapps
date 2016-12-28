@@ -4,6 +4,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 module Endpoints.Tenant (
   Type
@@ -16,10 +17,14 @@ import           AppCore
 import           TenantApi
 import           UserApi
 
-type Type = "tenants" :> Get '[JSON] [Tenant]
+import Servant.Server.Experimental.Auth.Cookie
 
-allTenants :: AppM [Tenant]
-allTenants = readTenants
+type instance AuthCookieData = CookieData
+
+type Type = "tenants" :> AuthProtect "cookie-auth" :> Get '[JSON] [Tenant]
+
+allTenants :: CookieData -> AppM [Tenant]
+allTenants _ = readTenants
 
 server::ServerT Type AppM
 server = allTenants

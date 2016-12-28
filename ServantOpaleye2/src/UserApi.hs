@@ -24,10 +24,10 @@ import           Control.Arrow
 import           Control.Lens
 import           Control.Monad.IO.Class
 import           Data.Maybe
-import           Data.Text
+import           Data.Text              hiding (filter, null)
 import           GHC.Int
 import           Opaleye
-import           Prelude                hiding (id)
+import           Prelude                hiding (id, null)
 import           Utils
 
 createUser :: (DbConnection m) => UserIncoming -> m User
@@ -63,6 +63,29 @@ readUserById id' = do
 readUserByName :: (DbConnection m) => Text -> m [User]
 readUserByName uname = readRow $ userQueryByUsername uname 
 
+readUserAndRoles :: (DbConnection m) => Text -> m (Maybe (User, [RoleId]))
+readUserAndRoles uname = groupRows <$> (readRow query) 
+  where
+    groupRows :: [(User, Maybe RoleId)] -> Maybe (User, [RoleId])
+    groupRows [] = Nothing
+    groupRows x = groupRows' x
+      where
+        groupRows' :: [(User, Maybe RoleId)] -> Maybe (User, [RoleId])
+        groupRows' ur@((u,_):_) = Just (u, fromJust <$> (filter isNothing $ snd <$> ur))
+    userTenant :: Query (UserTableR, (Column PGInt4))
+    userTenant = joinF 
+      (\u t -> (u, t ^. id))
+      (\u t -> u ^. tenantid .== t ^. id)
+      (userQueryByUsername uname)
+      tenantQuery
+    query :: Query (UserTableR, Column (Nullable PGInt4))
+    query = leftJoinF
+      (\(u, tid) r -> (u, toNullable (r ^. id)))
+      (\(u, tid) -> (u, null))
+      (\(u, tid) r -> tid .== r ^. tenantid)
+      userTenant
+      roleQuery
+
 addRoleToUser :: (DbConnection m) => UserId -> RoleId -> m [(UserId, RoleId)]
 addRoleToUser userId roleId =
   createDbRows userRolePivotTable [(constant (userId, roleId))]
@@ -70,9 +93,6 @@ addRoleToUser userId roleId =
 removeRoleFromUser :: (DbConnection m) => UserId -> RoleId -> m GHC.Int.Int64
 removeRoleFromUser tUserId tRoleId = removeRawDbRows userRolePivotTable
     (\(userId, roleId) -> (userId .== constant tUserId) .&& (roleId .== constant tRoleId))
-
-userQuery :: UserQuery
-userQuery = queryTable userTable
 
 userQueryById :: UserId -> UserQuery
 userQueryById tId = proc () -> do
@@ -92,15 +112,15 @@ userQueryByUsername uname = proc () -> do
   restrict -< ((user ^. username) .== (constant uname)) 
   returnA -< user
 
-authenticateUser :: (DbConnection m) => Text -> Text -> m (Either String User)
+authenticateUser :: (DbConnection m) => Text -> Text -> m (Either String (User, [RoleId]))
 authenticateUser username pass = do
-  users <- readUserByName username
+  users <- readUserAndRoles username
   return (checkPassword users) 
   where
     -- FIXME: do this in constant time 
-    checkPassword :: [User] -> Either String User
-    checkPassword (u:_) = if verifyPassword pass (u ^. password) 
-      then (Right u)
+    checkPassword :: Maybe (User, [RoleId])  -> Either String (User, [RoleId])
+    checkPassword (Just (u, r)) = if verifyPassword pass (u ^. password) 
+      then Right (u, r)
       else fail
-    checkPassword [] = fail
+    checkPassword Nothing = fail
     fail = Left "Authentication fail"

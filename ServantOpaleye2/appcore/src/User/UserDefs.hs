@@ -83,7 +83,6 @@ data UserStatus = UserStatusActive | UserStatusInActive | UserStatusBlocked
 
 type InternalUser = UserPoly UserId UTCTime UTCTime TenantId Text BcryptPassword (Maybe Text) (Maybe Text) UserStatus
 type User = Auditable InternalUser
-type UserQuery = Query UserTableR
 
 getTestUser :: IO User
 getTestUser = do

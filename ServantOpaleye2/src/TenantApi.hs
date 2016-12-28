@@ -70,8 +70,6 @@ readTenantByBackofficedomain :: (DbConnection m) => Text -> m (Maybe Tenant)
 readTenantByBackofficedomain domain = do
   listToMaybe <$> (readRow (tenantQueryByBackoffocedomain domain))
 
-tenantQuery :: TenantQuery
-tenantQuery = queryTable tenantTable
 
 tenantQueryById :: TenantId -> TenantQuery
 tenantQueryById tId = proc () -> do
