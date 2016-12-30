@@ -34,17 +34,19 @@ import           Crypto.Random (drgNew)
 
 import qualified Endpoints.Authentication as AuthenticationEp
 import qualified Endpoints.Tenant as TenantEp
+import qualified Endpoints.User as UserEp
+import qualified Endpoints.Role as RoleEp
 
 connectDb :: IO Connection
 connectDb = connect defaultConnectInfo { connectDatabase = "haskell-webapps" }
 
 -- * api
 
-type TenantApi = AuthenticationEp.Type :<|> TenantEp.Type
+type Api = AuthenticationEp.Type :<|> TenantEp.Type :<|> UserEp.Type :<|> RoleEp.Type
 
 
-tenantApi :: Proxy TenantApi
-tenantApi = Proxy
+api :: Proxy Api
+api = Proxy
 
 -- * app
 
@@ -73,15 +75,15 @@ mkApp conn = do
   sk <- mkServerKey 16 Nothing
   let settings = def
   return $ serveWithContext 
-                            tenantApi
+                            api
                             ((defaultAuthHandler settings sk :: AuthHandler Request CookieData) :. EmptyContext)
                             (server conn settings {acsCookieFlags = []} rs sk)
 
-server :: Connection -> AuthCookieSettings -> RandomSource -> ServerKey -> Server TenantApi
+server :: Connection -> AuthCookieSettings -> RandomSource -> ServerKey -> Server Api
 server conn ac rs sk = enter (appmToServantM conn) (appMServerT ac rs sk)
 
-appMServerT :: AuthCookieSettings -> RandomSource -> ServerKey -> ServerT TenantApi AppM
-appMServerT ac rs sk = (AuthenticationEp.server ac rs sk) :<|> TenantEp.server
+appMServerT :: AuthCookieSettings -> RandomSource -> ServerKey -> ServerT Api AppM
+appMServerT ac rs sk = (AuthenticationEp.server ac rs sk) :<|> TenantEp.server :<|> UserEp.server :<|> RoleEp.server
 
 runAppM :: AppM a -> Connection -> IO (Either SomeException (a, String))
 runAppM x conn = do

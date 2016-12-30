@@ -22,7 +22,6 @@ type instance AuthCookieData = CookieData
 
 type Type =
         "login" :> ReqBody '[JSON] LoginInfo :> Post '[JSON] (Headers '[Header "set-cookie" EncryptedSession] String)
-   :<|> "protected" :> AuthProtect "cookie-auth" :> Get '[JSON] String
 
 login :: AuthCookieSettings -> RandomSource -> ServerKey -> LoginInfo -> AppM (Headers '[Header "set-cookie" EncryptedSession] String)
 login ac rs sk (LoginInfo uname pword) = do
@@ -40,8 +39,5 @@ login ac rs sk (LoginInfo uname pword) = do
     login' :: String
     login' = "test"
 
-protectedPage :: CookieData -> AppM String
-protectedPage (CookieData (UserId i) _ _) = return "asdaa"
-
 server:: AuthCookieSettings -> RandomSource -> ServerKey -> ServerT Type AppM
-server ac rs sk = login ac rs sk :<|> protectedPage
+server ac rs sk = login ac rs sk

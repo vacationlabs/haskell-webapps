@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric          #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -11,6 +12,7 @@ import           Auditable
 import           Control.Lens
 import           Data.Aeson
 import           Data.Aeson.Types
+import           Data.Char
 import           Data.List.NonEmpty
 import           Data.Maybe
 import qualified Data.Profunctor.Product.Default      as D
@@ -23,9 +25,12 @@ import           Database.PostgreSQL.Simple.FromField
 import           Ids
 import           Opaleye
 import           OpaleyeDef
+import           GHC.Generics
 
 newtype RoleId = RoleId Int
   deriving (Show)
+
+newtype RoleName = RoleName Text deriving (Show)
 
 data RolePoly key tenant_id name permission created_at updated_at  = Role {
     _rolepolyId         :: key
@@ -34,18 +39,18 @@ data RolePoly key tenant_id name permission created_at updated_at  = Role {
   , _rolepolyPermission :: permission
   , _rolepolyCreatedat  :: created_at
   , _rolepolyUpdatedat  :: updated_at
-} deriving (Show)
+} deriving (Show, Generic)
 
 $(makeAdaptorAndInstance "pRole" ''RolePoly)
 
-type InternalRole = RolePoly RoleId TenantId Text (NonEmpty Permission) UTCTime UTCTime
+type InternalRole = RolePoly RoleId TenantId RoleName (NonEmpty Permission) UTCTime UTCTime
 type Role = Auditable InternalRole
-type RoleIncoming = RolePoly () TenantId Text (NonEmpty Permission) () ()
+type RoleIncoming = RolePoly () TenantId RoleName (NonEmpty Permission) () ()
 
 type RoleTableW = RolePoly
   ()
   (Column PGInt4)
-  (Column PGText)
+  (Column RoleName)
   (Column (PGArray PGText))
   (Maybe (Column PGTimestamptz)) -- createdAt
   (Column PGTimestamptz) -- updatedAt
@@ -53,7 +58,7 @@ type RoleTableW = RolePoly
 type RoleTableR = RolePoly
   (Column PGInt4)
   (Column PGInt4)
-  (Column PGText)
+  (Column RoleName)
   (Column (PGArray PGText))
   (Column PGTimestamptz) -- createdAt
   (Column PGTimestamptz) -- updatedAt
@@ -134,3 +139,38 @@ instance ToJSON Permission where
 
 instance (ToJSON a) => ToJSON (Auditable a) where
   toJSON Auditable {_data = x} = toJSON x
+
+instance FromJSON RoleName where
+  parseJSON j = RoleName <$> (parseJSON j)
+
+instance ToJSON RoleName where
+  toJSON (RoleName x) = toJSON x
+
+instance FromField RoleName where
+  fromField f mdata = RoleName <$> (fromField f mdata)
+
+instance QueryRunnerColumnDefault RoleName RoleName where
+  queryRunnerColumnDefault = fieldQueryRunnerColumn
+
+instance D.Default Constant RoleName (Column RoleName) where
+  def = Constant def'
+    where
+      def' :: RoleName -> (Column RoleName)
+      def' (RoleName x) = unsafeCoerceColumn $ pgStrictText x
+
+instance ToJSON InternalRole where
+  toJSON = genericToJSON defaultOptions
+  toEncoding = genericToEncoding defaultOptions { fieldLabelModifier = (fmap Data.Char.toLower).removePrefix }
+    where
+      removePrefix = Prelude.drop 11
+
+instance FromJSON Permission where
+  parseJSON t = toPermission <$> parseJSON t
+
+instance FromJSON RoleIncoming where
+  parseJSON (Object v) = Role () 
+                              <$> v .: "Tenantid"
+                              <*> v .: "rolename"
+                              <*> (Data.List.NonEmpty.fromList <$> (v .: ("permissions"::Text)))
+                              <*> (pure ())
+                              <*> (pure ())

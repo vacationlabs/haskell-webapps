@@ -37,7 +37,7 @@ data UserPoly key created_at updated_at tenant_id username password firstname la
   , _userpolyFirstname :: firstname
   , _userpolyLastname  :: lastname
   , _userpolyStatus    :: status
-} deriving (Show)
+} deriving (Show, Generic)
 
 type UserTableW = UserPoly
   ()
@@ -121,3 +121,17 @@ instance QueryRunnerColumnDefault PGText UserStatus where
 
 instance ToJSON UserStatus where
   toJSON x = String $ Data.Text.pack $ show x
+
+instance ToJSON InternalUser where
+  toJSON = genericToJSON defaultOptions
+  toEncoding = genericToEncoding defaultOptions { fieldLabelModifier = (fmap Data.Char.toLower).removePrefix }
+    where
+      removePrefix = Prelude.drop 11
+
+instance FromJSON UserIncoming where
+  parseJSON (Object v) = User () () () <$> v .: "Tenantid"
+                              <*> v .: "username"
+                              <*> v .: "password"
+                              <*> pure Nothing
+                              <*> pure Nothing
+                              <*> pure ()

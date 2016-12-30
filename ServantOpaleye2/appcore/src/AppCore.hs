@@ -22,7 +22,7 @@ import           CryptoDef
 import           Ids
 import           Lenses
 import           OpaleyeDef
-import           RoleDefs   (Role, RoleId, RoleIncoming, RoleTableR,
+import           RoleDefs   (Role, RoleId, RoleName(..), RoleIncoming, RoleTableR,
                              RoleTableW, roleTable)
 import           TenantDefs (Tenant, TenantIncoming,
                              TenantStatus (..), TenantTableR, TenantTableW,

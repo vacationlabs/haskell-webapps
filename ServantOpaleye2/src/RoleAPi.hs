@@ -6,7 +6,8 @@
 
 module RoleApi
   (
-   updateRole
+   createRole
+  , updateRole
   , removeRole
   , readRolesForTenant
   ) where
@@ -38,7 +39,6 @@ removeRole role = do
 readRolesForTenant :: (DbConnection m) => TenantId -> m [Role]
 readRolesForTenant tId = do
   readRow $ roleQueryForTenant tId
-
 
 roleQueryForTenant :: TenantId -> RoleQuery
 roleQueryForTenant tTenantid =

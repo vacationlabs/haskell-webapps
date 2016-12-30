@@ -6,7 +6,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeFamilies        #-}
 
-module Endpoints.Tenant (
+module Endpoints.User (
   Type
   ,server
 ) where
@@ -14,7 +14,6 @@ module Endpoints.Tenant (
 import           Servant
 import           AppM
 import           AppCore
-import           TenantApi
 import           UserApi
 import           Utils
 
@@ -22,10 +21,14 @@ import Servant.Server.Experimental.Auth.Cookie
 
 type instance AuthCookieData = CookieData
 
-type Type = "tenants" :> AuthProtect "cookie-auth" :> Get '[JSON] [Tenant]
+type Type = "users" :> AuthProtect "cookie-auth" :> Get '[JSON] [User]
+       :<|> "createUser" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] UserIncoming :>  Post '[JSON] User
 
-allTenants :: (DbConnection m) => CookieData -> m [Tenant]
-allTenants cd = requireRole cd (RoleName "manager") >> readTenants
+allUsers :: (DbConnection m) => CookieData -> m [User]
+allUsers cd = requireRole cd (RoleName "manager") >> readUsers
+
+createUser' :: (DbConnection m) => CookieData -> UserIncoming -> m User
+createUser' cd ui = requireRole cd (RoleName "manager") >> createUser ui
 
 server::ServerT Type AppM
-server = allTenants
+server = allUsers :<|> createUser'

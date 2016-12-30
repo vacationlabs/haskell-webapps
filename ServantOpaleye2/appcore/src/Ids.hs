@@ -13,7 +13,7 @@ import           Opaleye
 -- TenantId
 
 newtype TenantId = TenantId Int
-  deriving (Show, Generic)
+  deriving (Show, Generic, Eq)
 
 instance D.Default Constant TenantId (Column PGInt4) where
   def = Constant def'

@@ -29,6 +29,8 @@ library
                       ,Exceptions
                       ,Endpoints.Tenant
                       ,Endpoints.Authentication
+                      ,Endpoints.User
+                      ,Endpoints.Role
   build-depends:       base >= 4.7 && < 5
                        ,servant
                        ,servant-server

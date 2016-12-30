@@ -17,6 +17,7 @@ module UserApi
   , activateUser
   , deactivateUser
   , authenticateUser
+  , getTenantForUser
   ) where
 
 import           AppCore
@@ -29,6 +30,7 @@ import           GHC.Int
 import           Opaleye
 import           Prelude                hiding (id, null)
 import           Utils
+import           Control.Monad.Catch
 
 createUser :: (DbConnection m) => UserIncoming -> m User
 createUser user = do
@@ -124,3 +126,13 @@ authenticateUser username pass = do
       else fail
     checkPassword Nothing = fail
     fail = Left "Authentication fail"
+
+getTenantForUser :: (DbConnection m, Monad m, MonadThrow m) => UserId -> m Tenant
+getTenantForUser userid = readRow query >>= returnOneIfNE "Tenant for user id not found"
+  where
+    query :: Query TenantTableR
+    query = joinF
+      (\tenant user -> tenant)
+      (\tenant user -> tenant ^. id .== user ^. tenantid)
+      tenantQuery
+      (userQueryById userid)
