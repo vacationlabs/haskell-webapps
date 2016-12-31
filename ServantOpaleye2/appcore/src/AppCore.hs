@@ -13,11 +13,14 @@ module AppCore (
  ,module DataTypes.Authentication
  ,module InternalUtils
  ,module Queries
+ ,module InternalClasses
 ) where
 
 import           ApiBase
 import           Auditable
 import           Classes
+-- FIXME: Don't export InternalClasses
+import           InternalClasses
 import           CryptoDef
 import           Ids
 import           Lenses

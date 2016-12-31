@@ -30,5 +30,11 @@ allUsers cd = requireRole cd (RoleName "manager") >> readUsers
 createUser' :: (DbConnection m) => CookieData -> UserIncoming -> m User
 createUser' cd ui = requireRole cd (RoleName "manager") >> createUser ui
 
+updateUser' :: (CurrentTenant m, CurrentUser m, DbConnection m) => CookieData -> (UserId, UserIncoming) -> m User
+updateUser' cd (uid, ui) = do
+  requireRole cd (RoleName "manager")
+  user <- readUserById uid
+  updateUser $ merge ui user
+
 server::ServerT Type AppM
 server = allUsers :<|> createUser'

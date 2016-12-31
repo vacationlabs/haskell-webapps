@@ -19,7 +19,6 @@ import           RoleApi
 import           UserApi
 import           Utils
 import           Control.Lens
-import           Lenses
 import           Data.Text
 import           Control.Monad.Catch
 import           Prelude hiding (id)
