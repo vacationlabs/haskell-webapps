@@ -10,6 +10,7 @@ module RoleApi
   , updateRole
   , removeRole
   , readRolesForTenant
+  , readRoleById
   ) where
 
 import           AppCore
@@ -20,6 +21,7 @@ import           Data.Aeson.Types
 import qualified Data.HashMap.Strict as HM
 import           GHC.Int
 import           Opaleye
+import           Utils
 import           Prelude             hiding (id)
 
 createRole :: (DbConnection m) => RoleIncoming -> m Role
@@ -36,6 +38,18 @@ removeRole role = do
     tId = role ^. id
     matchFunc role' = (role' ^. id).== constant tId
 
+readRoles :: (DbConnection m) => m [Role]
+readRoles = readRow roleQuery
+
+readRoleById :: (DbConnection m) => RoleId -> m Role
+readRoleById rId = (readRow query) >>= (returnOneIfNE "Role not found")
+  where
+    query :: RoleQuery
+    query = proc () ->
+      do role <- roleQuery -< ()
+         restrict -< (role ^. id) .== (constant rId)
+         returnA -< role
+    
 readRolesForTenant :: (DbConnection m) => TenantId -> m [Role]
 readRolesForTenant tId = do
   readRow $ roleQueryForTenant tId

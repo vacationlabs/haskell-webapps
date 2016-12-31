@@ -46,6 +46,7 @@ $(makeAdaptorAndInstance "pRole" ''RolePoly)
 type InternalRole = RolePoly RoleId TenantId RoleName (NonEmpty Permission) UTCTime UTCTime
 type Role = Auditable InternalRole
 type RoleIncoming = RolePoly () TenantId RoleName (NonEmpty Permission) () ()
+type RoleUpdate = RolePoly RoleId () RoleName (NonEmpty Permission) () ()
 
 type RoleTableW = RolePoly
   ()
@@ -167,9 +168,20 @@ instance ToJSON InternalRole where
 instance FromJSON Permission where
   parseJSON t = toPermission <$> parseJSON t
 
+instance FromJSON RoleId where
+  parseJSON t = RoleId <$> parseJSON t
+
 instance FromJSON RoleIncoming where
   parseJSON (Object v) = Role () 
                               <$> v .: "Tenantid"
+                              <*> v .: "rolename"
+                              <*> (Data.List.NonEmpty.fromList <$> (v .: ("permissions"::Text)))
+                              <*> (pure ())
+                              <*> (pure ())
+
+instance FromJSON RoleUpdate where
+  parseJSON (Object v) = Role <$> v .: "id"
+                              <*> v .: "Tenantid"
                               <*> v .: "rolename"
                               <*> (Data.List.NonEmpty.fromList <$> (v .: ("permissions"::Text)))
                               <*> (pure ())
