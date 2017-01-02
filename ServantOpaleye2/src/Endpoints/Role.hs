@@ -32,7 +32,7 @@ type Type = "roles" :> AuthProtect "cookie-auth" :> Get '[JSON] [Role]
        :<|> "role/update" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] RoleUpdate :>  Post '[JSON] Role
        :<|> "role/remove" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] RoleId :>  Post '[JSON] Role
        :<|> "role/assignUser" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] (RoleId, UserId) :>  Post '[JSON] RoleId
-       :<|> "role/assignTenant" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] (RoleId, TenantId) :>  Post '[JSON] RoleId
+       :<|> "role/unassignUser" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] (RoleId, UserId) :>  Post '[JSON] RoleId
 
 allRoles :: (DbConnection m) => CookieData -> m [Role]
 allRoles cd = requireRole cd (RoleName "manager") >> readRoles
@@ -69,16 +69,6 @@ removeRole' cd roleId = do
   removeRole role
   return role
 
-addRoleToTenant' :: (
-    DbConnection m,
-    CurrentUser m,
-    CurrentTenant m,
-    MonadThrow m) => CookieData -> (RoleId, TenantId) -> m RoleId
-addRoleToTenant' cd (roleId, tenantId) = do
-  requireRole cd (RoleName "administrator") 
-  linkTenantRole tenantId roleId
-  return roleId
-
 addRoleToUser' :: (
     DbConnection m,
     CurrentUser m,
@@ -88,6 +78,16 @@ addRoleToUser' cd (roleId, userId) = do
   requireRole cd (RoleName "administrator") 
   linkUserRole userId roleId
   return roleId
+
+removeRoleFromUser' :: (
+    DbConnection m,
+    CurrentUser m,
+    CurrentTenant m,
+    MonadThrow m) => CookieData -> (RoleId, UserId) -> m RoleId
+removeRoleFromUser' cd (roleId, userId) = do
+  requireRole cd (RoleName "administrator") 
+  unlinkUserRole userId roleId
+  return roleId
  
 server::ServerT Type AppM
 server = allRoles 
@@ -95,4 +95,4 @@ server = allRoles
     :<|> updateRole'
     :<|> removeRole'
     :<|> addRoleToUser'
-    :<|> addRoleToTenant'
+    :<|> removeRoleFromUser'

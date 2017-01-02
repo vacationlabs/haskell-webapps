@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts       #-}
 module Helpers where
 
 import           CryptoDef
@@ -19,8 +20,9 @@ linkUserRole userid roleid = do
   createDbRows userRolePivotTable [(constant userid, constant roleid)] :: (DbConnection m) => m [(UserId, RoleId)]
   return ()
 
-linkTenantRole :: (DbConnection m) => TenantId -> RoleId -> m ()
-linkTenantRole tenantid roleid = do
-  createDbRows userRolePivotTable [(constant tenantid, constant roleid)] :: (DbConnection m) => m [(TenantId, RoleId)]
+unlinkUserRole :: (DbConnection m) => UserId -> RoleId -> m ()
+unlinkUserRole userid roleid = do
+  removeRawDbRows userRolePivotTable matchFunc
   return ()
-  
+  where
+    matchFunc (r_uid, r_rid) = (r_uid .== (constant userid)) .&& (r_rid .== (constant roleid))
