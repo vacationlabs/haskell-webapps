@@ -35,7 +35,7 @@ type Type = "roles" :> AuthProtect "cookie-auth" :> Get '[JSON] [Role]
        :<|> "role/assignTenant" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] (RoleId, TenantId) :>  Post '[JSON] RoleId
 
 allRoles :: (DbConnection m) => CookieData -> m [Role]
-allRoles cd = requireRole cd (RoleName "manager") >> undefined
+allRoles cd = requireRole cd (RoleName "manager") >> readRoles
 
 createRole' :: (DbConnection m, MonadThrow m) => CookieData -> RoleIncoming -> m Role
 createRole' cd ri = do

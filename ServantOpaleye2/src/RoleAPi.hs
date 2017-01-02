@@ -11,6 +11,7 @@ module RoleApi
   , removeRole
   , readRolesForTenant
   , readRoleById
+  , readRoles
   ) where
 
 import           AppCore
