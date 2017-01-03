@@ -11,16 +11,14 @@ module AppCore (
  ,module Classes
  ,module Helpers
  ,module DataTypes.Authentication
- ,module InternalUtils
+-- ,module InternalUtils
  ,module Queries
- ,module InternalClasses
+--,module InternalClasses
 ) where
 
 import           ApiBase
 import           Auditable
 import           Classes
--- FIXME: Don't export InternalClasses
-import           InternalClasses
 import           CryptoDef
 import           Ids
 import           Lenses
@@ -30,12 +28,9 @@ import           RoleDefs   (Role, RoleId, RoleName(..), RoleIncoming, RoleUpdat
 import           TenantDefs (Tenant, TenantIncoming,
                              TenantStatus (..), TenantTableR, TenantTableW,
                              getTestTenant, tenantTable)
--- FIXME: Don't export userpoly
-import           UserDefs   (UserPoly(..), User, UserIncoming, UserStatus (..),
+import           UserDefs   (User, UserIncoming, UserStatus (..),
                              getTestUser, userTable)
 import           Helpers
 import           DataTypes.Authentication
--- FIXME: Don't export Internalutls
-import           InternalUtils
 
 import           Queries

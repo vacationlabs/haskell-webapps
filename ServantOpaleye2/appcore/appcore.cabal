@@ -32,7 +32,6 @@ library
                        ,Ids
                        ,Helpers
                        ,InternalUtils
-                       ,InternalClasses
                        ,ApiBase
                        ,Classes
                        ,Queries
