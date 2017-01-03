@@ -31,7 +31,7 @@ login ac rs sk (LoginInfo uname pword) = do
         ac
         rs
         sk
-        (CookieData (user ^. id) (user ^. username) roles)
+        (CookieData (user ^. key) (user ^. username) roles)
         login'
       ) 
     _ -> return $ addHeader (EncryptedSession "Unauthenticated") login'

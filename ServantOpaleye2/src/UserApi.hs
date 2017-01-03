@@ -76,13 +76,13 @@ readUserAndRoles uname = groupRows <$> (readRow query)
         groupRows' ur@((u,_):_) = Just (u, fromJust <$> (filter isNothing $ snd <$> ur))
     userTenant :: Query (UserTableR, (Column PGInt4))
     userTenant = joinF 
-      (\u t -> (u, t ^. id))
-      (\u t -> u ^. tenantid .== t ^. id)
+      (\u t -> (u, t ^. key))
+      (\u t -> u ^. tenantid .== t ^. key)
       (userQueryByUsername uname)
       tenantQuery
     query :: Query (UserTableR, Column (Nullable PGInt4))
     query = leftJoinF
-      (\(u, tid) r -> (u, toNullable (r ^. id)))
+      (\(u, tid) r -> (u, toNullable (r ^. key)))
       (\(u, tid) -> (u, null))
       (\(u, tid) r -> tid .== r ^. tenantid)
       userTenant
@@ -99,7 +99,7 @@ removeRoleFromUser tUserId tRoleId = removeRawDbRows userRolePivotTable
 userQueryById :: UserId -> UserQuery
 userQueryById tId = proc () -> do
   user <- userQuery -< ()
-  restrict -< (user ^. id) .== (constant tId)
+  restrict -< (user ^. key) .== (constant tId)
   returnA -< user
 
 userQueryByTenantid :: TenantId -> UserQuery
@@ -133,6 +133,6 @@ getTenantForUser userid = readRow query >>= returnOneIfNE "Tenant for user id no
     query :: Query TenantTableR
     query = joinF
       (\tenant user -> tenant)
-      (\tenant user -> tenant ^. id .== user ^. tenantid)
+      (\tenant user -> tenant ^. key .== user ^. tenantid)
       tenantQuery
       (userQueryById userid)

@@ -28,7 +28,7 @@ import           OpaleyeDef
 import           Prelude                              hiding (id)
 
 data UserPoly key created_at updated_at tenant_id username password firstname lastname status  = User {
-    _userpolyId        :: key
+    _userpolyKey        :: key
   , _userpolyCreatedat :: created_at
   , _userpolyUpdatedat :: updated_at
   , _userpolyTenantid  :: tenant_id
@@ -67,7 +67,7 @@ $(makeAdaptorAndInstance "pUser" ''UserPoly)
 userTable :: Table UserTableW UserTableR
 userTable = Table "users" (pUser
   User {
-    _userpolyId = (readOnly "id")
+    _userpolyKey = (readOnly "id")
   , _userpolyCreatedat = (optional "created_at")
   , _userpolyUpdatedat = (required "updated_at")
   , _userpolyTenantid = required "tenant_id"

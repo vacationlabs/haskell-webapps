@@ -46,7 +46,7 @@ createRole' cd ri = do
     checkTenant :: (MonadThrow m, DbConnection m) =>  CookieData -> m ()
     checkTenant CookieData { loggedUserId = userId } = do
       tenant <- getTenantForUser userId
-      if tenant ^. id /= ri ^. tenantid then throwM (SomeException (NotFoundException "")) else return ()
+      if tenant ^. key /= ri ^. tenantid then throwM (SomeException (NotFoundException "")) else return ()
 
 updateRole' :: (
     DbConnection m,
@@ -55,7 +55,7 @@ updateRole' :: (
     MonadThrow m) => CookieData -> RoleUpdate -> m Role
 updateRole' cd ri = do
   requireRole cd (RoleName "administrator") 
-  role <- readRoleById (ri ^. id)
+  role <- readRoleById (ri ^. key)
   updateRole $ role
 
 removeRole' :: (

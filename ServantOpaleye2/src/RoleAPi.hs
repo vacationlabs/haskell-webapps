@@ -33,11 +33,11 @@ updateRole role = updateAuditableRow roleTable role
 
 removeRole :: (DbConnection m) => Role -> m GHC.Int.Int64
 removeRole role = do
-  _ <- removeRawDbRows userRolePivotTable (\(_, roleId) -> roleId .== constant (role ^. id))
+  _ <- removeRawDbRows userRolePivotTable (\(_, roleId) -> roleId .== constant (role ^. key))
   removeRawDbRows roleTable matchFunc
     where
-    tId = role ^. id
-    matchFunc role' = (role' ^. id).== constant tId
+    tId = role ^. key
+    matchFunc role' = (role' ^. key).== constant tId
 
 readRoles :: (DbConnection m) => m [Role]
 readRoles = readRow roleQuery
@@ -48,7 +48,7 @@ readRoleById rId = (readRow query) >>= (returnOneIfNE "Role not found")
     query :: RoleQuery
     query = proc () ->
       do role <- roleQuery -< ()
-         restrict -< (role ^. id) .== (constant rId)
+         restrict -< (role ^. key) .== (constant rId)
          returnA -< role
     
 readRolesForTenant :: (DbConnection m) => TenantId -> m [Role]

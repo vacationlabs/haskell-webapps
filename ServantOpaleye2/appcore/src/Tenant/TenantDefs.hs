@@ -27,7 +27,7 @@ import           OpaleyeDef
 import           Prelude                              hiding (id)
 
 data TenantPoly key created_at updated_at name fname lname email phone status owner_id b_domain = Tenant {
-    _tenantpolyId               :: key
+    _tenantpolyKey               :: key
   , _tenantpolyCreatedat        :: created_at
   , _tenantpolyUpdatedat        :: updated_at
   , _tenantpolyName             :: name
@@ -80,7 +80,7 @@ $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
 tenantTable :: Table TenantTableW TenantTableR
 tenantTable = Table "tenants" (pTenant
    Tenant {
-     _tenantpolyId = (readOnly "id"),
+     _tenantpolyKey = (readOnly "id"),
      _tenantpolyCreatedat = (optional "created_at"),
      _tenantpolyUpdatedat = (required "updated_at"),
      _tenantpolyName = (required "name"),

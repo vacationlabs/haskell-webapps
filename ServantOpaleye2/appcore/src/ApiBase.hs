@@ -46,7 +46,7 @@ createDbRows table pgrows = do
   conn <- getConnection
   liftIO $ runInsertManyReturning conn table pgrows (\x -> x)
 
-updateDbRow :: (DbConnection m, MonadIO m, Show columnsW, HasId columnsR (Column PGInt4))
+updateDbRow :: (DbConnection m, MonadIO m, Show columnsW, HasKey columnsR (Column PGInt4))
   => Table columnsW columnsR
   -> Column PGInt4
   -> columnsW
@@ -57,8 +57,8 @@ updateDbRow table row_id item = do
   _ <- liftIO $ runUpdate conn table (\_ -> item) (matchFunc row_id)
   return item
   where
-    matchFunc :: (HasId cmR (Column PGInt4)) => (Column PGInt4 -> cmR -> Column PGBool)
-    matchFunc itId item' = (item' ^. id) .== itId
+    matchFunc :: (HasKey cmR (Column PGInt4)) => (Column PGInt4 -> cmR -> Column PGBool)
+    matchFunc itId item' = (item' ^. key) .== itId
 
 createRow ::(
     DbConnection m,
@@ -83,13 +83,13 @@ updateRow :: (
     , HasUpdatedat haskells UTCTime
     , D.Default Constant haskells columnsW
     , D.Default Constant itemId (Column PGInt4)
-    , HasId haskells itemId
-    , HasId columnsR (Column PGInt4)
+    , HasKey haskells itemId
+    , HasKey columnsR (Column PGInt4)
     )
     => Table columnsW columnsR -> haskells -> m haskells
 updateRow table item = do
   --auditLog $ "Update : " ++ (show item)
-  let itId = item ^. id
+  let itId = item ^. key
   currentTime <- liftIO getCurrentTime
   let updatedItem = (putUpdatedTimestamp currentTime) item
   _ <- updateDbRow table (constant itId) (constant updatedItem)
@@ -107,13 +107,13 @@ updateAuditableRow :: (
     , HasUpdatedat (Auditable haskells) UTCTime
     , D.Default Constant haskells columnsW
     , D.Default Constant itemId (Column PGInt4)
-    , HasId (Auditable haskells) itemId
-    , HasId columnsR (Column PGInt4)
+    , HasKey (Auditable haskells) itemId
+    , HasKey columnsR (Column PGInt4)
     )
     => Table columnsW columnsR -> Auditable haskells -> m (Auditable haskells)
 updateAuditableRow table audti = do
   --auditLog $ "Update : " ++ (show item)
-  let itId = audti ^. id
+  let itId = audti ^. key
   currentTime <- liftIO getCurrentTime
   let updatedItem = (putUpdatedTimestamp currentTime) audti
   let Auditable { _data = item, _log = _log} = updatedItem
@@ -137,8 +137,8 @@ insertIntoLog table auditable_id summary changes = do
       Just tenant <- getCurrentTenant
       Just user <- getCurrentUser
       conn <- getConnection
-      let tenant_id = tenant ^. id
-      let user_id = user ^. id
+      let tenant_id = tenant ^. key
+      let user_id = user ^. key
       _ <- liftIO $ runInsertMany conn auditTable [(
         (),
         constant tenant_id,
@@ -157,41 +157,41 @@ removeAuditableRow :: (
     , DbConnection m
     , Show haskells
     , D.Default Constant itemId (Column PGInt4)
-    , HasId haskells itemId
-    , HasId columnsR (Column PGInt4)
+    , HasKey haskells itemId
+    , HasKey columnsR (Column PGInt4)
     ) => Table columnsW columnsR -> Auditable haskells -> m GHC.Int.Int64
 removeAuditableRow table item_r = do
   --auditLog $ "Remove : " ++ (show item)
   conn <- getConnection
   let Auditable { _data = item, _log = _log} = item_r
   liftIO $ do
-    runDelete conn table $ matchFunc $ item ^. id
+    runDelete conn table $ matchFunc $ item ^. key
   where
     matchFunc :: (
-        HasId columnsR (Column PGInt4),
+        HasKey columnsR (Column PGInt4),
         D.Default Constant itemId (Column PGInt4)
         ) => (itemId -> columnsR -> Column PGBool)
-    matchFunc itId item' = (item' ^. id) .== (constant itId)
+    matchFunc itId item' = (item' ^. key) .== (constant itId)
 
 removeRow :: (
     MonadIO m
     , DbConnection m
     , Show haskells
     , D.Default Constant itemId (Column PGInt4)
-    , HasId haskells itemId
-    , HasId columnsR (Column PGInt4)
+    , HasKey haskells itemId
+    , HasKey columnsR (Column PGInt4)
     ) => Table columnsW columnsR -> haskells -> m GHC.Int.Int64
 removeRow table item = do
   --auditLog $ "Remove : " ++ (show item)
   conn <- getConnection
   liftIO $ do
-    runDelete conn table $ matchFunc $ item ^. id
+    runDelete conn table $ matchFunc $ item ^. key
   where
     matchFunc :: (
-        HasId columnsR (Column PGInt4),
+        HasKey columnsR (Column PGInt4),
         D.Default Constant itemId (Column PGInt4)
         ) => (itemId -> columnsR -> Column PGBool)
-    matchFunc itId item' = (item' ^. id) .== (constant itId)
+    matchFunc itId item' = (item' ^. key) .== (constant itId)
 
 readRow :: (
   MonadIO m

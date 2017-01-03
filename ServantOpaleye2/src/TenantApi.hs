@@ -55,9 +55,9 @@ removeTenant tenant = do
   mapM_ removeUser usersForTenant
   removeRawDbRows tenantTable matchFunc
   where
-    tid = tenant ^. id
+    tid = tenant ^. key
     matchFunc :: TenantTableR -> Column PGBool
-    matchFunc tenant'  = (tenant' ^. id) .== (constant tid)
+    matchFunc tenant'  = (tenant' ^. key) .== (constant tid)
 
 readTenants :: (DbConnection m) =>  m [Tenant]
 readTenants = readRow tenantQuery
@@ -74,7 +74,7 @@ readTenantByBackofficedomain domain = do
 tenantQueryById :: TenantId -> TenantQuery
 tenantQueryById tId = proc () -> do
   tenant <- tenantQuery -< ()
-  restrict -< (tenant ^. id) .== (constant tId)
+  restrict -< (tenant ^. key) .== (constant tId)
   returnA -< tenant
 
 tenantQueryByBackoffocedomain :: Text -> TenantQuery

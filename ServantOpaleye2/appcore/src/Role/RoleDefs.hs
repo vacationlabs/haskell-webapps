@@ -33,7 +33,7 @@ newtype RoleId = RoleId Int
 newtype RoleName = RoleName Text deriving (Show)
 
 data RolePoly key tenant_id name permission created_at updated_at  = Role {
-    _rolepolyId         :: key
+    _rolepolyKey         :: key
   , _rolepolyTenantid   :: tenant_id
   , _rolepolyName       :: name
   , _rolepolyPermission :: permission
@@ -66,7 +66,7 @@ type RoleTableR = RolePoly
 
 roleTable :: Table RoleTableW RoleTableR
 roleTable = Table "roles" (pRole Role {
-  _rolepolyId = (readOnly "id"),
+  _rolepolyKey = (readOnly "id"),
   _rolepolyTenantid = required "tenant_id",
   _rolepolyName = required "name",
   _rolepolyPermission = required "permissions",
