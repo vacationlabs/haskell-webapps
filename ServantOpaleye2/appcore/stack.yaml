@@ -39,7 +39,11 @@ packages:
 - '.'
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
-extra-deps: []
+extra-deps:
+- digestive-functors-aeson-1.1.20
+- digestive-functors-0.8.1.1
+- aeson-0.11.2.1
+- lens-4.14
 
 # Override default flag values for local packages and extra-deps
 flags: {}

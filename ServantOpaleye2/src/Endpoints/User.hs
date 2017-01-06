@@ -19,19 +19,24 @@ import           Utils
 import           Control.Monad.IO.Class
 
 import Servant.Server.Experimental.Auth.Cookie
+import JsonValidation
 
 type instance AuthCookieData = CookieData
 
-type Type = "users" :> AuthProtect "cookie-auth" :> Get '[JSON] [User]
-       :<|> "user/create" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] UserIncoming :>  Post '[JSON] User
-       :<|> "user/update" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] (UserId, UserIncoming) :> Post '[JSON] User
-       :<|> "user/remove" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] UserId :> Post '[JSON] User
+type Type = "user" :> "list"   :> AuthProtect "cookie-auth" :> Get '[JSON] [User]
+       :<|> "user" :> "create" :> AuthProtect "cookie-auth" :> ReqBodyVal UserIncoming  :>  Post '[JSON] User
+       :<|> "user" :> "update" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] (UserId, UserIncoming) :> Post '[JSON] User
+       :<|> "user" :> "remove" :> AuthProtect "cookie-auth" :> ReqBody '[JSON] UserId :> Post '[JSON] User
 
 allUsers :: (DbConnection m) => CookieData -> m [User]
-allUsers cd = requireRole cd (RoleName "manager") >> readUsers
+allUsers cd =  do
+  requireRole cd (RoleName "manager") 
+  readUsers
 
 createUser' :: (DbConnection m) => CookieData -> UserIncoming -> m User
-createUser' cd ui = requireRole cd (RoleName "manager") >> createUser ui
+createUser' cd ui = do
+  requireRole cd (RoleName "manager") 
+  createUser ui
 
 updateUser' :: (CurrentTenant m, CurrentUser m, DbConnection m) => CookieData -> (UserId, UserIncoming) -> m User
 updateUser' cd (uid, ui) = do

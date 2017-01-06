@@ -11,9 +11,7 @@ module AppCore (
  ,module Classes
  ,module Helpers
  ,module DataTypes.Authentication
--- ,module InternalUtils
  ,module Queries
---,module InternalClasses
 ) where
 
 import           ApiBase
@@ -28,8 +26,7 @@ import           RoleDefs   (Role, RoleId, RoleName(..), RoleIncoming, RoleUpdat
 import           TenantDefs (Tenant, TenantIncoming,
                              TenantStatus (..), TenantTableR, TenantTableW,
                              getTestTenant, tenantTable)
-import           UserDefs   (User, UserIncoming, UserStatus (..),
-                             getTestUser, userTable)
+import           UserDefs   
 import           Helpers
 import           DataTypes.Authentication
 

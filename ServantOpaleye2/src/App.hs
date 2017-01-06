@@ -32,6 +32,8 @@ import           Servant.Server.Experimental.Auth (AuthHandler)
 import           Servant.Server.Experimental.Auth.Cookie
 import           Crypto.Random (drgNew)
 
+import           JsonValidation
+
 import qualified Endpoints.Authentication as AuthenticationEp
 import qualified Endpoints.Tenant as TenantEp
 import qualified Endpoints.User as UserEp

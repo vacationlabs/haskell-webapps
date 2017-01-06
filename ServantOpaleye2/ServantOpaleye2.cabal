@@ -27,6 +27,7 @@ library
                       ,App
                       ,Utils
                       ,Exceptions
+                      ,JsonValidations
                       ,Endpoints.Tenant
                       ,Endpoints.Authentication
                       ,Endpoints.User

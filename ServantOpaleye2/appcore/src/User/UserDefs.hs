@@ -4,6 +4,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TemplateHaskell        #-}
 
 module UserDefs where
@@ -26,6 +27,13 @@ import           InternalUtils
 import           Opaleye
 import           OpaleyeDef
 import           Prelude                              hiding (id)
+import           Data.Scientific
+import           Data.Ratio
+
+import qualified Text.Digestive as DIG
+import qualified Text.Digestive.Aeson as DIGA
+
+import Control.Monad.Identity
 
 data UserPoly key created_at updated_at tenant_id username password firstname lastname status  = User {
     _userpolyKey        :: key
@@ -135,3 +143,44 @@ instance FromJSON UserIncoming where
                               <*> pure Nothing
                               <*> pure Nothing
                               <*> pure ()
+
+data Abc = Abc Text Int deriving (Show)
+
+data Dfg = Def Abc Text deriving (Show)
+
+defForm :: (Monad m) => DIG.Form Text m Dfg
+defForm = Def <$> "Abc" DIG..: abcForm
+              <*> "SomeName" DIG..: nonEmptyText
+
+abcForm :: (Monad m) => DIG.Form Text m Abc
+abcForm = Abc <$> "name" DIG..: nonEmptyText
+              <*> "number" DIG..: gtZero
+
+nonEmptyText :: (Monad m) => DIG.Form Text m Text
+nonEmptyText = DIG.check "name shall not be empty" ((>0).Data.Text.length) (DIG.text Nothing)
+
+gtZero :: (Monad m) => DIG.Form Text m Int
+gtZero = floor <$> DIG.check "number should be greater than zero" (>0) (DIG.stringRead "yyy" Nothing)
+
+validate' = let Just j = jsonv in runIdentity $ DIGA.digestJSON abcForm j
+
+validate2 = let Just j = jsonv2 in runIdentity $ DIGA.digestJSON defForm j
+
+jsonv :: Maybe Value
+jsonv = decode "{\"name\":\"max\", \"number\": 25}"
+
+jsonv2 :: Maybe Value
+jsonv2 = decode "{\"Abc\": {\"name\":\"max\", \"number\": 25}, \"SomName\": \"Blah\"}"
+
+
+--validateInteger :: Num a => Scientific -> DIG.Result Text a
+--validateInteger x =
+--  let xRat = toRational x
+--  in if denominator xRat /= 1
+--       then DIG.Error "Number must be an integer"
+--       else return (fromInteger $ numerator xRat)
+--
+----------------------------------------------------------------------------------
+--parseInteger :: (Monad m, Num a) => DIG.Form Text m a
+--parseInteger =
+--  DIG.validate validateInteger (DIG.stringRead "Could not parse number" Nothing)

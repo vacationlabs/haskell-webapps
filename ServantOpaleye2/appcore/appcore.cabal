@@ -55,6 +55,9 @@ library
                        , bcrypt
                        , mtl
                        , exceptions
+                       , digestive-functors-aeson
+                       , digestive-functors
+                       , scientific
   default-language:    Haskell2010
 
 test-suite appcore-test

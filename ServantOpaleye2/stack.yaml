@@ -43,6 +43,10 @@ packages:
 # (e.g., acme-missiles-0.3)
 extra-deps:
 - here-1.2.9
+- digestive-functors-aeson-1.1.20
+- digestive-functors-0.8.1.1
+- aeson-0.11.2.1
+- lens-4.14
 
 # Override default flag values for local packages and extra-deps
 flags: {}
