@@ -73,7 +73,7 @@ readUserAndRoles uname = groupRows <$> (readRow query)
     groupRows x = groupRows' x
       where
         groupRows' :: [(User, Maybe RoleId)] -> Maybe (User, [RoleId])
-        groupRows' ur@((u,_):_) = Just (u, fromJust <$> (filter isNothing $ snd <$> ur))
+        groupRows' ur@((u,_):_) = Just (u, fromJust <$> (filter isJust $ snd <$> ur))
     userTenant :: Query (UserTableR, (Column PGInt4))
     userTenant = joinF 
       (\u t -> (u, t ^. key))
