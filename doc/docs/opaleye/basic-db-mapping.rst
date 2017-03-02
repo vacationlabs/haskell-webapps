@@ -146,42 +146,38 @@ Now, it seems that Opalaye does **not do any reflection** on the DB schema whats
 .. note:: We've scratched our own itch here and are working on `Opaleye Helpers<https://github.com/vacationlabs/opaleye-helpers/>`_ to help remove this duplication and boilerplate from Opaleye.
 
 
-  * ``TenantPGWrite``: (Maybe (Column (Nullable PGInt8)))
-  * ``TenantPGRead``: (Column (Nullable PGInt8))
+.. code-block:: haskell
 
+  type TenantPGWrite = TenantPoly
+    (Maybe (Column PGInt8)) -- key
+    (Maybe (Column PGTimestamptz)) -- createdAt
+    (Column PGTimestamptz) -- updatedAt
+    (Column PGText) -- name
+    (Column PGText) -- status
+    (Column (Nullable PGInt8)) -- ownerId
+    (Column PGText) -- backofficeDomain
 
-  .. code-block:: haskell
+  type TenantPGRead = TenantPoly
+    (Column PGInt8) -- key
+    (Column PGTimestamptz) -- createdAt
+    (Column PGTimestamptz) -- updatedAt
+    (Column PGText) -- name
+    (Column PGText) -- status
+    (Column (Nullable PGInt8)) -- ownerId
+    (Column PGText) -- backofficeDomain
 
-    type TenantPGWrite = TenantPoly
-      (Maybe (Column PGInt8)) -- key
-      (Maybe (Column PGTimestamptz)) -- createdAt
-      (Column PGTimestamptz) -- updatedAt
-      (Column PGText) -- name
-      (Column PGText) -- status
-      (Column (Nullable PGInt8)) -- ownerId
-      (Column PGText) -- backofficeDomain
+  $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
 
-    type TenantPGRead = TenantPoly
-      (Column PGInt8) -- key
-      (Column PGTimestamptz) -- createdAt
-      (Column PGTimestamptz) -- updatedAt
-      (Column PGText) -- name
-      (Column PGText) -- status
-      (Column (Nullable PGInt8)) -- ownerId
-      (Column PGText) -- backofficeDomain
-
-    $(makeAdaptorAndInstance "pTenant" ''TenantPoly)
-
-    tenantTable :: Table TenantPGWrite TenantPGRead
-    tenantTable = Table "tenants" (pTenant Tenant{
-                                      tenantKey = optional "id"
-                                      ,tenantCreatedAt = optional "created_at"
-                                      ,tenantUpdatedAt = optional "updated_at"
-                                      ,tenantName = required "name"
-                                      ,tenantStatus = required "status"
-                                      ,tenantOwnerId = required "owner_id"
-                                      ,tenantBackofficeDomain = required "backoffice_domain"
-                                      })
+  tenantTable :: Table TenantPGWrite TenantPGRead
+  tenantTable = Table "tenants" (pTenant Tenant{
+                                    tenantKey = optional "id"
+                                    ,tenantCreatedAt = optional "created_at"
+                                    ,tenantUpdatedAt = optional "updated_at"
+                                    ,tenantName = required "name"
+                                    ,tenantStatus = required "status"
+                                    ,tenantOwnerId = required "owner_id"
+                                    ,tenantBackofficeDomain = required "backoffice_domain"
+                                    })
 
 Different types for read & write
 --------------------------------
