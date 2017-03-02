@@ -140,7 +140,7 @@ Firstly, let's tackle the strangely polymorphic ``TenantPoly``. ::
 
 This is a **base type** which defines the **shape** of a set of related record-types (namely ``TenantPGRead``, ``TenantPGWrite``, and ``Tenant``). ``TenantPoly`` is polymorphic over every single field of the record. This allows us to easily change the type of each field, while ensuring that the *shape* of all these related records is always the same. (*Why* would we want records with similar shapes, but different types, will get clearer in a moment - hang in there!) Generally, ``TenantPoly`` is never used directly in any Opaleye operation. The concrete types - ``TenantPGRead`` ``TenantPGWrite`` and ``Tenant`` - are used instead.
 
-Now, it seems that Opalaye does **not do any reflection** on the DB schema whatsoever. This is a completely different approach compared to Rails (in the Ruby world) and HRR (in the Haskell world) which generate the DB<=>Haskell classes/record-types completely on the basis of schema reflection). So, Opaleye does not know what data-types to expect for each column when talking to the DB. Therefore, we have to teach it by duplicating the column definitions in Haskell. This is precisely what ``TenantPGRead``,  ``TenantPGWrite``, ``makeAdaptorAndInstance`` and ``tenantTable`` do, and this is what we absolutely hate about Opaleye!
+At the the time of writing, Opalaye does **not do any reflection** on the DB schema whatsoever. This is very different from something like Rails (in the Ruby world) and HRR (in the Haskell world), which generate the DB<=>Haskell mappings on the basis of schema reflection). So, Opaleye does not know what data-types to expect for each column when talking to the DB. Therefore, we have to teach it by essentially duplicating the SQL column definitions in Haskell. This is precisely what ``TenantPGRead``,  ``TenantPGWrite``, ``makeAdaptorAndInstance`` and ``tenantTable`` do, and this is what we absolutely hate about Opaleye!
 
 
 .. note:: We've scratched our own itch here and are working on `Opaleye Helpers <https://github.com/vacationlabs/opaleye-helpers/>`_ to help remove this duplication and boilerplate from Opaleye.
@@ -194,26 +194,28 @@ Handling ``NULL`` and database defaults
 Let's look at the types of a few fields from ``TenantPGWrite`` and how they interact with ``NULL`` values and the ``DEFAULT`` value in the DB:
 
 
-** The ``Column a`` types**
+**The (Column a) types**
 
-* ``updatedAt``of type ``(Column PGTimestamptz)`` corresponding to ``updated_at timestamp with time zone not null default current_timestamp``
+* ``updatedAt`` of type ``(Column PGTimestamptz)`` corresponding to ``updated_at timestamp with time zone not null default current_timestamp``
 * ``name`` of type ``(Column PGText)`` corresponding to ``name text not null``
 * ``status`` of type ``(Column PGText)`` corresponding to ``status text not null default 'inactive'``
 
-In each of these cases you **have to** specify the field's value whenever you are inserting or updating via Opaleye. Moreover, the type ensures that you cannot assign a ``null`` value to any of them at the Haskell-level.
+In each of these cases you **have to** specify the field's value whenever you are inserting or updating via Opaleye. Moreover, the type ensures that you cannot assign a ``null`` value to any of them at the Haskell-level. **Please note,** ``null`` is NOT the same as ``Nothing``
 
-**The ``Maybe (Column a)`` types**
+**The (Maybe (Column a)) types**
 
 * ``key`` of type ``(Maybe (Column PGInt8))`` corresponding to ``id serial primary key``
 * ``createdAt`` of type ``(Maybe (Column PGTimestamptz))``  corresponding to ``created_at timestamp with time zone not null default current_timestamp``
 
 In both these cases, during an INSERT, if the value is a ``Nothing``, the entire column itself will be omitted from the INSERT statement and its fate will be left to the DB.
 
-**The ``Column (Nullable a)` types**
+**The (Column (Nullable a)) types**
 
 * ``ownerId`` of type ``(Column (Nullable PGInt8))`` corresponding to ``owner_id integer``
 
 In this case, while you **have to** specify a value at the Haskell level, you can specify a ``null`` as well.
+
+For example, this is a possible INSERT operation:
 
 .. code:: haskell
   
