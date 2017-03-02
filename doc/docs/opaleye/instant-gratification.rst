@@ -59,13 +59,13 @@ Here's what it is basically teaching Opaleye:
 * We will be reading rows of the type ``(Column PGInt4, Column PGText, Column PGText)`` from the table.
 * We will be writing rows of the same type to the table. (Opaleye allows you to read and write rows of *different* types for very valid reasons. Read :ref:`basic_mapping` for more details on this.)
 * The table's name is ``users``
-* The first column in the table is called ``id``; it is *required*; and it maps to the first value of the tuple.
+* The first column in the table is called ``id``; it is *required*; and it maps to the first value of the tuple. Marking a column *required* means that you will have to specify a value for it whenever you are inserting or updating a row via Opaleye. You can mark a column as *optional* as well, but we talk about the subtle differences between *required*, *optional*, ``NULL`` and ``NOT NULL`` in the :ref:`basic_mapping` chapter.
 * The second column in the table is called ``name``; it is *required*; and it maps to the second value of the tuple.
 * The third column in the table is called ``email``; it is *required*; and it maps to the third value of the tuple.
 
 We will need to use ``userTable`` to SELECT, INSERT, UPDATE, or DELETE from the ``users`` table via Opaleye.
 
-To learn more about how to map your DB schema to Opaleye's ``Table`` types, please read :ref:`basic_mapping` and :ref:`advanced_mapping` chapters.
+To learn more about mapping different types of DB schemas to Opaleye's ``Table`` types, please read :ref:`basic_mapping` and :ref:`advanced_mapping` chapters.
 
 Connecting to the Postgresql database
 ---------------------------------------
@@ -103,7 +103,7 @@ which calls ``selectAllRows``:
 
 This uses ``runQuery``, which is basically ``SELECT`` in Opaleye. Please take **special note** of the type signature of this function. It evaluates to ``IO [(Int, String, String)]``, whereas we clearly told Opaleye that we will be reading rows of type ``(Column PGInt4, Column PGText, ColumnPGText)``. So, why doesn't this function evaluate to ``IO [(Column PGInt4, Column PGText, ColumnPGText)]``?
 
-This is because Opaleye knows how to convert most basic data types from DB => Haskell (eg. ``PGInt4`` => ``Int``). And also vice versa. 
+This is because Opaleye knows how to convert most basic data types from DB => Haskell (eg. ``PGInt4`` => ``Int``). And vice versa. 
 
 However, here's a **gotcha!** Try compiling ths function *without* the type signature. The compiler will fail to infer the types. This is also due to the underlying infrastructure that Opaleye uses to convert DB => Haskell types. To understand this further, please read :ref:`advanced_mapping`.
 
@@ -137,7 +137,7 @@ Updating a row
         (\ (k, _, _) -> k .== constant key) -- which rows to update?
       return ()
 
-* As you can see from this function, updating rows in Opaleye is not very pretty! The biggest pain is that you cannot specicy which columns to update. You are forced to update the **entire row**. More about this in :ref:`updating_rows`.
+* As you can see from this function, updating rows in Opaleye is not very pretty! The biggest pain is that you cannot specify only a few columns from the row -- you are forced to update the **entire row**. More about this in :ref:`updating_rows`.
 * You already know what ``constant row`` does - it converts a Haskell datatype to its corresponding PG data type, which for some strange reason, Opaleye refuses to do here automagically.
 * The comparison operator ``.==`` is what gets translated to equality operator in SQL. We cannot use Haskell's native equality operator because it represents equality in Haskell-land, whereas we need to represent equality when it gets converted to SQL-land. You will come across a lot of such special operators that map to their correspnding SQL parts.
 
@@ -161,6 +161,7 @@ Check the type of ``row@(_, _, em)`` in your editor. It should be ``(Column PGIn
 
 * ``queryTable userTable -< ()`` maps to a ``SELECT`` clause in SQL-land. 
 * The columns selected are *conceptually* capurted in ``row@(_, _, em)`` in SQL-land (which is why the row is a PG type instead of a Haskell type).
-* ``restrict`` maps to ``WHERE`` in SQL. The condition refers to ``email`` which is a Haskell-type and hence, we need to convert it to a PG type via ``constant email`` before comparing it to ``em``
-* Finally ``returnA`` does some magic to return all the *captured* columns back to Haskell-land.
+* ``restrict`` maps to ``WHERE`` in SQL. 
+* The ``WHERE`` condition, i.e. ``em .== constant email`` needs to convert ``email``, which is of type ``String``, to ``Column PGText`` (through the ``constant`` function) before it can compare it with ``em``
+* Finally ``returnA`` does some magic to return the row back to Haskell-land. Notice, that we don't have to do a DB => Haskell conversion here, because, as mentioned earlier, ``runQuery`` does that conversion automagically.
 

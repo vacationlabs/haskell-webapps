@@ -43,7 +43,7 @@ At the end of the mapping process, we would like to have a schema as close to th
     create index idx_tenants_updated_at on tenants(updated_at);
     create unique index idx_unique_tenants_backoffice_domain on tenants(lower(backoffice_domain));
 
-Further, we will see how each DB library deals with the following four cases:
+Further, we will see how Opaleye deals with the following four cases:
 
 * Non-nullable columns without DB-specified defaults
 * Non-nullable columns with DB-specified defaults
@@ -120,7 +120,7 @@ Now, to setup the DB<=>Haskell mapping for the ``tenants`` table, we'll walk dow
                                       ,tenantBackofficeDomain = required "backoffice_domain"
                                       })
 
-That's quite a **lot of code** to setup mappings for just one table! Most of it is just boilerplate that can easily be abstracted away using typefamilies or some TemplateHaskell. In fact there are libraries, such as, SilkOpaleye and dbrecord-opaleye which try to give Opaleye an easier-to-use API.
+That's quite a **lot of code** to setup mappings for just one table! Most of it is just boilerplate that can easily be abstracted away using type-families or some TemplateHaskell. In fact there are libraries, such as, SilkOpaleye and dbrecord-opaleye which try to give Opaleye an easier-to-use API.
 
 Strange polymorphic records
 ---------------------------
@@ -141,6 +141,12 @@ Firstly, let's tackle the strangely polymorphic ``TenantPoly``. ::
 This is a **base type** which defines the **shape** of a set of related record-types (namely ``TenantPGRead``, ``TenantPGWrite``, and ``Tenant``). ``TenantPoly`` is polymorphic over every single field of the record. This allows us to easily change the type of each field, while ensuring that the *shape* of all these related records is always the same. (*Why* would we want records with similar shapes, but different types, will get clearer in a moment - hang in there!) Generally, ``TenantPoly`` is never used directly in any Opaleye operation. The concrete types - ``TenantPGRead`` ``TenantPGWrite`` and ``Tenant`` - are used instead.
 
 Now, it seems that Opalaye does **not do any reflection** on the DB schema whatsoever. This is a completely different approach compared to Rails (in the Ruby world) and HRR (in the Haskell world) which generate the DB<=>Haskell classes/record-types completely on the basis of schema reflection). So, Opaleye does not know what data-types to expect for each column when talking to the DB. Therefore, we have to teach it by duplicating the column definitions in Haskell. This is precisely what ``TenantPGRead``,  ``TenantPGWrite``, ``makeAdaptorAndInstance`` and ``tenantTable`` do, and this is what we absolutely hate about Opaleye! ::
+
+.. note:: We've scratched our own itch here and are working on `Opaleye Helpers<https://github.com/vacationlabs/opaleye-helpers/>`_ to help remove this duplication and boilerplate from Opaleye.
+
+  * ``TenantPGWrite``: (Maybe (Column (Nullable PGInt8)))
+  * ``TenantPGRead``: (Column (Nullable PGInt8))
+
 
   type TenantPGWrite = TenantPoly
     (Maybe (Column PGInt8)) -- key
@@ -178,17 +184,7 @@ Different types for read & write
 
 With this, we witness another quirk (and power) of Opaleye. It allows us to define different types for the read (SELECT) and write (INSERT/UPDATE) operations. In fact, our guess is that, to achieve type-safety, it is forced to do this. Let us explain. If you're using standard auto-increment integers for the primary key (which most people do), you essentially end-up having two different types for the ``INSERT`` and ``SELECT`` operations. In the ``INSERT`` operation, you *should not* be specifying the ``id`` field/column. Whereas, in the ``SELECT`` operation, you will always be reading it. (Look at Persistent if you want to see another approach of solving this problem.)
 
-One way to omit the primary key during ``INSERT`` is by defining only a single type ``TenantPG``, letting the ``id`` (or ``key``) field be lazy, and depending on it being ``undefined`` for new records. We haven't tried this approach yet, but we're very sure it would require us to teach Opalaye how to map ``undefined`` values to SQL. Nevertheless, depending upon partially defined records for something as common as ``INSERT`` operations does not bode too well for a language that prides itself on type-safety and correctness. ::
-
-  -- NOT RECOMMENDED. NOT TESTED.
-  type TenantPG = TenantPoly
-    (Column PGInt8) -- key
-    (Column PGTimestamptz) -- createdAt
-    (Column PGTimestamptz) -- updatedAt
-    (Column PGText) -- name
-    (Column PGText) -- status
-    (Column (Nullable PGInt8)) -- ownerId
-    (Column PGText) -- backofficeDomain
+One way to avoid having separate types for read & write operations, is to allow the PK field to be ``undefined`` in Haskell, being careful not to evaluate it when dealing with a record that has not yet been saved to the DB. We haven't tried this approach yet, but we're very sure it would require us to teach Opalaye how to map ``undefined`` values to SQL. Nevertheless, depending upon partially defined records for something as common as ``INSERT`` operations does not bode too well for a language that prides itself on type-safety and correctness. 
 
 Therefore, the need for two separate types: ``TenantPGRead`` and ``TenantPGWrite``, with subtle differences. But, before we discuss the differences, we need to understand how Opaleye deals with ``NULL`` values and "omitted columns".
 
@@ -200,10 +196,7 @@ Let's look at ``TenantPGWrite`` again:
 ====================   =================================  ============
  Column                  Data type                          Meaning
 ====================   =================================  ============
- ``key``                  ``(Maybe (Column PGInt8))``          A PG column of type PGInt8, which may be omitted from the INSERT/UPDATE, thus 
-                                                           leaving its fate to the DB. If the DB has a default-value for this column 
-                                                           (which it does, it's an auto-increment primary key), it will be used, else it will
-                                                           be ``NULL``.
+ ``key``                  ``(Maybe (Column PGInt8))``       A PG column of type PGInt8, which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it's an auto-increment primary key), it will be used, else it will be ``NULL``.
  ``createdAt``            ``(Maybe (Column PGTimestamptz))``   A PG column of type PGTimestamptz (``TIME WITH TIME ZONE``), which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it is ``current_timestamp``), it will be used, else it will be ``NULL``. |
  ``updatedAt``            ``(Column PGTimestamptz)``           A PG column of type PGTimestamptz, which can NOT be omitted from the INSERT/UPDATE statement AND its value must be ``NOT NULL`` |
  ``name``                 ``(Column PGText)``                  A PG column of type PGText (``TEXT``), which can NOT be omitted from the INSERT/UPDATE statement AND its value must be ``NOT NULL`` |
