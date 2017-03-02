@@ -205,19 +205,6 @@ Let's look at ``TenantPGWrite`` again:
 
  
 
-
-====================   =================================  ============
- Column                  Data type                          Meaning
-====================   =================================  ============
-``key``                ``(Maybe (Column PGInt8))``        A PG column of type PGInt8, which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it's an auto-increment primary key), it will be used, else it will be ``NULL``.
- ``createdAt``            ``(Maybe (Column PGTimestamptz))``   A PG column of type PGTimestamptz (``TIME WITH TIME ZONE``), which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it is ``current_timestamp``), it will be used, else it will be ``NULL``. |
- ``updatedAt``            ``(Column PGTimestamptz)``           A PG column of type PGTimestamptz, which can NOT be omitted from the INSERT/UPDATE statement AND its value must be ``NOT NULL`` |
- ``name``                 ``(Column PGText)``                  A PG column of type PGText (``TEXT``), which can NOT be omitted from the INSERT/UPDATE statement AND its value must be ``NOT NULL`` |
- ``status``               ``(Column PGText)``                  A PG column of type PGText (``TEXT``), which can NOT be omitted from the INSERT/UPDATE statement AND its value must be ``NOT NULL`` |
- ``ownerId``              ``(Column (Nullable PGInt8))``       A PG column of type PGInt8, which can NOT be omitted from the INSERT/UPDATE statement, HOWEVER its value CAN be ``NULL``. While the column can hold ``NULL`` values, it cannot be omitted from the INSERT/UPDATE statement. This means, that even if you want to set it to ``NULL`` you need to do so explicitly. Moreover, actual ``NULL`` values are represented as [``null``](https://hackage.haskell.org/package/opaleye-0.5.1.0/docs/Opaleye-Column.html#v:null) instead of ``Nothing`` in Opaleye. |
- ``backofficeDomain``     ``(Column PGText)``                  A PG column of type PGText (``TEXT``), which can NOT be omitted from the INSERT/UPDATE statement AND its value must be ``NOT NULL`` |
-====================   =================================  ============
-
 Different types for read & write - again
 ----------------------------------------
 
