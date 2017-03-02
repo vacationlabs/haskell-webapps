@@ -143,7 +143,7 @@ This is a **base type** which defines the **shape** of a set of related record-t
 Now, it seems that Opalaye does **not do any reflection** on the DB schema whatsoever. This is a completely different approach compared to Rails (in the Ruby world) and HRR (in the Haskell world) which generate the DB<=>Haskell classes/record-types completely on the basis of schema reflection). So, Opaleye does not know what data-types to expect for each column when talking to the DB. Therefore, we have to teach it by duplicating the column definitions in Haskell. This is precisely what ``TenantPGRead``,  ``TenantPGWrite``, ``makeAdaptorAndInstance`` and ``tenantTable`` do, and this is what we absolutely hate about Opaleye!
 
 
-.. note:: We've scratched our own itch here and are working on `Opaleye Helpers<https://github.com/vacationlabs/opaleye-helpers/>`_ to help remove this duplication and boilerplate from Opaleye.
+.. note:: We've scratched our own itch here and are working on `Opaleye Helpers <https://github.com/vacationlabs/opaleye-helpers/>`_ to help remove this duplication and boilerplate from Opaleye.
 
 
 .. code-block:: haskell
@@ -192,6 +192,7 @@ Handling ``NULL`` and database defaults
 -------------------------------------
 
 Let's look at ``TenantPGWrite`` again:
+
 
 +-------------+-------------------+-----------------------------------------------------------------+
 | Column      | Data type         | Meaning                                                         |
