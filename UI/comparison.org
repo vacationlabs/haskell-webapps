@@ -1,0 +1,167 @@
+* Comparison between reflex-frp, react-flux and the js react approach
+** General principles
+*** Local reasoning
+**** reflex-frp:
+     There is a strong principle of local reasoning: signals are defined in only
+     one place, and do not depend from the complexities of message passing.
+     Refactoring can be done with more confidence.
+**** react-flux:
+     Components rely on message passing and the only way to understand when a
+     ~transform~ action is triggered is to manually search for places in the
+     code where the actions are invoked. This principle of non-locality is
+     somehow balanced by the simplicity of the architecture.
+*** Make nonsensical states non-representible in the domain model. Basically a lot of ADT usage.
+    Being haskell libraries, they fare equally here.
+*** Lift more invariants to the type-level.
+**** reflex-frp:
+     You can write normal haskell in all aspects of your architecture, so you
+     can decide how much invariant encode and where. You are talking about pure
+     types anywhere, so there is no unrestricted IO in the basic framework.
+     Also, you can guarantee exactly what types of signal arrive to your
+     components: there is no global store in which all the signals arrive.
+**** react-flux:
+     The action you can take on a store depends from the type of the store, so
+     you can't accidentally pass a message of the wrong type. On the other hand,
+     you have no indication of the types that are sent in any point of your
+     application. A View can in principle communicate with every store.
+
+     The other hand, the ~transform~ function has type:
+     #+BEGIN_SRC haskell
+     transform -> StoreAction -> StoreData -> IO StoreData
+     #+END_SRC
+     which makes unrestricted communication possible (this is however a
+     characteristic of the haskell library: in the purescript library pux, for
+     example, the equivalent function is indeed pure). The global store means
+     that a component might change triggered by whoever fires that signal,
+     inside or outside the store.
+*** Investigate how testing is (or could be) done in the various domains
+**** reflex-frp:
+     The testing is mainly done with the function for tracing signals (analogues
+     to the ~trace~ functions in base). You can inspect the values of your
+     signals as they change. In practice, a large quantity of errors is
+     eliminated by having to comply with the type system.
+**** react-flux
+     Testing is mainly done within the js console, using ~putStrLn~ statements
+     (or maybe I misused the library). It has been my experience than a weird
+     behaviour of a component can be quite messy to find.
+*** User base and support; libraries
+**** reflex-frp:
+     Has a quite friendly user base on #reflex-frp. The author of reflex and the
+     regular partecipants have been very responsive and helpful on every
+     question I asked there. There are libraries which try to integrate reflex
+     with the other part of the haskell web ecosystem (like servant).
+**** react-flux:
+     This library is mainly maintained by the author, and there isn't a
+     significant community around it. While the author is very thorough with
+     producing documentation, sometimes I would have liked to know how to do
+     something in this framework. There is also a general propension to write
+     binding libraries to js for structural part of the application (like eg
+     routing).
+*** 
+** Architectural concerns
+*** Create a reusable collection of abstractions for most used ui components (forms etc.)
+**** reflex-frp:
+     You have the full power of abstraction given by the haskell language.
+**** react-flux:
+     You have ways of abstracting your workflow, but you cannot subvert the
+     mechanism around store creation. In other words, it's not possible to
+     create stores programmatically, without resorting to template haskell.
+*** Develop a coherent story on how to share data structures with backend.
+**** reflex-frp:
+     You can perfectly share data, widgets, abstractions between server and client.
+**** react-flux:
+     You can share all the things that don't touch the store implementation.
+*** Investigate the tradeoff of doing all the implementation in haskell vs. interface, via haskell, to html templates.
+**** reflex-frp:
+     We wrote an html quasiquoter that separates logic from markup. The author
+     of the react library says that libraries like ~lucid-reflex~ or a generic
+     html embedder are in the works.
+**** react-flux:
+     It's surely possible to write a quasiquoter along the line, but there is no
+     existing library to improve upon.
+*** Investigate how to integrate with existing jQuery widgets (calendar, accordion, search/sort tables, editable grids, etc)
+**** reflex-frp
+     I feel this is not useful for small widget. However, it's surely useful for
+     greater things like google maps, or the text editor. Examples are present
+     in this area: for example this is the [[https://github.com/reflex-frp/reflex-dom-ace/blob/master/src/Reflex/DOM/ACE.hs][code]] needed to use the ACE editor
+     inside reflex. As we can see, this is an example of javascript ffi done in
+     haskell:
+#+BEGIN_SRC haskell
+foreign import javascript unsafe
+  "(function(){ var a = ace['edit']($1); a.session.setMode(\"ace/mode/haskell\"); return a; })()"
+  js_startACE :: JSString -> IO AceRef
+#+END_SRC
+Additional information I found useful to investigate the js ffi in haskell are
+mentioned in [[http://weblog.luite.com/wordpress/][luite's blog]].
+
+**** react-flux:
+     The author says that it's easy to bind to external libraries, via js ffi.
+     This is the same mechanism of the previous section.
+**** purescript:
+     Here the ffi is a bit simpler to write, according to[[http://www.alexmingoia.com/purescript-pux/docs/react-interop/using-react-components-in-pux.html][ the pux guide]].
+*** Forms relying only on server side validation or with mixed client/server side validation
+**** reflex-frp
+     We got around implementing our solution for validation, with which we can
+     validate on the client and on the server side in a denotative way.
+**** react-flux:
+     Our solution for validation is implementable also here: it suffices to have
+     an endpoint that returns an shaped value.
+
+     There is some boilerplate involved in the fact that one has to add an
+     additional type in the store to represent the status of the request, and
+     two additional actions (to request and process the response).
+*** Investigate the preferred way to architecture an application. How powerful, and how general, is it?
+**** reflex-frp:
+     You can implement whatever you want: in a sense this is also a source of
+     problems: the framework, per se, gives little guidance on the way things
+     should be done. On the other hans you are free to use abstractions fit to
+     your domain.
+**** react-flux:
+     There is a common way to architect your application (the ideas behind the
+     react framework).
+*** Find a simple and elegant way to do client-side routing. Bonus points if it's easily integrable with the server.
+**** reflex-frp:
+     There is now a fairly simple abstraction in Reflex.Dom.Contrib. Also, a
+     more high level way to do routing will happen with servant-router when we
+     get around fixing it.
+**** react-flux:
+     You can do routing via a store - but the author's suggestion for more
+     complex routing needs is to bind to a js library.
+*** Analyze, in the case of a language barrier to cross, the tradeoffs involved. In particular if is it possible to automatically reutilize the same structures (like the description of an API) on both frontend and backend.
+**** reflex-frp:
+     You have full sharing capabilities.
+**** react-flux:
+     You can share all the things except for the abstractions that would require
+     a modification of the concept of store.
+** Deployment concerns
+*** Minification toolchain to reduce the final JS size (closure compiler, specific ghcjs compilation options etc.)
+**** reflex-frp:
+     The minification is quite good. I was unable to use the advanced flag when
+     compiling, but I asked luite and it seems that I should be able to do that
+     if I use a more recent version of ghcjs (nightly at the time of writing).
+     To give an idea of the dimensions, a reflex-frp generated js for our demo
+     app weights (transferred 850kb, size 1.30mb). Further improvements can be
+     made in this area, if avoids importing large libraries, or uses the
+     advanced options during minification.
+**** react-flux:
+     The minification works also with advanced optimization flag turned on (the
+     author has been quite careful ensuring this). One thing to be said is that
+     you still need to send the react library (probably cached). If you sum the
+     size of react (686 kb) and the size of the generated js (transferred 150kb,
+     size 270kb), it's comparable to the size of the reflex executable.
+*** Progressive loading of JS files to reduce initial page-load time
+    I found references to this progressive loading in luite's blog. It doesn't
+    seem to be implemented now, but it's a planned improvement for the future.
+    This depends on ghcjs, so it's common among the haskell libraries.
+*** Server-side rendering of initial page-load
+**** reflex-frp:
+     It's possible, (see the ~staticRender~ function). Care has to be taken when
+     this process is done on a page which depends on external javascript.
+**** react-flux:
+     Bind to a js library (flummox?).
+*** Benchmarking how well the generated app fares on mobile
+**** reflex-frp:
+     I have no data for this. Will try and fill up this spot.
+**** react-flux:
+     I have no data for this. Will try and fill up this spot. It's also probably
+     possible to bind to react-native to generate a native app.

@@ -1,4 +1,4 @@
-Introduction
+Instant Gratification
 ==============================
 
 Connecting to the PostgreSQL database
@@ -30,10 +30,10 @@ Let's assume a database table like the following storing user data for some app 
 
   .. code-block:: sql
 
-    create table users(
-       id serial primary key
-      ,email text not null
-      ,name text
+    create table users
+      ( id serial primary key
+      , email text not null
+      , name text
     );
 
 What needs to be done to query this table? Well, first of all, HRR needs to derive a Haskell data type for it. It's advised to have a separate
@@ -80,15 +80,3 @@ executing it on the DB: ::
         runQuery conn (relationalQuery getUserEntry) "some.user@mailprovider.com"
 
 And that was your very first query in HRR!
-
-
-Type works
-----------
-
-TODO
-
-
-Reading into custom data types
-------------------------------
-
-TODO

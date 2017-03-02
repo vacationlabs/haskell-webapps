@@ -1,34 +1,58 @@
-resolver: lts-7.2
-compiler: ghcjs-0.2.1.9007002_ghc-8.0.1
+resolver: lts-7.13
+compiler: ghcjs-0.2.1.9007013_ghc-8.0.1
 compiler-check: match-exact
 
 setup-info:
   ghcjs:
     source:
-      ghcjs-0.2.1.9007002_ghc-8.0.1:
-          url: http://ghcjs.tolysz.org/ghc-8.0-2016-10-01-lts-7.2-9007002.tar.gz
-          sha1: a41ae415328e2b257d40724d13d1386390c26322
-
-# extra-package-dbs: []
+      ghcjs-0.2.1.9007013_ghc-8.0.1:
+          url: http://ghcjs.tolysz.org/ghc-8.0-2016-12-18-lts-7.13-9007013.tar.gz
+          sha1: 530c4ee5e19e2874e128431c7ad421e336df0303
 
 packages:
 - location: '.'
 - location: ../mockAPI
   extra-dep: true
 - location:
-    git: https://github.com/reflex-frp/reflex.git
-    commit: a63aba90bdea5ae5b3e1506d468613bdfedcdfa3
+    git: https://github.com/reflex-frp/reflex
+    commit: 91299fce0bb2caddfba35af6608df57dd31e3690
   extra-dep: true
 - location:
-    git: https://github.com/Arguggi/reflex-dom.git
-    commit: 767c9b7625c61208b552f64b95719edac18a6e29
+    git: https://github.com/hamishmack/reflex-dom
+    commit: 00c773be07693f38d981d6b99fac4a0571d45bd0
   extra-dep: true
 - location:
-    git: https://github.com/imalsogreg/servant-reflex
-    commit: cf0bce400cd194301e7b02e01cbc4139afd47d95
+    git: https://github.com/meditans/servant-reflex
+    commit: 6953de90edc444f8f556b02639a2c64be6d1f6a9
   extra-dep: true
+- location:
+    git: https://github.com/ghcjs/jsaddle
+    commit: 02f215aec0622300fd68f0200c813356ed7cd738
+  subdirs:
+  - jsaddle
+  - jsaddle-warp
+  extra-dep: true
+- location:
+    git: https://github.com/ghcjs/jsaddle-dom
+    commit: 06351fe3562a2e6d096f6c862a9f5694ffd800d8
+  extra-dep: true
+- location:
+    git: https://github.com/ghcjs/ghcjs-dom
+    commit: 93165cae1c02e0d3859b4cd515e6bf0f1581e79b 
+  extra-dep: true
+  subdirs:
+  - ghcjs-dom-jsffi
 
 extra-deps:
-- ghcjs-dom-0.2.4.0
+- ghcjs-dom-0.7.0.3
+- ghcjs-dom-jsaddle-0.7.0.3
+- jsaddle-0.7.0.0
+- jsaddle-dom-0.7.0.3
+- jsaddle-warp-0.7.0.0
+- prim-uniq-0.1.0.1
 - ref-tf-0.4.0.1
 - zenc-0.1.1
+
+flags: {}
+
+extra-package-dbs: []

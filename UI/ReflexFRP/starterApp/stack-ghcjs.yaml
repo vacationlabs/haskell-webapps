@@ -1,0 +1,34 @@
+resolver: lts-7.8
+compiler: ghcjs-0.2.1.9007008_ghc-8.0.1
+compiler-check: match-exact
+
+setup-info:
+  ghcjs:
+    source:
+      ghcjs-0.2.1.9007008_ghc-8.0.1:
+          url: http://ghcjs.tolysz.org/ghc-8.0-2016-11-07-lts-7.8-9007008.tar.gz
+          sha1: 190300a3725cde44b2a08be9ef829f2077bf8825
+
+packages:
+- location: '.'
+- location:
+    git: https://github.com/reflex-frp/reflex
+    commit: 91299fce0bb2caddfba35af6608df57dd31e3690
+    # Latest develop comment at the time of writing
+  extra-dep: true
+- location:
+    git: https://github.com/hamishmack/reflex-dom
+    commit: d9842742183a800cf1f98f89d42d849d52dd2d67
+    # Latest develop comment at the time of writing
+  extra-dep: true
+
+extra-deps:
+- ghcjs-dom-0.7.0.3
+- ghcjs-dom-jsaddle-0.7.0.3
+- ghcjs-dom-jsffi-0.7.0.3
+- jsaddle-0.7.0.0
+- jsaddle-dom-0.7.0.3
+- jsaddle-warp-0.7.0.0
+- prim-uniq-0.1.0.1
+- ref-tf-0.4.0.1
+- zenc-0.1.1
