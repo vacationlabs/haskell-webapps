@@ -56,7 +56,8 @@ Let's tackle the cryptic ``userTable`` definition at the very beginning of this 
 
 Here's what it is basically teaching Opaleye:
 
-* We will be reading rows of the type ``(Column PGInt4, Column PGText, Column PGText)`` from the table.
+* We will be reading rows of the type ``(Column PGInt4, Column PGText, Column PGText)`` from the table. The ``Column a`` types are the
+  ones Opaleye uses to represent the columns in a table. So ``Integer`` columns become ``Column PGInt4``, ``varchar`` columns become         ``Column PGText`` and so on.
 * We will be writing rows of the same type to the table. (Opaleye allows you to read and write rows of *different* types for very valid reasons. Read :ref:`basic_mapping` for more details on this.)
 * The table's name is ``users``
 * The first column in the table is called ``id``; it is *required*; and it maps to the first value of the tuple. Marking a column *required* means that you will have to specify a value for it whenever you are inserting or updating a row via Opaleye. You can mark a column as *optional* as well, but we talk about the subtle differences between *required*, *optional*, ``NULL`` and ``NOT NULL`` in the :ref:`basic_mapping` chapter.
