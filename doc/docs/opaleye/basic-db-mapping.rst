@@ -244,8 +244,8 @@ Different types for read & write - again
 
 Now, coming back to the subtle differences in ``TenantPGWrite`` and ``TenantPGRead``:
 
-* While writing, we may **omit** the ``key`` and ``createdAt`` columns (because their type is ``(Maybe (Column x))`` in ``TenantPGWrite`` - as opposed to simply ``Column x``)
-* However, we are telling Opaleye, that while reading from the DB, we guarantee that ``key`` and ``createdAt`` will both be ``NOT NULL``. This is because in ``TenantPGRead`` their types are ``(Column x)`` (as opposed to ``Maybe (Column x)``)
+* While writing, we may **omit** the ``key`` and ``createdAt`` columns (because their type is ``(Maybe (Column x))`` in ``TenantPGWrite``)
+* However, we are telling Opaleye, while reading from the DB, we guarantee that ``key`` and ``createdAt`` will both be present. This is because in ``TenantPGRead`` their types are ``(Column x)`` (as opposed to ``Maybe (Column x)`` or ``Column (Nullable x)``)
 
 .. note:: **Here's a small exercise:** What if ``ownerId`` had the following types. What would it mean?
 
