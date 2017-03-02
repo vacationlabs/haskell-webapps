@@ -195,9 +195,9 @@ Let's look at ``TenantPGWrite`` again:
 
 
 +-------------+-------------------+-----------------------------------------------------------------+
-| Column      | Data type         | Meaning                                                         |
+| Column      | Data type                    | Meaning                                              |
 +=============+===================+=================================================================+
-| ``key``  | ``(Maybe (Column PGInt8))`` | A PG column of type PGInt8, which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it's an auto-increment primary key), it will be used, else it will be ``NULL``. |
+|  ``key``    |  ``(Maybe (Column PGInt8))`` | test                                                 |
 +-------------+-------------------+-----------------------------------------------------------------+
 
  
