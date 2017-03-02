@@ -191,16 +191,51 @@ Therefore, the need for two separate types: ``TenantPGRead`` and ``TenantPGWrite
 Handling ``NULL`` and database defaults
 -------------------------------------
 
-Let's look at ``TenantPGWrite`` again:
+Let's look at the types of a few fields from ``TenantPGWrite`` and how they interact with ``NULL`` values and the ``DEFAULT`` value in the DB:
 
 
-+---------+-----------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Column  | Data type                   | Meaning                                                                                                                                                                                                                                                 |
-+---------+-----------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| ``key`` | ``(Maybe (Column PGInt8))`` | A PG column of type PGInt8, which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it's an auto-increment primary key), it will be used, else it will be ``NULL``. |
-+---------+-----------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+** The ``Column a`` types**
 
+* ``updatedAt``of type ``(Column PGTimestamptz)`` corresponding to ``updated_at timestamp with time zone not null default current_timestamp``
+* ``name`` of type ``(Column PGText)`` corresponding to ``name text not null``
+* ``status`` of type ``(Column PGText)`` corresponding to ``status text not null default 'inactive'``
+
+In each of these cases you **have to** specify the field's value whenever you are inserting or updating via Opaleye. Moreover, the type ensures that you cannot assign a ``null`` value to any of them at the Haskell-level.
+
+**The ``Maybe (Column a)`` types**
+
+* ``key`` of type ``(Maybe (Column PGInt8))`` corresponding to ``id serial primary key``
+* ``createdAt`` of type ``(Maybe (Column PGTimestamptz))``  corresponding to ``created_at timestamp with time zone not null default current_timestamp``
+
+In both these cases, during an INSERT, if the value is a ``Nothing``, the entire column itself will be omitted from the INSERT statement and its fate will be left to the DB.
+
+**The ``Column (Nullable a)` types**
+
+* ``ownerId`` of type ``(Column (Nullable PGInt8))`` corresponding to ``owner_id integer``
+
+In this case, while you **have to** specify a value at the Haskell level, you can specify a ``null`` as well.
+
+.. code:: haskell
+  
+  runInsertMany 
+    conn  -- PG Connection
+    userTable -- Opaleye table identifer 
+    [(
+      TenantPGWrite
+        {
+          tenantKey              = Nothing -- omitted from query; will use DB's DEFAULT
+        , tenantCreatedAt        = Just $ pgUTCTime someTime -- NOT omitted from query; will NOT use DB's DEFAULT
+        , tenantUpdatedAt        = pgUTCTime someTime
+        , tenantName             = pgText "Saurabh"
+        , tenantStatus           = pgText "inactive"
+        , tenantOwnerId          = null -- specfically store a NULL value
+        , tenantBackofficeDomain = pgText "saurabh.vacationlabs.com"
+        }
+    )]
  
+
+.. note:: Please make sure you understand the difference between ``Maybe (Column a)`` and ``Column (Nullable a)``. And possibly ``Maybe (Column (Nullable a))`` - although we're not sure how useful the last one is!
+
 
 Different types for read & write - again
 ----------------------------------------
