@@ -193,10 +193,18 @@ Handling ``NULL`` and database defaults
 
 Let's look at ``TenantPGWrite`` again:
 
+| Column      | Data type         | Meaning                                                         |
++=============+===================+=================================================================+
+| `key``  | ``(Maybe (Column PGInt8))`` | A PG column of type PGInt8, which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it's an auto-increment primary key), it will be used, else it will be ``NULL``. |
++-------------+-------------------+-----------------------------------------------------------------+
+
+ 
+
+
 ====================   =================================  ============
  Column                  Data type                          Meaning
 ====================   =================================  ============
- ``key``                  ``(Maybe (Column PGInt8))``       A PG column of type PGInt8, which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it's an auto-increment primary key), it will be used, else it will be ``NULL``.
+``key``                ``(Maybe (Column PGInt8))``        A PG column of type PGInt8, which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it's an auto-increment primary key), it will be used, else it will be ``NULL``.
  ``createdAt``            ``(Maybe (Column PGTimestamptz))``   A PG column of type PGTimestamptz (``TIME WITH TIME ZONE``), which may be omitted from the INSERT/UPDATE, thus leaving its fate to the DB. If the DB has a default-value for this column (which it does, it is ``current_timestamp``), it will be used, else it will be ``NULL``. |
  ``updatedAt``            ``(Column PGTimestamptz)``           A PG column of type PGTimestamptz, which can NOT be omitted from the INSERT/UPDATE statement AND its value must be ``NOT NULL`` |
  ``name``                 ``(Column PGText)``                  A PG column of type PGText (``TEXT``), which can NOT be omitted from the INSERT/UPDATE statement AND its value must be ``NOT NULL`` |
