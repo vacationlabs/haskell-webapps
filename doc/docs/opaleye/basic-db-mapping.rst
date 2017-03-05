@@ -225,8 +225,8 @@ For example, this is a possible INSERT operation:
     [(
       TenantPGWrite
         {
-          tenantKey              = Nothing -- omitted from query; will use DB's DEFAULT
-        , tenantCreatedAt        = Just $ pgUTCTime someTime -- NOT omitted from query; will NOT use DB's DEFAULT
+          tenantKey              = Nothing -- column will be omitted from query; will use DB's DEFAULT
+        , tenantCreatedAt        = Just $ pgUTCTime someTime -- column will NOT be omitted from query; will NOT use DB's DEFAULT
         , tenantUpdatedAt        = pgUTCTime someTime
         , tenantName             = pgText "Saurabh"
         , tenantStatus           = pgText "inactive"
@@ -245,25 +245,20 @@ Different types for read & write - again
 Now, coming back to the subtle differences in ``TenantPGWrite`` and ``TenantPGRead``:
 
 * While writing, we may **omit** the ``key`` and ``createdAt`` columns (because their type is ``(Maybe (Column x))`` in ``TenantPGWrite``)
-* However, we are telling Opaleye, while reading from the DB, we guarantee that ``key`` and ``createdAt`` will both be present. This is because in ``TenantPGRead`` their types are ``(Column x)`` (as opposed to ``Maybe (Column x)`` or ``Column (Nullable x)``)
+* However, while reading, there is really no way to omit columns. You can, of course select 2 columns instead of 3, but that would result in completely different data types, eg: ``(Column PGText, Column PGInt4)`` vs ``(Column PGText, Column PGInt4, Column PGTimestamptz)``. 
+* If your result-set is obtained from a LEFT JOIN, you can have a PGRead type of ``(Column a, Column b, Column (Nullable c), Column (Nullable d))``, with the Nullable columns repreenting the result-set in a type-safe manner.
 
-.. note:: **Here's a small exercise:** What if ``ownerId`` had the following types. What would it mean?
+.. note:: **Here are two small exercises:**
+
+  What if ``ownerId`` had the following types. What would it mean? What is a possible use-case for having these types?
 
   * ``TenantPGWrite``: (Maybe (Column (Nullable PGInt8)))
   * ``TenantPGRead``: (Column (Nullable PGInt8))
     
-.. note:: **Here's another small exercise:** What if ``ownerId`` had the following types. What would it mean?
+  And what about the following types for ``onwerId``?
 
   * ``TenantPGWrite``: (Maybe (Column PGInt8))
   * ``TenantPGRead``: (Column (Nullable PGInt8))
-
-    
-.. note:: **Here's more to think about:** What if ``ownerId`` had the following types. What would it mean? 
-
-  * ``TenantPGWrite``: (Maybe (Column PGInt8))
-  * ``TenantPGRead``: (Maybe (Column PGInt8))
-
-  What does having a ``(Maybe (Column x))`` during ``SELECT`` operations really mean? Does it mean anything in regular ``SELECT`` operations? What about ``LEFT JOIN`` operations?
 
 **Making things even more typesafe:** If you notice, ``TenantPGWrite`` has the ``key`` field as ``(Maybe (Column PGInt8))``, which makes it *omittable*, but it also makes it *definable*. Is there really any use of sending the primary-key's value from Haskell to the DB? In most cases, we think not. So, if we want to make this interface uber typesafe, Opaleye allows us to do the following as well (notice the type of ``key``): ::
 
