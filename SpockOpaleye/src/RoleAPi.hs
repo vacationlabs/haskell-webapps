@@ -5,51 +5,46 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module RoleApi
-  ( create_role
-  , remove_role
-  , read_roles_for_tenant
+  ( createRole
+  , removeRole
+  , updateRole
+  , readRolesForTenant
   ) where
 
 import           Control.Arrow
-import           Data.List.NonEmpty
-import           Data.Text
-import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
 
-create_role :: Connection -> Role -> IO (Maybe Role)
-create_role conn role@Role { role_tenantid = tenant_id , role_name = name , role_permission = rp } = do
-  ids <-
-    runInsertManyReturning
-      conn roleTable (return Role {
-          role_id = Nothing,
-          role_tenantid = constant tenant_id,
-          role_name = pgStrictText name,
-          role_permission = constant rp
-      }) id
-  return $ case ids of
-    []     -> Nothing
-    (x:xs) -> Just x
+import           ApiBase
+import           Control.Lens
+import           Prelude                    hiding (id)
 
-remove_role :: Connection -> Role -> IO GHC.Int.Int64
-remove_role conn Role {role_id = t_id} = do
-  runDelete conn userRolePivotTable (\(_, role_id) -> role_id .== constant t_id)
-  runDelete conn roleTable match_func
+createRole :: RoleIncoming -> AppM (Auditable Role)
+createRole role = auditable <$> createRow roleTable role
+
+updateRole :: Role -> AppM Role
+updateRole role = updateRow roleTable role
+
+removeRole :: Auditable Role -> AppM GHC.Int.Int64
+removeRole Auditable {_data = role} = do
+  _ <- removeRawDbRows userRolePivotTable (\(_, roleId) -> roleId .== constant (role ^. id))
+  removeRawDbRows roleTable matchFunc
     where
-    match_func Role {role_id = id} = id .== constant t_id
+    tId = role ^. id
+    matchFunc role' = (role' ^. id).== constant tId
 
-read_roles_for_tenant :: Connection -> TenantId -> IO [Role]
-read_roles_for_tenant conn t_id = do
-  runQuery conn $ role_query_for_tenant t_id
+readRolesForTenant :: TenantId -> AppM [Auditable Role]
+readRolesForTenant tId = do
+  wrapAuditable $ readRow $ roleQueryForTenant tId
 
-role_query :: Query RoleTableR
-role_query = queryTable roleTable
+roleQuery :: Query RoleTableR
+roleQuery = queryTable roleTable
 
-role_query_for_tenant :: TenantId -> Query RoleTableR
-role_query_for_tenant t_tenantid =
+roleQueryForTenant :: TenantId -> Query RoleTableR
+roleQueryForTenant tTenantid =
   proc () ->
-  do row@ Role {role_tenantid = tenant_id } <- role_query -< ()
-     restrict -< tenant_id .== (constant t_tenantid)
-     returnA -< row
+  do role <- roleQuery -< ()
+     restrict -< (role ^. tenantid) .== (constant tTenantid)
+     returnA -< role

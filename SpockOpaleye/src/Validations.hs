@@ -1,27 +1,36 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE TemplateHaskell        #-}
+
 
 module Validations where
 
-import           Data.Maybe
+import           Control.Lens
 import qualified Data.Text                  as T
-import           Database.PostgreSQL.Simple
 import           DataTypes
 import           TenantApi
 
-validateIncomingTenant :: Connection -> TenantIncoming -> IO ValidationResult
-validateIncomingTenant conn tenant@Tenant {tenant_name = name
-                                          ,tenant_firstname = fn
-                                          ,tenant_lastname = ln
-                                          ,tenant_email = em
-                                          ,tenant_phone = phone
-                                          ,tenant_backofficedomain = bo_domain} = do
-  unique_bod <- check_for_unique_bo_domain
-  return $
-    if and [unique_bod, validate_name, validate_contact]
-      then Valid
-      else Invalid
+validateIncomingTenant :: TenantIncoming -> AppM ValidationResult
+validateIncomingTenant tenant = do
+  unique_bod <- check_for_unique_bo_domain (tenant ^. backofficedomain)
+  let result = do 
+                unique_bod
+                if validate_contact then Right () 
+                  else (Left "Firstname, Lastname, Email, Phone cannot be blank")
+                if validate_name then Right () 
+                  else (Left "Name cannot be blank")
+  return $ case result of
+    Right () -> Valid
+    Left err -> Invalid err
   where
-    validate_contact = and $ (>= 0) . T.length <$> [fn, ln, em, phone]
-    validate_name = (T.length name) >= 3
-    check_for_unique_bo_domain =
-      isNothing <$> read_tenant_by_backofficedomain conn bo_domain
+    validate_contact = and $ (>= 0) . T.length <$> [tenant ^. firstname, tenant ^. lastname, tenant ^. email, tenant ^. phone]
+    validate_name = (T.length $ tenant ^. name) >= 3
+    check_for_unique_bo_domain :: T.Text -> AppM (Either String ())
+    check_for_unique_bo_domain domain = v <$> readTenantByBackofficedomain domain
+      where
+        v :: Maybe (Auditable Tenant) -> Either String ()
+        v (Just _) = Left "Duplicate backoffice domain"
+        v _  = Right ()
