@@ -12,6 +12,34 @@ Once you've generated your models using :doc:`the migration tool <./migrations>`
 
 For example, if you have the following two tables in your DB schema:
 
++------------+----------------------------------+
+| users      | contacts                         |
++------------+----------------------------------+
+| id         | id                               |
++------------+----------------------------------+
+| created_at | created_at                       |
++------------+----------------------------------+
+| updated_at | updated_at                       |
++------------+----------------------------------+
+| email      | email                            |
++------------+----------------------------------+
+| password   | first_name                       |
++------------+----------------------------------+
+| first_name | last_name                        |
++------------+----------------------------------+
+| last_name  | street_address                   |
++------------+----------------------------------+
+|            | state                            |
++------------+----------------------------------+
+|            | country                          |
++------------+----------------------------------+
+|            | zip                              |
++------------+----------------------------------+
+|            | **user_id references users(id)** |
++------------+----------------------------------+
+
+
+
 ==========      ==========
 users           contacts
 ==========      ==========
@@ -22,10 +50,10 @@ email           email
 password        first_name
 first_name      last_name
 last_name       street_address
-                state
-                country
-                zip
-                user_id references users(id)
+--              state
+--              country
+--              zip
+--              user_id references users(id)
 ==========      ==========
 
 
