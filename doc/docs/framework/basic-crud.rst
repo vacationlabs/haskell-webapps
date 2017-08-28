@@ -111,3 +111,28 @@ Try the following in your REPL:
    , _userFirstName = "Saurabh"
    , _userLastName = "Nanda"
    }
+
+(R)ead operations on models
+-----------------------------
+
+Try the following in your REPL:
+
+.. code:: haskell
+
+   -- finding by a primary key
+   findByPk (PK 1 :: UserId)
+
+   -- find a single row by matching over two columns
+   findSingle2 tableForUser
+     (
+       (email, pgEq, "saurabh@vacationlabs.com")
+     , (password, pgEq, "blahblah")
+     )
+
+   -- find a single row by matching over three columns
+   findSingle3 tableForUser
+     (
+       (email, pgEq, "saurabh@vacationlabs.com")
+     , (firstName, pgEq, "Saurabh")
+     , (lastName, pgEq, "Nanda")
+     )
