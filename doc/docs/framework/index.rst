@@ -44,28 +44,19 @@ Outline
      |  |  \-- (and so on)
      |  |  
      |  \-- Foundation
-     |     |
      |     | Import
-     |     |
      |     | DBImport
-     |     |
      |     \-- Types
-     |       |
      |       |-- Currency
-     |       |
      |       |-- PrimaryKey
-     |       |
      |       |-- Config
-     |       |
      |       \-- (and so on)
      |
      |-- app
-     |  |
      |  \-- Main
      | 
      |
      |-- autogen
-     |  |
      |  \-- AutoGenarated
      |     |
      |     |-- Models
