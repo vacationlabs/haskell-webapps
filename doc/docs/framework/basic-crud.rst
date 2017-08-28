@@ -150,3 +150,21 @@ Try the following in your REPL:
      , (state, pgIn, ["UP", "MH"])
      , (userId, pgEq, PK 10)
      )
+
+
+(U)pdate operations on models
+-----------------------------
+
+Try the following in your REPL:
+
+.. code:: haskell
+
+   u <- findByPk (PK 1 :: UserId)
+   saveModel (u & firstName .~ "new name")
+
+   -- OR
+
+   updateModel
+     (PK 1 :: UserId) -- which row to update
+     (\u -> (u & firstName .~ "new name")) -- updater function
+
