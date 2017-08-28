@@ -13,3 +13,4 @@ Contents:
 
    docs/opaleye/opaleye
    docs/reflex/reflex
+   docs/framework/index
