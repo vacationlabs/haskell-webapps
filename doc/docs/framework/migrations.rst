@@ -117,6 +117,7 @@ The worlflow remains pretty much the same as "Creating a new model":
 #. Write a bunch of ``ALTER`` statements in the migration
 #. Run ``poi migrate up``
 
+
 Other useful command-line arguments
 -----------------------------------
 
