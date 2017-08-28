@@ -146,7 +146,7 @@ Try the following in your REPL:
    findFirst4 tableForUser
      (
        (email, pgEq, "saurabh@vacationlabs.com")
-     , (firstName, pgEq, "Saurabh")
-     , (lastName, pgEq, "Nanda")
+     , (country, pgIn, ["IN", "US"])
+     , (state, pgIn, ["UP", "MH"])
      , (userId, pgEq, PK 10)
      )
