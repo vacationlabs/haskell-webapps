@@ -16,6 +16,9 @@ Outline
    --projectRoot
      |
      |--src
+        |--Models
+        |--Endpoints
+        |--Foundation
      |--app
      |--autogen
      |--scripts
