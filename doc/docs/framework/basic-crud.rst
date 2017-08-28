@@ -90,7 +90,8 @@ For example, if you have the following two tables in your DB schema...
 
 **Points to note:**
 
-#. All files in the ``<projectRoot>/autogen`` directory are marked as read-only and will be over-written if the underlying DB schema changes. You **should not** touch these files. Simply commit them into your version control.
+#. All files in the ``<projectRoot>/autogen`` directory are marked as read-only and **will be over-written** if the underlying DB schema changes. You **should not** touch these files. Simply commit them into your version control.
+#. All files in ``<projectRoot>/src/Models`` will be **generated only once** by the code-generation tool. Once generated, they will **never be touched** by the tool. You should put all your domain logic, custom types, enumeration types, etc. in these files.
 
 Try the following in your REPL:
 
