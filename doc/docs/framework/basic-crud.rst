@@ -168,3 +168,16 @@ Try the following in your REPL:
      (PK 1 :: UserId) -- which row to update
      (\u -> (u & firstName .~ "new name")) -- updater function
 
+(D)elete operations on models
+-----------------------------
+
+Try the following in your REPL:
+
+.. code:: haskell
+
+   u <- findByPk (PK 1 :: UserId)
+   deleteModel u
+
+   -- OR
+
+   deleteModelByPk (PK 1 :: UserId)
