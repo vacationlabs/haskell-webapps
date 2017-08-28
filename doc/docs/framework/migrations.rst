@@ -116,6 +116,8 @@ Other useful command-line arguments
 
 .. code:: sh
 
+   poi migration [up | down | redo | prepare | new]
+
    --env environmentName
          Explicitly pass an environment to the script. Default value is `development` or `APP_ENV` environment variable (in that order)
    --version regex
