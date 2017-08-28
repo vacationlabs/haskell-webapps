@@ -152,6 +152,21 @@ Try the following in your REPL:
      )
 
 
+   -- return all matching rows
+   filter1 tableForUser
+     (
+       (email, pgEq, "saurabh@vacationlabs.com")
+     )
+
+   filter2 tableForUser
+     (
+       (email, pgEq, "saurabh@vacationlabs.com")
+     , (country, pgIn, ["IN", "US"])
+     )
+
+   -- and so on, up to filter6. If you need more than 6 columns, you should
+   -- probably use the underlying Opaleye querying infrastructure.
+
 (U)pdate operations on models
 -----------------------------
 
