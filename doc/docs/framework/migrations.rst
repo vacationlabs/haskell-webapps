@@ -102,9 +102,9 @@ Here is what this will do, under the hood:
 #. This will connect to the development database (by default) and execute all pending migrations. The timestamp/version of all migrations in the ``<projectRoo>/migrations/`` directory will be looked up in the ``schema_migrations`` table. Any migration which is not there in the table will be executed in ascending order of the timestamp/version.
 #. Each individual migration will be wrapped within a **single BEGIN/COMMIT** block - which means that if any migration throws an error:
 
-   #. that particular migration will be rolled back,
-   #. all previous migrations (which have already executed successful) will persist,
-   #. and all migrations which are yet to be executed, will be aborted.
+   a. that particular migration will be rolled back,
+   b. all previous migrations (which have already executed successful) will persist,
+   c. and all migrations which are yet to be executed, will be aborted.
 
 #. Once the migration runs successfully, it will run the model code-generator under the hood, to create/modify/delete any model files that need to be updated as a result of this migration.
 
