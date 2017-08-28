@@ -17,13 +17,40 @@ Outline
      |
      |-- src
      |  |-- Models
+     |  |  |
+     |  |  |-- User
+     |  |  |   \-- Types
+     |  |  |
+     |  |  |-- Customer
+     |  |  |   \-- Types
+     |  |  |
+     |  |  |-- Order
+     |  |  |   \-- Types
+     |  |  |
+     |  |  \-- (and so on)
+     |  |  
      |  |-- Endpoints
+     |  |  |
+     |  |  |-- User
+     |  |  |   \-- Types
+     |  |  |
+     |  |  |-- Customer
+     |  |  |   \-- Types
+     |  |  |
+     |  |  |-- Order
+     |  |  |   \-- Types
+     |  |  |
+     |  |  \-- (and so on)
+     |  |  |
      |  \-- Foundation
      |
      |-- app
+     |  |
+     |  \-- Main
+     | 
      |
      |-- autogen
-     |
+     |  |
      |  \-- AutoGenarated
      |     |
      |     |-- Models
