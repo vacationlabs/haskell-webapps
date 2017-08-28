@@ -11,7 +11,12 @@ Outline
 -------
 
 
-#. Overall project layout - partial design
+#. Overall project layout - partial design::
+
+   + src
+   + autogen
+   + scripts
+
 #. Models / Database
 
    #. Naming conventions - almost final design
