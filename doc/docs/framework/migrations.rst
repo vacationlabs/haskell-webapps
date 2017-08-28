@@ -70,6 +70,6 @@ Now edit this file to create your tables, indexes, constraints, triggers, etc. u
    |])
 
 
-.. todo::
+.. note::
 
    Soemthing comes here...how does thsi get formatted?
