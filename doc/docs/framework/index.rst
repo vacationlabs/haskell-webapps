@@ -19,9 +19,13 @@ Outline
      |  |-- Models
      |  |-- Endpoints
      |  \-- Foundation
+     |
      |-- app
+     |
      |-- autogen
+     |
      |  \-- AutoGenarated
+     |     |
      |     |-- Models
      |     |  |-- User
      |     |  |-- Customer
@@ -34,10 +38,10 @@ Outline
      |     |  |-- OrderId
      |     |  \-- (and so on)
      |     |
-     |     \-- Classes
+     |     \-- Classes (used for lenses)
      |        |-- Id
      |        |-- Name
-     |        |--
+     |        |-- Phone
      |        \-- (and so on)
      |
      \-- scripts
