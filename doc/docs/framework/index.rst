@@ -6,6 +6,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   migrations
+
 
 Outline
 -------
@@ -76,6 +78,8 @@ Outline
      |        |-- Name
      |        |-- Phone
      |        \-- (and so on)
+     |
+     |-- autogen-config.yml
      |
      \-- scripts
 
