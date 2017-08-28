@@ -3,6 +3,16 @@
 Migrations: Creating and editing DB models
 ==========================================
 
+Setting up a fresh database
+---------------------------
+
+.. code:: sh
+
+   poi migrate prepare
+
+This command will generate the following tables and triggers in your DB, **if they don't already exist:**
+
+
 Creating a new model
 --------------------
 
@@ -73,3 +83,11 @@ Now edit this file to create your tables, indexes, constraints, triggers, etc. u
 .. tip::
 
    We should probably have our own quasi-quoter called ``sql`` or something, which allows mixing of raw SQL along with custom helper functions. We can write helper functions to generated indexes, triggers for audit logs, triggers for updating ``updated_at``, triggers for pushing to DB based ``event_log``, etc.
+
+
+Now, run the newly created migration, with the following command:
+
+.. code:: sh
+
+   poi migrate up
+
