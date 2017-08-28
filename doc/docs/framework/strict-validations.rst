@@ -14,5 +14,13 @@ Strict model validations
 
    instance DbModel User where
      strictValidations :: (MonadIO m) => User -> m (Maybe [Error])
-     strictValidations user = do
-       existingUsers <- 
+     strictValidations user =
+       (validateUnique email)
+       <> (validateLength (5, 100) name)
+       <> (validateFormat (compiledRegex "(.*)@(.*)\.(.*)") email)
+       <> (validatePresence name) -- strips the field of whitespace
+       <> (if (present $ user ^. firstName)
+           then (validatePresence lastName)
+           else [])
+         
+
