@@ -13,4 +13,6 @@ Strict model validations
      ) where
 
    instance DbModel User where
-     strictValidations 
+     strictValidations :: (MonadIO m) => User -> m (Maybe [Error])
+     strictValidations user = do
+       existingUsers <- 
