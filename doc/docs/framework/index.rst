@@ -13,9 +13,12 @@ Outline
 
 #. Overall project layout - partial design::
 
-   + src
-   + autogen
-   + scripts
+   --projectRoot
+     |
+     |--src
+     |--app
+     |--autogen
+     |--scripts
 
 #. Models / Database
 
