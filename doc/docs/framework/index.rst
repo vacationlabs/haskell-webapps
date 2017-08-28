@@ -13,15 +13,32 @@ Outline
 
 #. Overall project layout - partial design::
 
-   --projectRoot
+   -- projectRoot
      |
-     |--src
-        |--Models
-        |--Endpoints
-        |--Foundation
-     |--app
-     |--autogen
-     |--scripts
+     |-- src
+        |-- Models
+        |-- Endpoints
+        |-- Foundation
+     |-- app
+     |-- autogen
+        |-- AutoGenarated
+           |-- Models
+              |-- User
+              |-- Customer
+              |-- Order
+              |-- (and so on)
+           |-- PrimaryKeys
+              |-- UserId
+              |-- CustomerId
+              |-- OrderId
+              |-- (and so on)
+           |-- Classes
+              |-- Id
+              |-- Name
+              |--
+              |-- (and so on)
+   
+     |-- scripts
 
 #. Models / Database
 
