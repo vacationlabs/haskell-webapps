@@ -143,7 +143,7 @@ Try the following in your REPL:
    -- find the first row by matching over four columns. Will not throw an error
    -- if this results in multiple rows being returned. Will silently return the
    -- first row.
-   findSingle4 tableForUser
+   findFirst4 tableForUser
      (
        (email, pgEq, "saurabh@vacationlabs.com")
      , (firstName, pgEq, "Saurabh")
