@@ -6,13 +6,13 @@ Migrations: Creating and editing DB models
 Creating a new model
 --------------------
 
-.. code-block::
+.. code:: sh
 
    poi migrate new createUsers
 
-This will create a file called ``<projectRoot>/migrations/MYYYYMMDDHHmmSS-createUsers.hs`` (where ``YYYYMMDDHHmmSS`` is the actual timestamp on which you run the command). The file will look like the following::
+This will create a file called ``<projectRoot>/migrations/MYYYYMMDDHHmmSS-createUsers.hs`` (where ``YYYYMMDDHHmmSS`` is the actual timestamp on which you run the command). The file will look like the following:
 
-.. code-block:: haskell
+.. code:: haskell
 
    module M20170828164533_createUsers where
 
@@ -34,9 +34,9 @@ This will create a file called ``<projectRoot>/migrations/MYYYYMMDDHHmmSS-create
 
 TODO
 
-Now edit this file to create your tables, indexes, constraints, triggers, etc. using raw SQL::
+Now edit this file to create your tables, indexes, constraints, triggers, etc. using raw SQL:
 
-.. code-block:: haskell
+.. code:: haskell
 
    module M20170828164533_createUsers where
 
