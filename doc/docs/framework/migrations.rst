@@ -97,7 +97,27 @@ Now, run the migration, with the following command:
 
    poi migrate up
 
-Here is what it is doing, under the hood:
+Here is what this will do, under the hood:
 
 #. This will connect to the development database (by default) and execute the SQL queries in the ``up`` block in your migration file. The queries will be wrapped within a **single BEGIN/COMMIT** block - which means that if anything throws an error, the entire migration will be rolled back.
 #. Once the migration runs successfully, it will run the model code-generator under the hood, to create/modify/delete any model files that need to be updated as a result of this migration.
+
+Editing an existing models
+--------------------------
+
+The worlflow remains pretty much the same as "Creating a new model":
+
+#. Create a migration file
+#. Write a bunch of ``ALTER`` statements in the migration
+#. Run ``poi migrate up``
+
+Other useful command-line arguments
+-----------------------------------
+
+.. code:: sh
+
+   --env environmentName
+         Explicitly pass an environment to the script. Default value is `development` or `APP_ENV` environment variable (in that order)
+   --version regex
+          Pass a specific migration version to the script. A fuzzy (or regex) match will be attempted with the given argument.
+          If exactly one migration matches, it will be targeted, else all matching migrations will be printed out STDOUT.
