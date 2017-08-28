@@ -108,8 +108,8 @@ Here is what this will do, under the hood:
 
 #. Once the migration runs successfully, it will run the model code-generator under the hood, to create/modify/delete any model files that need to be updated as a result of this migration.
 
-Editing an existing models
---------------------------
+Editing existing models
+-----------------------
 
 The worlflow remains pretty much the same as "Creating a new model":
 
@@ -125,7 +125,14 @@ Other useful command-line arguments
    poi migrate [ up | down | redo | prepare | new ]
 
    --env environmentName
-         Explicitly pass an environment to the script. Default value is `development` or `APP_ENV` environment variable (in that order)
+
+          Explicitly pass an environment to the script. Default value is
+         `development` or the value of the `APP_ENV` environment variable (in
+         that order)
+
    --version regex
-          Pass a specific migration version to the script. A fuzzy (or regex) match will be attempted with the given argument.
-          If exactly one migration matches, it will be targeted, else all matching migrations will be printed out STDOUT.
+
+          Pass a specific migration version to the script. A fuzzy (or regex)
+          match will be attempted with the given argument. If exactly one
+          migration matches, it will be targeted, else all matching migrations
+          will be printed out STDOUT.
