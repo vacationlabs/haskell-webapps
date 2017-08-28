@@ -11,7 +11,7 @@ Strict model validations
      ) where
 
    instance DbModel User where
-     strictValidations :: (MonadIO m) => User -> m (Maybe [Error])
+     strictValidations :: (MonadIO m) => User -> m [Error]
      strictValidations user =
        (validateUnique email)
        <> (validateLength (5, 100) name)
