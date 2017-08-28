@@ -13,6 +13,7 @@ Outline
 
 #. Overall project layout
 #. Models / Database
+
    #. Naming conventions
    #. Creating a new model
    #. Migrations
@@ -21,10 +22,12 @@ Outline
    #. DB transactions & savepoints
 #. Creating JSON APIs
 #. Frontend/UI code
+
    #. Communicating with JSON APIs
    #. Validations
    #. Static assets
 #. Logging
+
    #. File based logging
    #. Exception/error notifications
    #. Performance metrics in production
