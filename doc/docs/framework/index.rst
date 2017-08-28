@@ -7,6 +7,7 @@ Contents:
    :maxdepth: 2
 
    migrations
+   basic-crud
 
 
 Outline
