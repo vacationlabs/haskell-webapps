@@ -32,8 +32,6 @@ This will create a file called ``<projectRoot>/migrations/MYYYYMMDDHHmmSS-create
    -- INSERT YOUR SQL HERE
    |])
 
-TODO
-
 Now edit this file to create your tables, indexes, constraints, triggers, etc. using raw SQL:
 
 .. code:: haskell
@@ -71,3 +69,5 @@ Now edit this file to create your tables, indexes, constraints, triggers, etc. u
    DROP TABLE users;
    |])
 
+
+TODO
