@@ -15,13 +15,17 @@ Outline
 #. Models / Database
 
    #. Naming conventions - almost final design
-   #. Creating a new model - almost final
-   #. Migrations - WIP
-   #. Validations - WIP
+   #. Migrations: Creating and editing models - almost final
+   #. Strict validations - WIP
    #. Query helpers - partial design
    #. DB transactions & savepoints - partial design
 
 #. Creating JSON APIs - WIP
+
+   #. Basic JSON API - almost final
+   #. API-specific validations - WIP
+   #. File-uploads - WIP
+
 #. Frontend/UI code
 
    #. Communicating with JSON APIs - WIP
