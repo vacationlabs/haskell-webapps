@@ -166,7 +166,7 @@ Try the following in your REPL:
 
    updateModel
      (PK 1 :: UserId) -- which row to update
-     (\u -> (u & firstName .~ "new name")) -- updater function
+     (\u -> (u & firstName .~ (pgStrictText "new name"))) -- updater function
 
 (D)elete operations on models
 -----------------------------
