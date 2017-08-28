@@ -70,6 +70,6 @@ Now edit this file to create your tables, indexes, constraints, triggers, etc. u
    |])
 
 
-.. note::
+.. tip::
 
-   Soemthing comes here...how does thsi get formatted?
+   We should probably have our own quasi-quoter called ``sql`` or something, which allows mixing of raw SQL along with custom helper functions. We can write helper functions to generated indexes, triggers for audit logs, triggers for updating ``updated_at``, triggers for pushing to DB based ``event_log``, etc.
