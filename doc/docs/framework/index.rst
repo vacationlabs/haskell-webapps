@@ -10,3 +10,12 @@ Contents:
 Outline
 -------
 
+#. Models / Database
+
+   #. Naming conventions
+   #. Creating a new model
+   #. Migrations
+   #. Validations
+   #. Query helpers
+
+   
