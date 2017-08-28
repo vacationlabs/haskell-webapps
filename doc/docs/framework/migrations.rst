@@ -12,6 +12,8 @@ Setting up a fresh database
 
 This command will generate the following tables and triggers in your DB, **if they don't already exist:**
 
+#. ``schema_migrations`` table to track which migrations have already been run. This is directly influenced from Rails migrations.
+#. ``trg_update_modified_column`` to automatically set ``updated_at`` column to ``current_timestamp`` in any table which contains this column.
 
 Creating a new model
 --------------------
@@ -73,6 +75,10 @@ Now edit this file to create your tables, indexes, constraints, triggers, etc. u
    CREATE INDEX idx_users_updated_at on users(updated_at);
    CREATE INDEX idx_users_status on users(status);
    CREATE UNIQUE INDEX idx_users_username on users(username);
+
+   CREATE TRIGGER trg_modify_updated_at
+          BEFORE UPDATE ON users
+          FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
    |])
 
    down = ([qc|
