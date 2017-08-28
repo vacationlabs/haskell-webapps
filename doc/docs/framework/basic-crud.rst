@@ -122,17 +122,31 @@ Try the following in your REPL:
    -- finding by a primary key
    findByPk (PK 1 :: UserId)
 
-   -- find a single row by matching over two columns
+   -- find a single row by matching over two columns. Will throw an error if
+   -- this results in multiple rows being returned.
+
    findSingle2 tableForUser
      (
        (email, pgEq, "saurabh@vacationlabs.com")
      , (password, pgEq, "blahblah")
      )
 
-   -- find a single row by matching over three columns
+   -- find a single row by matching over three columns. Will throw an error if
+   -- this results in multiple rows being returned.
    findSingle3 tableForUser
      (
        (email, pgEq, "saurabh@vacationlabs.com")
      , (firstName, pgEq, "Saurabh")
      , (lastName, pgEq, "Nanda")
+     )
+
+   -- find the first row by matching over four columns. Will not throw an error
+   -- if this results in multiple rows being returned. Will silently return the
+   -- first row.
+   findSingle4 tableForUser
+     (
+       (email, pgEq, "saurabh@vacationlabs.com")
+     , (firstName, pgEq, "Saurabh")
+     , (lastName, pgEq, "Nanda")
+     , (userId, pgEq, PK 10)
      )
