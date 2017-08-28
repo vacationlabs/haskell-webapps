@@ -13,7 +13,7 @@ Setting up a fresh database
 This command will generate the following tables and triggers in your DB, **if they don't already exist:**
 
 #. ``schema_migrations`` table to track which migrations have already been run. This is directly influenced from Rails migrations.
-#. ``trg_update_modified_column`` to automatically set ``updated_at`` column to ``current_timestamp`` in any table which contains this column.
+#. ``trg_update_modified_column`` - a trigger to automatically set ``updated_at`` column to ``current_timestamp`` whenever any row is updated in a table which contains this column.
 
 Creating a new model
 --------------------
