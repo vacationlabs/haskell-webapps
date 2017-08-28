@@ -3,8 +3,6 @@ Strict model validations
 
 .. code:: haskell
 
-   -- Models.User
-
    module Models.User
      (
        module Models.User
