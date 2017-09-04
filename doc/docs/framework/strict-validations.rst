@@ -1,3 +1,41 @@
+General validation helpers
+==========================
+
+.. code:: haskell
+
+   --
+   validateLength :: (Foldable t, Monoid e, MonadIO m) => Text -> (Int, Int) -> Getting (t a) s (t a) -> s -> m e
+
+   -- NOTE: The type signature is probably incomplete. Please refer to the usage
+   -- sample to figure out what the actual type signature needs to be.
+   validateFormat :: (MonadIO m, Monoid e) => m RE -> Lens' s a -> s -> m e
+
+   -- Strips the field of all leading and trailing whitespace and then ensures
+   -- that is not a blank string. TODO: Should the whitespace-stripped string be
+   -- stored in the DB? How do we ensure that?
+   validatePresence :: (Monoid e, MonadIO m) => Text -> Getting Text s Text -> s -> m e
+
+   -- Ensures that a field is either Nothing OR a blank string (ignoring all
+   -- leading and trailing whitespace). TODO: How do we ensure that a blank-string
+   -- is actually treated as a Nothing when storing into the DB? Also, is there a
+   -- use-case for having a non-Maybe (i.e. NOT NULL) field, which is validated to
+   -- be a blank string?
+   validateAbsence :: (Monoid e, MonadIO m) => Text -> Getting (Maybe Text) s (Maybe Text) -> s -> m e
+
+   -- This will end up making a DB call, because of which, more class -
+   -- constraints will get added. Like `Default Constant a1 (Column a1)`. Also,
+   -- please NOTE - you have to be careful while querying the DB for rows with the
+   -- same fields to NOT match the record which is being validated. This can be
+   -- ensured by passing another condition to `filterN` -
+   -- (id, pgNotEq, record ^.id)
+   validateUnique1 :: (Monoid e, HasDatabase m) => Text -> (Getting a1 s a1) -> s -> m e
+   validateUnique2 :: (Monoid e, HasDatabase m) => Text -> (Getting a1 s a1, Getting a2 s a2) -> s -> m e
+   validateUnique3 :: (Monoid e, HasDatabase m) => Text -> (Getting a1 s a1, Getting a2 s a2, Getting a3 s a3) -> s -> m e
+   -- and so on... til validateUnique5
+
+   --
+   validateIn :: (Monoid e, MonadIO m) => Text -> [a] -> Getting [a] s [a] -> s -> m e
+
 Strict model validations
 ========================
 
@@ -13,12 +51,14 @@ Strict model validations
    instance DbModel User where
      strictValidations :: (MonadIO m) => User -> m [Error]
      strictValidations user =
-       (validateUnique email)
-       <> (validateLength (5, 100) name)
-       <> (validateFormat (compiledRegex "(.*)@(.*)\.(.*)") email)
-       <> (validatePresence name) -- strips the field of whitespace
+       (validateUnique "Email must be unique" email)
+       <> (validateLength "Name must be between 5 and 100 chars" (5, 100) name)
+       <> (validateFormat "Doesn't seem like a valid email." (compiledRegex "(.*)@(.*)\.(.*)") email)
+       <> (validatePresence "Name should be present" name) -- strips the field of whitespace
+       <> (validateIn "Should be one of black or gray" ["black", "gray"] colourCode)
        <> (if (present $ user ^. firstName)
-           then (validatePresence lastName)
+           then (validatePresence "Last name should be present if first name is given" lastName)
            else [])
+       
          
 
