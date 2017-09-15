@@ -45,18 +45,22 @@ When this is done, you will have a new docker image with name "vl-ubuntu-image".
 Configuring Stack
 -----------------
 
-Add the following lines to stack.yaml file.
+Your stack.yaml will contain the following lines.
 
 .. code:: yaml
 
   docker:
     env:
       - "APP_ENV=development"
+    enabled: false
     image: vl-ubuntu-image
     run-args: ["--ulimit=nofile=60000", "--memory=4g"]
 
 1. The `env` key contains a list and is used to set environment variables inside the container
    before the build.yaml
+
+2. The `enabled` flag set to false to NOT use docker by default. Docker will be involved only
+   upon specifing the command line flag `--docker`.
 
 2. The `image` key is used to specify the docker image from which the container for the build will be made.
    This should already exist.
