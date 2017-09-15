@@ -9,6 +9,7 @@ Contents:
    migrations
    basic-crud
    strict-validations
+   deploying
 
 
 Outline
