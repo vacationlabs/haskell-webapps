@@ -1,0 +1,16 @@
+resolver: lts-7.13
+
+packages:
+- '.'
+- location: ../mockAPI
+- location:
+    git: https://github.com/meditans/servant-router
+    commit: 64d69d7c3ac8cb1057a0e568da110869aec17de0
+  extra-dep: true
+
+extra-deps:
+- digestive-functors-0.8.1.1
+
+flags: {}
+
+extra-package-dbs: []

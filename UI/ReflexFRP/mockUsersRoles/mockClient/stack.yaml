@@ -1,0 +1,49 @@
+resolver: lts-7.13
+
+packages:
+- location: '.'
+- location: ../mockAPI
+- location: ../../reflex-ui-elements
+- location:
+    git: https://github.com/reflex-frp/reflex/
+    commit: 0356ce5f715707fbb4f01f28cae5adb357f22aa5
+  extra-dep: true
+- location:
+    git: https://github.com/reflex-frp/reflex-dom
+    commit: 66b6d35773fcb337ab38ebce02c4b23baeae721e
+  extra-dep: true
+- location:
+    git: https://github.com/reflex-frp/reflex-dom-contrib/
+    commit: 573212fd0c172b371fad2380125e67c67752dfed
+  extra-dep: true
+- location:
+    git: https://github.com/imalsogreg/servant-reflex
+    commit: cf0bce400cd194301e7b02e01cbc4139afd47d95
+  extra-dep: true
+- location:
+    git: https://github.com/meditans/reflex-jsx
+    commit: b5e04a74f8b455404dd719429d5d229db8753a41
+  extra-dep: true
+- location:
+    git: https://github.com/meditans/servant-router
+    commit: 64d69d7c3ac8cb1057a0e568da110869aec17de0
+  extra-dep: true
+
+# - location:
+#     git: https://github.com/paolino/servant-router
+#     commit: f3d18b5960d93b66ca3dbb0760caca0f18dfc01f
+#   extra-dep: true
+
+extra-deps:
+- MemoTrie-0.6.7
+- ghcjs-dom-0.2.4.0
+- newtype-generics-0.4
+- ref-tf-0.4.0.1
+- webkitgtk3-javascriptcore-0.13.2.0
+- zenc-0.1.1
+- digestive-functors-0.8.1.1
+- prim-uniq-0.1.0.1
+
+flags: {}
+
+extra-package-dbs: []

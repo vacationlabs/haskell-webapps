@@ -1,6 +1,8 @@
-{-# LANGUAGE ExplicitForAll, NoImplicitPrelude, NoMonomorphismRestriction #-}
-{-# LANGUAGE OverloadedStrings, RecursiveDo, ScopedTypeVariables          #-}
-{-# LANGUAGE TypeApplications                                             #-}
+{-# LANGUAGE ExplicitForAll, FlexibleContexts, NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction, OverloadedStrings        #-}
+{-# LANGUAGE PartialTypeSignatures, RankNTypes, RecursiveDo      #-}
+{-# LANGUAGE ScopedTypeVariables, TypeApplications, TypeFamilies #-}
+{-# LANGUAGE TypeOperators                                       #-}
 
 {-# OPTIONS_GHC -fdefer-typed-holes #-}
 
@@ -19,12 +21,18 @@ import MockAPI
 main :: IO ()
 main = JSWarp.run 8081 $ mainWidget body
 
+url :: BaseUrl
+url = BaseFullUrl Http "localhost" 8081 ""
+
+allApi :: forall t m. (MonadWidget t m) => _
+allApi = client (Proxy @MockApi) (Proxy :: Proxy m) (constDyn url)
+
+invokeAPI :: forall t m. (MonadWidget t m) =>
+             Dynamic t (Either Text User) -> Event t () -> m (Event t (ReqResult Text))
+(invokeAPI :<|> _ :<|> _) = allApi
+
 body :: forall t m. MonadWidget t m => m ()
 body = do
-  -- Instructions to use the server at localhost and to invoke the api
-  let url = BaseFullUrl Http "localhost" 8081 ""
-      (invokeAPI :<|> _ :<|> _) = client (Proxy @MockApi) (Proxy @m) (constDyn url)
-
   -- A description of the visual elements
   divClass "login-clean" $ do
     el "form" $ do
