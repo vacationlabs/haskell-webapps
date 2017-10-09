@@ -18,3 +18,4 @@ cabal.sandbox.config
 .stack-work/
 _build/
 cabal.project.local
+*.swp
