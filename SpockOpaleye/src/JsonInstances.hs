@@ -4,60 +4,55 @@
 
 module JsonInstances where
 
-import           Control.Monad
 import           Data.Aeson
 import           Data.Aeson.Types
+import           Data.Char
 import           Data.Text
 import           DataTypes
 
 instance FromJSON UserId where
-  parseJSON j@(Number v) = UserId <$> (parseJSON j)
+  parseJSON j@(Number _) = UserId <$> (parseJSON j)
   parseJSON invalid      = typeMismatch "UserId" invalid
 
 instance FromJSON TenantId where
-  parseJSON j@(Number v) = TenantId <$> (parseJSON j)
+  parseJSON j@(Number _) = TenantId <$> (parseJSON j)
   parseJSON invalid      = typeMismatch "TenantId" invalid
 
 instance FromJSON TenantStatus where
-  parseJSON j@(String v) = t_status <$> (parseJSON j)
+  parseJSON j@(String _) = tStatus <$> (parseJSON j)
     where
-      t_status :: Text -> TenantStatus
-      t_status "active"   = TenantStatusActive
-      t_status "inactive" = TenantStatusInActive
-      t_status "new"      = TenantStatusNew
+      tStatus :: Text -> TenantStatus
+      tStatus "active"   = TenantStatusActive
+      tStatus "inactive" = TenantStatusInActive
+      tStatus "new"      = TenantStatusNew
+      tStatus _      = error "Unknown status name while parsing TenantStatus field"
   parseJSON invalid = typeMismatch "TenantStatus" invalid
 
 instance FromJSON TenantIncoming where
   parseJSON (Object v) =
-    (Tenant ()) <$> v .: "name" <*> v .: "firstname" <*> v .: "lastname" <*>
+    (Tenant () () ()) <$> v .: "name" <*> v .: "firstname" <*> v .: "lastname" <*>
     v .: "email" <*>
     v .: "phone" <*>
     (pure ()) <*>
     v .: "userId" <*>
     v .: "backofficeDomain"
+  parseJSON invalid = typeMismatch "Unexpected type while paring TenantIncoming" invalid
 
 instance ToJSON TenantStatus where
   toJSON = genericToJSON defaultOptions
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-      { constructorTagModifier = tg_modify
-      }
+  toEncoding = genericToEncoding defaultOptions { constructorTagModifier = tgModify }
     where
-      tg_modify :: String -> String
-      tg_modify "TenantStatusActive"   = "active"
-      tg_modify "TenantStatusInActive" = "inactive"
-      tg_modify "TenantStatusNew"      = "new"
+      tgModify :: String -> String
+      tgModify "TenantStatusActive"   = "active"
+      tgModify "TenantStatusInActive" = "inactive"
+      tgModify "TenantStatusNew"      = "new"
+      tgModify _                      = error "Unknown status name for tenant"
 
 instance ToJSON Tenant where
   toJSON = genericToJSON defaultOptions
-  toEncoding =
-    genericToEncoding
-      defaultOptions
-      { fieldLabelModifier = remove_prefix
-      }
+  toEncoding = genericToEncoding defaultOptions { fieldLabelModifier = (fmap Data.Char.toLower).removePrefix }
     where
-      remove_prefix = Prelude.drop 7
+      removePrefix = Prelude.drop 11
 
 instance ToJSON UserId where
   toJSON = genericToJSON defaultOptions

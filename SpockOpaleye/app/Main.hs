@@ -2,16 +2,21 @@
 
 module Main where
 
-import           Database.PostgreSQL.Simple
 import           DataTypes
 import           JsonInstances              ()
 import           TenantApi
 import           Validations
+import           Control.Lens
 
 import           Web.Spock
 import           Web.Spock.Config
 
+import           Control.Monad.Reader
+import           Control.Monad.Writer
+import           Database.PostgreSQL.Simple 
 import qualified Data.Text                  as T
+import GHC.Int
+import Control.Exception
 
 data MySession =
   EmptySession
@@ -30,19 +35,47 @@ main = do
       DummyAppState
   runSpock 8080 (spock spockCfg app)
 
+runAppM :: Connection -> String -> TenantId -> Maybe UserId -> AppM a -> IO (Either SomeException a)
+runAppM conn summary tid maybe_uid x = do
+  _ <- setTxnEnv conn summary tid maybe_uid
+  r <- try $ withTransaction conn $ runReaderT (runWriterT x) (conn, Nothing, Nothing)
+  case  r of
+    Right (item, lg)  -> do
+      putStrLn lg
+      _ <- execute_ conn $ read $ "discard all"
+      return $ Right item
+    Left e -> do
+      _ <- execute_ conn $ read $ "discard all"
+      return $ Left e 
+
+setTxnEnv :: Connection -> String -> TenantId -> Maybe UserId -> IO GHC.Int.Int64
+setTxnEnv conn summary tenant_id maybe_uid = do
+  let user_id  = case maybe_uid of
+                  Just (UserId u_id) -> u_id
+                  Nothing -> 0
+  _ <- execute_ conn $ read $ "set audit.summary = '" ++ summary ++ "'"
+  _ <- execute_ conn $ read $ "set audit.currentuser = " ++ (show user_id)
+  execute_ conn $ read $ "set audit.currenttenant = " ++ (show tenant_id)
+
 app :: SpockM Connection MySession MyAppState ()
 app = do
-  post ("tenants/new") $
-    do maybe_tenant_incoming <- jsonBody
-       maybe_newtenant <-
-         case maybe_tenant_incoming of
-           Just incoming_tenant -> do
-             result <-
-               runQuery (\conn -> validateIncomingTenant conn incoming_tenant)
-             case result of
-               Valid -> runQuery (\conn -> create_tenant conn incoming_tenant)
-               _ -> return Nothing
-           Nothing -> return Nothing
-       case maybe_newtenant of
-         Just tenant -> json tenant
-         _           -> json $ T.pack "Tenant not created"
+  post ("tenants/new") $ do 
+      maybeTenantIncoming <- jsonBody
+      result <- case maybeTenantIncoming of
+         Just incomingTenant -> do
+           runQuery (\conn -> do
+             runAppM conn "creating tenant" (TenantId 1) Nothing $ do
+               result <- liftIO $ validateIncomingTenant conn incomingTenant
+               case result of
+                 Valid -> do
+                      newTenant <- createTenant incomingTenant
+                      let modifiedTenant = newTenant & name .~ "Updated name"
+                      _ <- updateTenant modifiedTenant
+                      return $ Right newTenant
+                 _ -> return $ Left $ T.pack "Validation fail"
+               )
+         Nothing -> return $ Right $ Left $ T.pack "Unrecognized input"
+      case result of
+        Right (Right nt) -> json nt
+        Right (Left msg) -> json msg
+        Left _ -> json $ T.pack "An exception occurred"

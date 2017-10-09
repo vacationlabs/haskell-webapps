@@ -5,132 +5,82 @@
 {-# LANGUAGE OverloadedStrings     #-}
 
 module TenantApi
-  ( create_tenant
-  , read_tenants
-  , read_tenant_by_id
-  , read_tenant_by_backofficedomain
-  , remove_tenant
-  , update_tenant
-  , activate_tenant
-  , deactivate_tenant
+  ( createTenant
+  , readTenants
+  , readTenantById
+  , readTenantByBackofficedomain
+  , removeTenant
+  , updateTenant
+  , activateTenant
+  , deactivateTenant
   ) where
 
+import           ApiBase
 import           Control.Arrow
+import           Control.Lens
+import           Control.Monad.Reader
+import           Data.Maybe
 import           Data.Text
 import           Database.PostgreSQL.Simple (Connection)
 import           DataTypes
 import           GHC.Int
 import           Opaleye
 import           OpaleyeDef
+import           Prelude                    hiding (id)
 import           RoleApi
 import           UserApi
 
-create_tenant :: Connection -> TenantIncoming -> IO (Maybe Tenant)
-create_tenant conn tenant@Tenant {
-  tenant_id = _
- ,tenant_name = name
- ,tenant_firstname = first_name
- ,tenant_lastname = last_name
- ,tenant_email = email
- ,tenant_phone = phone
- ,tenant_status = _
- ,tenant_ownerid = owner_id
- ,tenant_backofficedomain = bo_domain} = do
-  tenants <- runInsertManyReturning conn tenantTable (return Tenant {
-    tenant_id = Nothing
-   ,tenant_name = pgStrictText name
-   ,tenant_firstname = pgStrictText first_name
-   ,tenant_lastname = pgStrictText last_name
-   ,tenant_email = pgStrictText email
-   ,tenant_phone = pgStrictText phone
-   ,tenant_status = constant TenantStatusInActive
-   ,tenant_ownerid = toNullable . constant <$> owner_id
-   ,tenant_backofficedomain = pgStrictText bo_domain
-  }) id
-  return $ case tenants of
-    []     -> Nothing
-    (x:xs) ->Just x
+createTenant :: TenantIncoming -> AppM Tenant
+createTenant tenant = do
+  createRow tenantTable tenant
 
-activate_tenant :: Connection -> Tenant -> IO Tenant
-activate_tenant conn tenant = set_tenant_status conn tenant TenantStatusActive
+activateTenant :: Tenant -> AppM Tenant
+activateTenant tenant = setTenantStatus tenant TenantStatusActive
 
-deactivate_tenant :: Connection -> Tenant -> IO Tenant
-deactivate_tenant conn tenant = set_tenant_status conn tenant TenantStatusInActive
+deactivateTenant :: Tenant -> AppM Tenant
+deactivateTenant tenant = setTenantStatus tenant TenantStatusInActive
 
-set_tenant_status :: Connection -> Tenant -> TenantStatus -> IO Tenant
-set_tenant_status conn tenant status = update_tenant conn (tenant_id tenant)
-                                              tenant { tenant_status = status }
+setTenantStatus :: Tenant -> TenantStatus -> AppM Tenant
+setTenantStatus tenant st = updateTenant (tenant & status .~ st)
 
-update_tenant :: Connection -> TenantId -> Tenant -> IO Tenant
-update_tenant conn t_tenantid tenant@Tenant {
-  tenant_id = id
-  ,tenant_name = name
-  ,tenant_firstname = first_name
-  ,tenant_lastname = last_name
-  ,tenant_email = email
-  ,tenant_phone = phone
-  ,tenant_status = status
-  ,tenant_ownerid = owner_id
-  ,tenant_backofficedomain = bo_domain} = do
-  runUpdate conn tenantTable update_func match_func
-  return tenant
+updateTenant :: Tenant -> AppM Tenant
+updateTenant tenant = do
+  updateRow tenantTable tenant
+
+removeTenant :: Tenant -> AppM GHC.Int.Int64
+removeTenant tenant = do
+    tenant_deac <- deactivateTenant tenant
+    _ <- updateTenant (tenant_deac & ownerid .~ Nothing)
+    usersForTenant <- readUsersForTenant tid
+    rolesForTenant <- readRolesForTenant tid
+    mapM_ removeRole rolesForTenant
+    mapM_ removeUser usersForTenant
+    removeRow tenantTable tenant
   where
-    match_func :: TenantTableR -> Column PGBool
-    match_func Tenant { tenant_id = id } = id .== (constant t_tenantid)
-    update_func :: TenantTableR -> TenantTableW
-    update_func x = Tenant {
-      tenant_id = constant $ Just id
-      ,tenant_name =  pgStrictText name
-      ,tenant_firstname =  pgStrictText first_name
-      ,tenant_lastname =  pgStrictText last_name
-      ,tenant_email =  pgStrictText email
-      ,tenant_phone =  pgStrictText phone
-      ,tenant_status =  constant status
-      ,tenant_ownerid =  toNullable . constant <$> owner_id
-      ,tenant_backofficedomain =  pgStrictText bo_domain
-    }
+    tid = tenant ^. id
 
-remove_tenant :: Connection -> Tenant -> IO GHC.Int.Int64
-remove_tenant conn tenant@Tenant {tenant_id = tid} = do
-  deactivate_tenant conn tenant
-  update_tenant conn (tenant_id tenant) tenant { tenant_ownerid = Nothing }
-  users_for_tenant <- read_users_for_tenant conn tid
-  roles_for_tenant <- read_roles_for_tenant conn tid
-  mapM_ (remove_role conn) roles_for_tenant
-  mapM_ (remove_user conn) users_for_tenant
-  runDelete conn tenantTable match_func
-  where
-    match_func :: TenantTableR -> Column PGBool
-    match_func Tenant { tenant_id = id } = id .== (constant tid)
+readTenants :: Connection -> IO [Tenant]
+readTenants conn = runQuery conn tenantQuery
 
-read_tenants :: Connection -> IO [Tenant]
-read_tenants conn = runQuery conn tenant_query
+readTenantById :: Connection -> TenantId -> IO (Maybe Tenant)
+readTenantById conn tenantId = do
+  listToMaybe <$> (runQuery conn $ (tenantQueryById tenantId))
 
-read_tenant_by_id :: Connection -> TenantId -> IO (Maybe Tenant)
-read_tenant_by_id conn id = do
-  r <- runQuery conn $ (tenant_query_by_id id)
-  return $ case r of
-    []     -> Nothing
-    (x:xs) -> Just x
+readTenantByBackofficedomain :: Connection -> Text -> IO (Maybe Tenant)
+readTenantByBackofficedomain conn domain = do
+  listToMaybe <$> (runQuery conn $ (tenantQueryByBackoffocedomain domain))
 
-read_tenant_by_backofficedomain :: Connection -> Text -> IO (Maybe Tenant)
-read_tenant_by_backofficedomain conn domain = do
-  r <- runQuery conn $ (tenant_query_by_backoffocedomain domain)
-  return $ case r of
-    []     -> Nothing
-    (x:xs) -> Just x
+tenantQuery :: Opaleye.Query TenantTableR
+tenantQuery = queryTable tenantTable
 
-tenant_query :: Opaleye.Query TenantTableR
-tenant_query = queryTable tenantTable
+tenantQueryById :: TenantId -> Opaleye.Query TenantTableR
+tenantQueryById tId = proc () -> do
+  tenant <- tenantQuery -< ()
+  restrict -< (tenant ^. id) .== (constant tId)
+  returnA -< tenant
 
-tenant_query_by_id :: TenantId -> Opaleye.Query TenantTableR
-tenant_query_by_id t_id = proc () -> do
-  row@Tenant {tenant_id = id} <- tenant_query -< ()
-  restrict -< id .== (constant t_id)
-  returnA -< row
-
-tenant_query_by_backoffocedomain :: Text -> Opaleye.Query TenantTableR
-tenant_query_by_backoffocedomain domain = proc () -> do
-  row@Tenant { tenant_backofficedomain = bo_domain } <- tenant_query -< ()
-  restrict -< bo_domain .== (pgStrictText domain)
-  returnA -< row
+tenantQueryByBackoffocedomain :: Text -> Opaleye.Query TenantTableR
+tenantQueryByBackoffocedomain domain = proc () -> do
+  tenant <- tenantQuery -< ()
+  restrict -< (tenant ^. backofficedomain) .== (pgStrictText domain)
+  returnA -< tenant
