@@ -62,9 +62,10 @@ Since Opaleye does not have any support for migrations, setting up the DB schema
 
 Now, to setup the DB<=>Haskell mapping for the ``tenants`` table, we'll walk down the following code: ::
 
+    {-# LANGUAGE TemplateHaskell #-}
     module DB where
 
-    import Opalaye
+    import Opaleye
     import Data.Text
     import Data.Time (UTCTime)
 
