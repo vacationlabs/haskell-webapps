@@ -1,10 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE TypeInType #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes #-}
@@ -15,12 +14,15 @@ module Updater
 import Control.Lens
 import Data.Aeson
 import Data.Aeson.Types (Parser)
+import Control.Monad.IO.Class
+import Data.Time
 import Data.Text (Text)
 import GHC.Types
 import Types
 
 
-type family AllC (cs :: [k -> Constraint]) (a :: k) :: Constraint where
+type family AllC (cs :: [Type -> Constraint]) (a :: Type) 
+            = (c :: Constraint) | c -> cs where
     AllC '[] a = ()
     AllC (c ': cs) a = (c a, AllC cs a)
 
@@ -29,6 +31,11 @@ newtype Updater cs = U { runUpdate :: forall a. AllC cs a => a -> a }
 instance forall cs. Monoid (Updater cs) where
     mempty = U id
     (U a) `mappend` (U b) = U $ (a . b)
+
+applyUpdate :: (MonadIO m, AllC cs a, HasTimestamp a) => Updater cs -> a -> m a
+applyUpdate upd a = do
+    time <- liftIO getCurrentTime
+    return $ set updatedAt time $ runUpdate upd a
 
 parseUpdater :: forall cs a. FromJSON a => Object -> Text -> (a -> Updater cs) -> Parser (Updater cs)
 parseUpdater v t setter = maybe (mempty :: Updater cs) setter <$> v .:? t

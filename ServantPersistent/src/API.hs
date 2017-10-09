@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TypeOperators   #-}
-{-# LANGUAGE LiberalTypeSynonyms #-}
 module API
     where
 
@@ -10,16 +9,15 @@ import Data.ByteString
 import Auth
 import DBTypes
 import Types
+import ProductQuery
 
-type ProductID = Int
 type ActivationRequest = ()
 type ActivationResponse = ()
-type Product = ()
 
 type TenantAPI = 
       "new" :> ReqBody '[JSON] TenantInput 
-                :> Post '[JSON] (Headers '[Header "location" String] TenantID)
- :<|> Capture "id" TenantID  :> Get '[JSON] TenantOutput
+                :> Post '[JSON] (Headers '[Header "location" String] TenantId)
+ :<|> Capture "id" TenantId  :> Get '[JSON] TenantOutput
 --      :<|> Capture "id" TenantID  :> "activate" :> ReqBody '[JSON] ActivationRequest :> Post '[JSON] ActivationResponse
 
 type SessionAPI = 
@@ -27,9 +25,9 @@ type SessionAPI =
 -- :<|> "refresh" :> ReqBody '[JSON] LoginForm :> Post '[JSON] (Headers '[Header "set-cookie" ByteString] ())
 -- :<|> "destroy" :> ReqBody '[JSON] LoginForm :> Post '[JSON] (Headers '[Header "set-cookie" ByteString] ())
 
-type ProductAPI = 
-      Capture "id" ProductID :> Get '[JSON] Product
- :<|> Get '[JSON] [Product]
+type ProductAPI =
+      Capture "id" ProductId :> Get '[JSON] Product
+ :<|> QueryParams "filter" ProductFilter :> QueryParams "field" ProductView :> Get '[JSON] [Product]
 
 type API = "tenants"  :> TenantAPI
       :<|> "session"  :> SessionAPI

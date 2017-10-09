@@ -1,25 +1,22 @@
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TypeOperators   #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
+{-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilyDependencies #-}
-{-# LANGUAGE TypeInType #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE QuasiQuotes                #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeInType                 #-}
 module Models
     where
 
-import Database.Persist.Sql
-import Database.Persist.TH
-import Data.Time.Clock
-import Data.Text
-import Control.Monad.IO.Class
-import Control.Monad.Reader
-import Types
+import           Data.Text
+import           Data.Time.Clock
+import           Database.Persist.Sql
+import           Database.Persist.TH
+import           Price
+import           Types
 
 share [mkPersist sqlSettings { mpsGenerateLenses = True }, mkMigrate "migrateAll"] [persistLowerCase|
 DBTenant json
@@ -29,6 +26,7 @@ DBTenant json
     status TenantStatus
     createdAt UTCTime
     updatedAt UTCTime
+     deriving Eq Show
     UniqueBackofficeDomain backofficeDomain
 
 DBUser
@@ -40,12 +38,59 @@ DBUser
     status UserStatus
     email Text
     phone Text
+    roleId RoleId
     createdAt UTCTime
     updatedAt UTCTime
     UniqueUsername username
     UniqueEmail email
+
+DBTenantActivation
+    tenantID DBTenantId
+    createdAt UTCTime
+    UniqueTenantActivation tenantID
+
+DBUserActivation
+    userID DBUserId
+    createdAt UTCTime
+    UniqueUserActivation userID
+
+DBProduct
+    name Text
+    description Text
+    currency Text
+    advertisedPrice Price
+    comparisionPrice Price
+    costPrice Price Maybe
+    productType ProductType
+    properties AppJSON
+    urlSlug Text
+    tenantID DBTenantId
+--    variantSkus [Text]
+    createdAt UTCTime
+    updatedAt UTCTime
+    UniqueSlug urlSlug
+
+DBVariant
+    name Text
+    productID DBProductId
+    sku Text
+    price Price
+    weightInGrams Double Maybe
+    weightDisplayUnit Text Maybe
+    createdAt UTCTime
+    updatedAt UTCTime
+    UniqueSku sku
+
+Role
+    name Text
+    capabilities [Capability]
+    tenant DBTenantId
+    UniqueRoleName name tenant
 |]
 
+deriving instance Eq (Unique DBTenant)
+
+deriving instance Show (Unique DBTenant)
 
 instance HasTimestamp DBTenant where
     createdAt = dBTenantCreatedAt
@@ -70,7 +115,9 @@ instance HasUsername DBUser where
 instance HasPassword DBUser where
     password = dBUserPassword
 
-runDb :: (MonadReader Config m, MonadIO m) => SqlPersistT IO b -> m b
-runDb query = do
-    pool <- asks dbPool
-    liftIO $ runSqlPool query pool
+type TransactionT = SqlPersistT
+
+runTransaction :: DBMonad m => TransactionT m a -> m a
+runTransaction t = do
+    pool <- getDBPool
+    runSqlPool t pool

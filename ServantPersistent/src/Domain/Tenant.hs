@@ -1,22 +1,22 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module Domain.Tenant
     where
 
-import Control.Lens
-import Data.Time
-import Database.Persist
-import Control.Monad.IO.Class
-import Data.Text (Text)
-import Data.ByteString (ByteString)
-import Models
-import Types
-import Updater
-import DBTypes
-import Operation
+import           Control.Lens
+import           Control.Monad.Except
 
-dbCreateTenant :: TenantInput -> App (Maybe TenantID)
-dbCreateTenant ti = runDb $ do
-    time <- liftIO $ getCurrentTime
+import           Data.Time
+import           Database.Persist
+import           DBTypes
+import           Models
+import           Operation
+import           Types
+import           Updater
+
+
+dbCreateTenant :: MonadIO m => TenantInput -> TransactionT m (Maybe (TenantId, TenantActivationId))
+dbCreateTenant ti = do
+    time <- liftIO getCurrentTime
     let dbt = DBTenant { _dBTenantName = ti ^. name
                        , _dBTenantBackofficeDomain = ti ^. backofficeDomain
                        , _dBTenantOwnerId = Nothing
@@ -24,30 +24,42 @@ dbCreateTenant ti = runDb $ do
                        , _dBTenantCreatedAt = time
                        , _dBTenantUpdatedAt = time
                        }
-    insertUnique dbt
+    mtid <- insertUnique dbt
+    case mtid of
+      Nothing -> return Nothing
+      Just tid -> do
+                key <- insert (DBTenantActivation tid time)
+                return $ Just (tid,key)
 
 
-dbGetTenant :: TenantID -> App (Maybe Tenant)
-dbGetTenant = runDb . get
+dbGetTenant :: MonadIO m => TenantId -> TransactionT m (Maybe Tenant)
+dbGetTenant = get
 
-dbUpdateTenant :: TenantUpdater -> TenantID -> OperationT App (Either DBError ())
-dbUpdateTenant tu id = requirePermission (EditTenant id) >> (runDb $ do
-    time <- liftIO $ getCurrentTime
-    oldTenant' <- get id
+dbUpdateTenant :: MonadIO m =>
+                  TenantUpdater -> TenantId -> OperationT (TransactionT m) (Either DBError ())
+dbUpdateTenant upd tid = requirePermission (EditTenant tid) $ lift $ do
+    oldTenant' <- get tid
     case oldTenant' of
-         Nothing -> return $ Left $ TenantNotFound id
-         Just oldTenant -> Right <$> replace id (set updatedAt time $ runUpdate tu oldTenant))
+         Nothing -> return $ Left $ TenantNotFound tid
+         Just oldTenant ->
+           maybe (return ())
+                 (Left . ViolatesTenantUniqueness)
+             <$> (replaceUnique tid =<< applyUpdate upd oldTenant)
 
+activateTenant :: MonadIO m
+               => UserId
+               -> TenantActivationId
+               -> TransactionT m (Either ActivationError ())
+activateTenant owner key = runExceptT $ do
+                       r <- lift $ get key
+                       time <- liftIO getCurrentTime
+                       case r of
+                         Nothing -> throwError ActivationError
+                         Just (DBTenantActivation tid _) -> do
+                           lift $ update tid [ DBTenantStatus =. ActiveT
+                                             , DBTenantOwnerId =. Just owner
+                                             , DBTenantUpdatedAt =. time
+                                             ]
+                           lift $ delete key
+                       return ()
 
-encode = undefined
-
-decode = undefined
-
-activateTenant :: UserID -> ByteString -> App ()
-activateTenant uid actkey = runDb $ do
-    let (Activation tid _) = decode actkey
-    time <- liftIO $ getCurrentTime
-    update tid [ DBTenantOwnerId =. Just uid
-               , DBTenantStatus =. ActiveT
-               , DBTenantUpdatedAt =. time
-               ]

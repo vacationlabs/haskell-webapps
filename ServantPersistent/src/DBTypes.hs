@@ -1,117 +1,159 @@
-{-# LANGUAGE DeriveGeneric   #-}
-{-# LANGUAGE DeriveAnyClass   #-}
-{-# LANGUAGE TypeFamilies   #-}
-{-# LANGUAGE GADTs   #-}
-{-# LANGUAGE DataKinds   #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE StandaloneDeriving   #-}
-{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE DeriveGeneric      #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE TypeFamilies       #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE FlexibleInstances  #-}
 {-# LANGUAGE FlexibleContexts   #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE UndecidableInstances #-}
 module DBTypes where
 
 import Data.Aeson
 import Data.Aeson.TH
 import Data.Text
-import Data.Serialize
 import Data.Time.Clock
 import GHC.Generics
 import Control.Lens
 import Types
+import Price
 import Models
-import Data.Default
+import Database.Persist
+import Database.Persist.Sql
+import Data.Serialize
+import GHC.TypeLits
 
-type TenantID = Key DBTenant
+
 type Tenant = DBTenant
 type TenantOutput = DBTenant
-type UserID = Key DBUser
+type TenantId = Key DBTenant
+type UserId = Key DBUser
+type ProductId = Key DBProduct
+type UserActivationId = Key DBUserActivation
+type TenantActivationId = Key DBTenantActivation
 
-data DBError = TenantNotFound TenantID
-             | UserNotFound UserID deriving (Eq, Show)
+
+data Product = Product { getProduct :: Entity DBProduct
+                       , getVariants :: [Entity DBVariant]}
+-- Dummy instance
+
+instance ToJSON Product where
+  toJSON = undefined
+data ProductInput =
+    ProductI { piName :: Text
+             , piDescription :: Text
+             , piCurrency :: Text
+             , piType :: ProductType
+             , piVariants :: [VariantInput]
+             , piProperties :: AppJSON
+             , piCostPrice :: Maybe Price
+             , piComparisonPrice :: Maybe Price
+             , piAdvertisedPrice :: Maybe Price
+             , piURLSlug :: Maybe Text
+             }
+data VariantInput =
+    VariantI { viName :: Text
+             , viSKU :: Text
+             , viWeightInGrams :: Maybe Double
+             , viWeightDisplayUnit :: Maybe Text
+             , viPrice :: Price
+             }
+
+instance Serialize UserId where
+  get = DBUserKey . SqlBackendKey <$> Data.Serialize.get
+  put x = put (unSqlBackendKey $ unDBUserKey x)
+
+instance Serialize UTCTime where
+  get = read <$> Data.Serialize.get
+  put x = put (show x)
+
+
+data Session = Session { sessionUserID :: UserId
+                       , startTime :: UTCTime
+                       } deriving (Show, Generic, Serialize, FromJSON , ToJSON)
+
+data DBError = TenantNotFound TenantId
+             | UserNotFound UserId
+             | ProductNotFound ProductId
+             | RoleNotFound (Either RoleId Text)
+             | ViolatesTenantUniqueness (Unique Tenant)
+             | UserAlreadyActive UserId
+                deriving (Eq, Show)
+
 data UserCreationError = UserExists Text
                        | TenantDoesn'tExist Text
                         deriving (Eq, Show)
+data ActivationError = ActivationError
 
-data Role = Role { roleName :: Text
-                 , roleCapabilities :: [Capability]
-                 }
 
-instance Default Role where
-    def = Role "Default Role" []
-
-data Capability = ViewUserDetails
-                | EditUserDetails
-                | EditUserRoles
-                | EditTenantDetails
-
-data Activation =
-    Activation { activationTenantID :: TenantID
-               , activationTime :: UTCTime
-               } deriving (Generic)
-
-data TenantIdent =
+data TenantInput =
     TenantI { _name :: Text
             , _backofficeDomain :: Text
             } deriving (Generic)
-instance FromJSON TenantIdent where
+instance FromJSON TenantInput where
     parseJSON = genericParseJSON (defaultOptions { fieldLabelModifier = Prelude.drop 1})
-instance ToJSON TenantIdent where
+instance ToJSON TenantInput where
     toEncoding = genericToEncoding (defaultOptions { fieldLabelModifier = Prelude.drop 1})
     toJSON = genericToJSON (defaultOptions { fieldLabelModifier = Prelude.drop 1})
 
-instance HasName TenantIdent where
+instance HasName TenantInput where
     name = lens _name (\ti n -> ti { _name = n } )
-instance HasBackofficeDomain TenantIdent where
+instance HasBackofficeDomain TenantInput where
     backofficeDomain = lens _backofficeDomain (\ti bd -> ti { _backofficeDomain = bd } )
 
-type TenantInput = TenantIdent
+data UserType = Input
+              | Regular
 
-data FieldStatus = Present | Absent | Unknown
-
-type family Omittable (state :: FieldStatus) a where
-    Omittable Present a = a
-    Omittable Absent a = ()
-    Omittable Unknown a = Maybe a
+type family Omittable (state :: UserType) (s :: Symbol) a where
+  Omittable Input "password" a = a
+  Omittable Input _ a = ()
+  Omittable Regular "password" a = ()
+  Omittable Regular _ a = a
 
 class HasTenantID s where
-    tenantID :: Lens' s TenantID
+    tenantID :: Lens' s TenantId
+
+class HasUserID s where
+    userID :: Lens' s UserId
 
 instance HasTenantID DBUser where
     tenantID = dBUserTenantID
 
-data UserBase (pass :: FieldStatus) (st :: FieldStatus) (rl :: FieldStatus) (id :: FieldStatus) =
+data UserBase (userType :: UserType)=
     UserB { _userFirstName :: Text
           , _userLastName :: Text
           , _userEmail :: Text
           , _userPhone :: Text
           , _userUsername :: Text
-          , _userTenantID :: TenantID
-          , _userPassword :: Omittable pass Text
-          , _userStatus :: Omittable st UserStatus
-          , _userRole :: Omittable rl Role
-          , _userUserID :: Omittable id UserID
+          , _userTenantID :: TenantId
+          , _userPassword :: Omittable userType "password" Text
+          , _userStatus :: Omittable userType "status" UserStatus
+          , _userRole :: Omittable userType "role" Role
+          , _userUserID :: Omittable userType "userID" UserId
           } deriving (Generic)
 
 makeLenses ''UserBase
 
-instance HasHumanName (UserBase pass st rl id) where
+instance HasHumanName (UserBase a) where
     firstName = userFirstName
     lastName = userLastName
-instance HasContactDetails (UserBase pass st rl id) where
+instance HasContactDetails (UserBase a) where
     email = userEmail
     phone = userPhone
-instance HasUsername (UserBase pass st rl id) where
+instance HasUsername (UserBase a) where
     username = userUsername
-instance HasPassword (UserBase Present st rl id) where
+instance HasPassword (UserBase Input) where
     password = userPassword
-instance HasTenantID (UserBase pas st rl id) where
+instance HasTenantID (UserBase a) where
     tenantID = userTenantID
+instance HasUserID (UserBase Regular) where
+    userID = userUserID
 
-deriving instance (Show (Omittable pass Text),
-                   Show (Omittable st UserStatus),
-                   Show (Omittable rl Role),
-                   Show (Omittable id UserID))
-                   => Show (UserBase pass st rl id)
+deriving instance (Show (Omittable a "password" Text),
+                   Show (Omittable a "status" UserStatus),
+                   Show (Omittable a "role" Role),
+                   Show (Omittable a "userID" UserId))
+                   => Show (UserBase a)
 
-type UserInput = UserBase Present Absent Absent Absent
-type User = UserBase Absent Present Present Present
+type UserInput = UserBase Input
+type User = UserBase Regular
+
