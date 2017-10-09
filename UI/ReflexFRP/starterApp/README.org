@@ -4,4 +4,4 @@ To build the demo:
 - =stack build gtk2hs-buildtools=
 - Iy the meantime, be sure to have the required system libraries (like webkitgtk). If you miss some of the libraries, they will pop up as error in the next step.
 - =stack build=
-- =stack exec userValidation=
+- =stack exec starterApp=

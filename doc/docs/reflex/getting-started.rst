@@ -22,7 +22,8 @@ Clone the entire repo, move to that folder and launch these installation steps:
   miss some of the libraries, they will pop up as error in the next step, and
   you can install the missing ones
 * Build with ghc: ``stack build``
-* Execute the desktop app: ``stack exec userValidation``
+* Execute the desktop app: ``stack exec starterApp``
+* Execute the web app: ``firefox localhost:8081``
 * Build with ghcjs: ``./deploy.sh``  
 * Execute the web app: ``firefox js/index.html``
 
